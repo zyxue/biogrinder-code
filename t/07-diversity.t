@@ -11,7 +11,7 @@ my ($factory, $nof_reads, $read, %sources);
 # Single library, single diversity
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -random_seed => 1233567880                    ,
    -total_reads => 100                           ,
    -diversity   => 2                              ), 'Single library, single diversity';
@@ -28,7 +28,7 @@ is scalar keys %sources, 2;
 # Two libraries, single diversity
 
 ok $factory = Grinder->new(
-   -genome_file   => './t/data/shotgun-database.fa',
+   -genome_file   => './t/data/shotgun_database.fa',
    -random_seed   => 1233567880                    ,
    -total_reads   => 100                           ,
    -num_libraries => 2                             ,
@@ -56,7 +56,7 @@ is scalar keys %sources, 2;
 # Two libraries, two diversities
 
 ok $factory = Grinder->new(
-   -genome_file   => './t/data/shotgun-database.fa',
+   -genome_file   => './t/data/shotgun_database.fa',
    -random_seed   => 1233567880                    ,
    -total_reads   => 100                           ,
    -num_libraries => 2                             ,

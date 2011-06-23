@@ -12,7 +12,7 @@ my ($factory, $nof_reads, $read);
 # Tracking read information in the read description 
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -read_dist   => 52                            ,
    -total_reads => 10                            ,
 ), 'no quality scores';
@@ -22,7 +22,7 @@ is join(' ',@{$read->qual}), '';
 
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -read_dist   => 52                            ,
    -total_reads => 10                            ,
    -qual_levels => '30 10'                       ,

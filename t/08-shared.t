@@ -11,7 +11,7 @@ my ($factory, $nof_reads, $read, $lib_num, %sources, %shared);
 # No species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -length_bias     => 0                             ,
@@ -43,7 +43,7 @@ is scalar keys %shared, 0;
 # 50% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -length_bias     => 0                             ,
@@ -75,7 +75,7 @@ is scalar keys %shared, 1;
 # 66% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -length_bias     => 0                             ,
@@ -107,7 +107,7 @@ is scalar keys %shared, 1;
 # 67% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -length_bias     => 0                             ,
@@ -139,7 +139,7 @@ is scalar keys %shared, 2;
 # All species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -length_bias     => 0                             ,
@@ -171,7 +171,7 @@ is scalar keys %shared, 5;
 # Inequal richness
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/shotgun-database.fa',
+   -genome_file     => './t/data/shotgun_database.fa',
    -random_seed     => 1233567890                    ,
    -abundance_model => 'uniform'                     ,
    -total_reads     => 100                           ,

@@ -12,7 +12,7 @@ my ($factory, $nof_reads, $read);
 # Initialization with short argument
 
 ok $factory = Grinder->new(
-   -gf => './t/data/shotgun-database.fa',
+   -gf => './t/data/shotgun_database.fa',
    -tr => 10                             ), 'Shotgun & short arguments';
 
 ok $factory->next_read;
@@ -21,7 +21,7 @@ ok $factory->next_read;
 # Long argument
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -read_dist   => 52                            ,
    -total_reads => 100                            ), 'Long arguments';
 

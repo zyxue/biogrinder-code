@@ -12,7 +12,7 @@ my ($factory, $nof_reads, $read);
 # Tracking read information in the read description 
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -total_reads => 10                            ,
    -desc_track  => 1                             ,
 ), 'tracking on';
@@ -22,7 +22,7 @@ is ( $read->desc =~ m/reference=.*position=.*strand=.*/, 1);
 
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -total_reads => 10                             ,
    -desc_track  => 0                             ,
 ), 'tracking off';
@@ -32,7 +32,7 @@ is $read->desc, undef;
 
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -total_reads => 10                            ,
 ), 'tracking default';
 

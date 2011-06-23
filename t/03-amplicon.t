@@ -10,7 +10,7 @@ my ($factory, $read, $nof_reads);
 # Forward primer only, forward sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon-database.fa',
+   -genome_file     => './t/data/amplicon_database.fa',
    -forward_reverse => './t/data/forward_primer.fa'   ,
    -length_bias     => 0                              ,
    -unidirectional  => 1                              ,
@@ -34,7 +34,7 @@ is $nof_reads, 100;
 # Forward and reverse primers
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon-database.fa'      ,
+   -genome_file     => './t/data/amplicon_database.fa'      ,
    -forward_reverse => './t/data/forward_reverse_primers.fa',
    -length_bias     => 0                                    ,
    -unidirectional  => 1                                    ,
@@ -57,7 +57,7 @@ is $nof_reads, 100;
 # Reverse primer only, reverse sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon-database.fa',
+   -genome_file     => './t/data/amplicon_database.fa',
    -forward_reverse => './t/data/reverse_primer.fa'   ,
    -length_bias     => 0                              ,
    -unidirectional  => -1                             ,
@@ -80,7 +80,7 @@ is $nof_reads, 100;
 # Reverse and forward primers, reverse sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon-database.fa'      ,
+   -genome_file     => './t/data/amplicon_database.fa'      ,
    -forward_reverse => './t/data/reverse_forward_primers.fa',
    -length_bias     => 0                                    ,
    -unidirectional  => -1                                   ,

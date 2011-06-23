@@ -13,7 +13,7 @@ my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev);
 # All sequences the same length
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa' ,
+   -genome_file => './t/data/shotgun_database.fa' ,
    -read_dist   => 50                             ,
    -random_seed => 1910567890                     ,
    -total_reads => 1000                            ), 'Same length reads';
@@ -30,7 +30,7 @@ is $stddev, 0;
 
 # Uniform distribution
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa' ,
+   -genome_file => './t/data/shotgun_database.fa' ,
    -read_dist   => (50, 'uniform', 10)            ,
    -random_seed => 1910567890                     ,
    -total_reads => 1000                            ), 'Uniform distribution';
@@ -49,7 +49,7 @@ ok $mean > 49;
 
 # Normal distribution
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa' ,
+   -genome_file => './t/data/shotgun_database.fa' ,
    -read_dist   => (50, 'normal', 10)             ,
    -random_seed => 1910567890                     ,
    -total_reads => 1000                            ), 'Normal distribution';
@@ -66,20 +66,20 @@ ok $mean > 49;
 
 
 sub stats {
-  # Calculates min, max, mean, stddev
-  my ($reads) = @_;
-  my ($min, $max, $mean, $sum, $sqsum, $stddev) = (1E99, 0, 0, 0, 0, 0);
-  my $num = scalar @$reads;
-  for my $read (@$reads) {
-    my $length = $read->length;
-    $min = $length if $length < $min;
-    $max = $length if $length > $max;
-    $sum += $length;
-    $sqsum += $length**2
-  }
-  $mean = $sum / $num;
+   # Calculates min, max, mean, stddev
+   my ($reads) = @_;
+   my ($min, $max, $mean, $sum, $sqsum, $stddev) = (1E99, 0, 0, 0, 0, 0);
+   my $num = scalar @$reads;
+   for my $read (@$reads) {
+      my $length = $read->length;
+      $min = $length if $length < $min;
+      $max = $length if $length > $max;
+      $sum += $length;
+      $sqsum += $length**2
+   }
+   $mean = $sum / $num;
   
-  #### calculate stddev
+   #### calculate stddev
 
-  return $min, $max, $mean, $stddev;
+   return $min, $max, $mean, $stddev;
 }

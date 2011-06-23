@@ -8,7 +8,7 @@ use Grinder;
 my ($factory, $mate1, $mate2, $read, $nof_reads);
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun-database.fa',
+   -genome_file => './t/data/shotgun_database.fa',
    -total_reads => 100                           ,
    -insert_dist => 250                            ), 'Mate pairs';
 
