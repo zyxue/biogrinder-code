@@ -19,7 +19,7 @@ ok $factory = Grinder->new(
    -total_reads => 1000                            ), 'Same length reads';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read;
+   push @reads, $read->length;
 };
 ($min, $max, $mean, $stddev) = stats(\@reads);
 is $min, 50;
@@ -36,7 +36,7 @@ ok $factory = Grinder->new(
    -total_reads => 1000                            ), 'Uniform distribution';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read;
+   push @reads, $read->length;
 };
 ($min, $max, $mean, $stddev) = stats(\@reads);
 ok $min >= 40;
@@ -55,7 +55,7 @@ ok $factory = Grinder->new(
    -total_reads => 1000                            ), 'Normal distribution';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read;
+   push @reads, $read->length;
 };
 ($min, $max, $mean, $stddev) = stats(\@reads);
 ok $mean < 51;
@@ -65,17 +65,17 @@ ok $mean > 49;
 @reads = ();
 
 
+
 sub stats {
    # Calculates min, max, mean, stddev
-   my ($reads) = @_;
+   my ($vals) = @_;
    my ($min, $max, $mean, $sum, $sqsum, $stddev) = (1E99, 0, 0, 0, 0, 0);
-   my $num = scalar @$reads;
-   for my $read (@$reads) {
-      my $length = $read->length;
-      $min = $length if $length < $min;
-      $max = $length if $length > $max;
-      $sum += $length;
-      $sqsum += $length**2
+   my $num = scalar @$vals;
+   for my $val (@$vals) {
+      $min = $val if $val < $min;
+      $max = $val if $val > $max;
+      $sum += $val;
+      $sqsum += $val**2
    }
    $mean = $sum / $num;
   
