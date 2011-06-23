@@ -1,0 +1,124 @@
+Revision history for Grinder
+
+0.3.4   23-Jun-2011
+        New option to generate basic quality scores if desired (-qual_levels)
+        New option to not track the read info in the read description (-desc_track)
+        Objects returned by Grinder are now Bio::Seq::SimulatedRead Bioperl objects
+        Double-quotes in read description are now escaped, i.e. '"' becomes '\"'
+        Now using 'reference' instead of 'source' in read tracking description
+        Changes in the defaults:
+          uniform community structure instead of power law
+          uniform read distribution instead of normally distributed
+
+0.3.3   03-Mar-2011
+        New option to sequence from the reverse strand: see <unidirectional>
+          (suggested by Barry Cayford).
+        Output FASTA files now named *reads* instead of *shotgun* because
+          libraries can be amplicon too.
+        Output file names now use numbers padded with zeroes so that, e.g. if
+          123 libraries were requested, their name is in 001, 002 ... 123.
+        Output folder is now created automatically if it does not already exist.
+        The next_read() method now returns only one read, even for mate pairs.
+        Force the alphabet to DNA when reading the primer sequence file since
+          degenerate primers can look like protein sequences.
+        Fixed bug where Grinder sometimes created libraries even though there
+          were not enough sequences to do it safely (reported by Dana Willner).
+        When the number of reads to generate is smaller than the required
+          diversity, the actual diversity reported reflects this now.
+        Not reporting errors "Not enough sequences for chimera..." when there is
+          less than 2 reads and chimera_perc is 0.
+        Fixed bug in argument processing by Getopt::Euclid that affected
+          repeated calls to the new() method.
+        Fixed calculation of number of genomes shared. Clearly specified in the
+          documentation that the percent shared is relative to the diversity of
+          the least abundant library (reported by Dana Willner).
+        Fixed calculation of the total library diversity.
+        Many more Grinder test cases.
+
+0.3.2   11-Feb-2011
+        New feature to specify specific characters to delete (N, -, ...) (suggested by Mike Imelfort)
+        New method to retrieve the seed number used for the computation: $factory->get_random_seed
+        When excluding specific characters, an amplicon read is attempted only once now
+        More robust parsing of abundance file
+        It is now a fatal error if sequences requested in an abundance file are
+          not found in the genome file
+        Small optimizations
+
+0.3.1   08-Feb-2011
+        Support for making multiple libraries with different richness (diversity) values
+        Fixed bug for communities with specified relative abundances (reported by Mike Imelfort)
+        Better error messages for sequences that have a specified abundance
+
+0.3.0   12-Jan-2011
+        Command-line arguments have changed; all have a short and long version
+        Grinder API to allow to run Grinder inside Perl programs
+        Support for amplicon sequencing
+        For amplicon simulation, a forward and optional reverse primer (in IUPAC) can be specified
+        Amplicon can be given multiplex identifiers (MIDs)
+        Support for a generating chimeras
+        Homopolymer error simulation
+        More error models for point mutations (uniform and linear)
+        Read error tracking in the sequence description
+        New default is to produce reads with no errors
+        New FASTA read description that specifies its source, position, strand, description and errors
+        Option to take shotgun reads from reverse complement
+        Support for specifying the structure of several communities manually
+        Speed improvements
+
+0.2.0   22-Sep-2010
+        New options available when generating multiple shotgun libraries. Alpha
+        and beta diversity can be specified:
+          * richness
+          * percentage of genomes shared between libraries
+          * percentage of the top genomes with a different abundance rank
+        Revised way that mate pair reads are named. Example:
+          >1000/1 seq3|31-60
+          >1000/2 seq3|41-70
+        Added utility to calculate average genome length from Grinder rank file
+
+0.1.9   24-Jun-2010
+        Thanks to Ramsi Temanni for his suggestions and feedback regarding forbidden characters.
+        Support for characters forbidden in the shotgun reads
+        Little bugfix regarding default values for arguments that take a list of values
+
+0.1.8   22-Apr-2010
+        Thanks to Albert Villela for his suggestions and feedback regarding paired reads.
+        Changes in command-line options to accomodate new features
+        Support for inputting a file specifying the abundance of the different genomes
+        Support for mate pairs / paired end reads
+        Support for uniform or normal distribution of read lengths and mate pair
+          insert lengths
+        Fixed bug causing an error when the number of reads in the input file
+          cannot be divided by the number of independent libraries required
+        Changed output sequence ID to a more consistent scheme
+
+0.1.7   15-Feb-2010
+        Not keeping the sequences in memory anymore to preserve resources 
+        Really using the Math::Random::MT::Perl seeding facility
+
+0.1.6   07-Dec-2009
+        Now using the Math::Random::MT::Perl seeding facility
+
+0.1.5   24-Feb-2009
+        Grinder now has a proper installer (Perl module style)
+
+0.1.4
+        Added basic report on libraries produced
+        Fixed bug in number of sequences created when using independent libraries
+
+0.1.3
+        Ability to generate several random shotgun libraries at once that do not
+          contain any genome in common
+
+0.1.2
+        Correction in the code to generate mutations
+        Changed the defaults to use a powerlaw model and the size-dependent option
+        The main module function now returns a hashref of rank-abundances
+
+0.1.1
+        Introduction of the simulation of sequencing errors (substitutions and indels)
+        Modified the way the random number generation is handled
+        The main module function now returns an arrayref of Bio::Seq objects
+
+0.1.0
+        Initial release

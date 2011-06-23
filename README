@@ -1,0 +1,194 @@
+Grinder
+
+
+Grinder is a program to create artificial random shotgun and amplicon sequence
+libraries based on reference sequences in a FASTA file. Features include:
+  * shotgun library or amplicon library
+  * arbitrary read length distribution and number of reads
+  * simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
+  * support for creating paired end datasets
+  * specific rank-abundance settings or manually given abundance for each genome
+  * creation of datasets with a given richness (alpha diversity)
+  * independent datasets can share a variable number of genomes (beta diversity)
+  * modeling of the bias created by varying genome lengths
+  * Perl API to automate the creation of a large number of simulated dataset
+
+Grinder can thus produce metagenomes, pyrotag datasets or shotgun sequencing
+projects, which can be used to test the accuracy of bioinformatic tools or help
+decide between alternative sequencing methods in an experiment.
+
+
+CITATION
+
+If you use Grinder in your research, you can cite:
+Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593. doi:10.1371/journal.pcbi.1000593
+
+
+INSTALLATION
+
+You need to install these dependencies first:
+  * Perl (http://www.perl.com/download.csp)
+
+The following Perl modules are dependencies that will be installed automatically
+for you:
+  * Bio::SeqIO (from Bioperl)
+  * Bio::Seq::SimulatedRead (from Bioperl but included here because it is so recent)
+  * Getopt::Euclid
+  * Math::Random::MT::Perl
+
+To install Grinder globally on your system, run the following commands in a
+terminal or command prompt:
+  On Linux, Unix, MacOS:
+	  perl Makefile.PL
+          make
+          make test
+  And finally, with administrator privileges:
+          make install
+  On Windows, run the same commands but with nmake instead of make.
+
+If you do not have administrator rights and want to install the module locally,
+try something along these lines:
+  perl Makefile.PL INSTALL_BASE=/home/fangly/bin/perl
+
+
+DOCUMENTATION
+
+After installing, you can find how to run the program by running the following
+command in a terminal or a command prompt:
+  Grinder --help
+
+If you are interested in running Grinder from within other Perl programs, see
+the documentation of the Grinder API:
+  perldoc Grinder
+
+The 'utils' folder included in the Grinder package contains a utility:
+
+* average_genome_size:
+This calculates the average genome size (in bp) of a simulated random library
+produces by Grinder.
+
+
+EXAMPLES
+
+-- On the command-line
+
+  * A shotgun library with a coverage of 0.1X
+  Grinder -reference_file genomes.fna -coverage_fold 0.1
+
+  * Same thing but save the result files in a specific folder and with a specific name
+  Grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir
+
+  * A shotgun library with 1000 reads
+  Grinder -reference_file genomes.fna -total_reads 1000
+
+  * A shotgun library where species are distributed according to a power law
+  Grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
+
+  * A shotgun library with 123 species
+  Grinder -reference_file genomes.fna -diversity 123
+
+  * Two shotgun libraries that have 50% of the species in common
+  Grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
+
+  * A shotgun library where species relative abundances are manually specified
+  Grinder -reference_file genomes.fna -abundance_file my_abundances.txt
+
+  * A shotgun library with Sanger reads
+  Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4
+
+  * A shotgun library with first-generation 454 reads
+  Grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
+
+  * A paired-end shotgun library (insert size normally distributed around 2.5 kbp with 0.2 kbp standard deviation
+  Grinder -reference_file genomes.fna -insert_dist 2500 normal 200
+  
+  * A 16S amplicon library
+  Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
+  
+  * The same amplicon library with 20% of chimeric reads
+  Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
+
+  * Three 16S amplicon libraries with specified MIDs
+  Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
+
+  * Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly
+   zcat microbial_db.fna.gz | Grinder -total_reads 100
+
+-- Using the API
+
+  use Grinder;
+
+  # Set up a new factory (see the OPTIONS section for a complete list of parameters)
+  my $factory = Grinder->new( -reference_file => 'genomes.fna' );
+
+  # Process all shotgun libraries requested
+  while ( my $struct = $factory->next_lib ) {
+
+    # The ID and abundance of the 3rd most abundant genome in this community
+    my $id = $struct->{ids}->[2];
+    my $ab = $struct->{abs}->[2];
+
+    # Create shotgun reads
+    while ( my $read = $factory->next_read) {
+
+      # The read is a Bioperl sequence object with these properties:
+      my $read_id     = $read->id;     # read ID given by Grinder
+      my $read_seq    = $read->seq;    # nucleotide sequence
+      my $read_mid    = $read->mid;    # MID or tag attached to the read
+      my $read_errors = $read->errors; # errors that the read contains
+ 
+      # Where was the read taken from?
+      my $ref_id     = $read->reference->id; # ID of the reference sequence
+      my $ref_start  = $read->start;         # start of the read on the reference
+      my $ref_end    = $read->end;           # end of the read on the reference
+      my $ref_strand = $read->strand;        # strand of the reference
+      
+    }
+  }
+
+  # Similarly, for shotgun mate pairs
+  my $factory = Grinder->new( -reference_file => 'genomes.fna',
+                              -insert_dist    => 250            );
+  while ( $factory->next_lib ) {
+    while ( my $read = $factory->next_read ) {
+      # The first read is the first mate of the mate pair
+      # The second read is the second mate of the mate pair
+      # The third read is the first mate of the next mate pair
+      # ...
+    }
+  }
+
+  # To generate an amplicon library
+  my $factory = Grinder->new( -reference_file  => 'genomes.fna',
+                              -forward_reverse => '16Sgenes.fna',
+                              -length_bias     => 0,
+                              -unidirectional  => 1              );
+  while ( $factory->next_lib ) {
+    while ( my $read = $factory->next_read) {
+      # ...
+    }
+  }
+
+
+COPYRIGHT AND LICENSE
+
+Copyright 2009,2010,2011 Florent ANGLY <florent.angly@gmail.com>
+
+Grinder is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+Grinder is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
+
+
+BUGS
+
+All complex software has bugs lurking in it, and this program is no exception.
+If you find a bug please email me at <florent.angly@gmail.com> so that I can
+make Grinder better.
+

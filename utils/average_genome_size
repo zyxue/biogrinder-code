@@ -1,0 +1,122 @@
+#! /usr/bin/env perl
+
+# Copyright Florent Angly <florent.angly@gmail.com> 2010
+# GNU General Public License v3
+# average_genome_size is a Perl script part of the Grinder package
+
+
+use strict;
+use warnings;
+my $usage = "Usage: $0 FASTA_DATABASE GRINDER_RANK_FILE\n".
+  "$0 calculates the average genome size (in bp) of a simulated random library produces by Grinder\n";
+my $db_fasta  = $ARGV[0] || die $usage;
+my $rank_file = $ARGV[1] || die $usage;
+average_genome_size($db_fasta, $rank_file);
+exit;
+
+
+sub average_genome_size {
+  my ( $db_fasta, $rank_file ) = @_;   
+  # Calculate the average genome size of a Grinder simulated random library
+  # Read size of the genomes
+  my ($gen_size) = get_sequence_size($db_fasta);
+  my $nof_gens = scalar(keys(%$gen_size));
+  # Read relative abundance of the genomes
+  my $gen_rel_ab = read_rel_ab($rank_file);
+  # Calculate average
+  my ($avg_gen_size, $gen_size_stdev, $gen_size_stderr)
+    = avg_genome_size($gen_rel_ab, $gen_size, $nof_gens);
+  # Display results
+  print "$avg_gen_size bp\n";
+  return 1;
+}
+
+
+sub get_sequence_size {
+  # Get the size of sequences in a FASTA file
+  # Input: path to FASTA file containing metagenomic sequences
+  # Output: hashref of sequence sizes indexed by sequence ID,
+  #         number of nucleotides,
+  #         length of smallest sequence
+  #         hashref of sequence names indexed by sequence ID
+  my $fasta = shift;
+  my ($sizes, $nof_bp, $min_length, $names) = ({}, 0, undef, {});
+  my ($id, $name, $length) = (undef, '', 0);
+  if (not -f $fasta) {
+    die "Error: '$fasta' does not seem to be a valid file\n";
+  }
+  open(FASTAIN, $fasta) || die("Error: could not read file '$fasta': $!");
+  while (my $line = <FASTAIN>) {
+    chomp $line;
+    if ($line =~ m/^>(\S+)\s*(.*)$/) {
+      # Save old sequence, start new sequence
+      $id && _save_seq($sizes,\$nof_bp,\$min_length,$names,$id,$name,$length);
+      ($id, $name, $length) = ($1, $2, 0);
+    } elsif ($line =~ m/^\s*$/) { # Line to ignore
+      next;
+    } else { # Continuation of current sequence
+      $length += length($line);
+    }
+  }
+  # Save last sequence
+  $id && _save_seq($sizes,\$nof_bp,\$min_length,$names,$id,$name,$length);
+  close FASTAIN;
+  return $sizes, $nof_bp, $min_length, $names;
+
+  sub _save_seq {
+    my ($sizes, $nof_bp, $min_length, $names, $id, $name, $length) = @_;
+    $$sizes{$id} = $length;
+    $$nof_bp += $length;
+    $$min_length = $length if ((!defined $$min_length)||($length<$$min_length));
+    $$names{$id} = $name;
+  }
+}
+
+
+sub read_rel_ab {
+  my $rank_file = shift;
+  open(IN, $rank_file) || die("Could not read file '$rank_file': $!");
+  my %rel_ab;
+  for my $line (<IN>) {
+    if ($line =~ m/^#/) {
+      # Comment line to ignore
+      next;
+    #} elsif ($line =~ m/^(\S+)\s+(\S+)\s+(\S+)$/) {
+    } elsif ($line =~ m/^(.+)\t(.+)\t(.+)$/) {
+      # Data to keep
+      my $rank = $1;
+      my $id = $2;
+      my $ab = $3;
+      $rel_ab{$id} = $ab;
+    } else {
+      # Unknown format to ignore
+      warn "Skipping unknown line format:\n$line";
+      next;
+    }
+  }
+  close IN;
+  return \%rel_ab;
+}
+
+
+sub avg_genome_size {
+  my ($gen_rel_ab, $gen_size, $nof_gens) = @_;
+  #my ($spectrum, $nof_hits) = @_;
+  my $avg    = 0;
+  my $stdev  = 0;
+  my $stderr = 0;
+  for my $genome (keys %$gen_size) {
+    my $size = $$gen_size{$genome};
+    my $ab   = $$gen_rel_ab{$genome};
+    next if not defined $ab;
+    my $tmp = $ab * $size;
+    $avg += $tmp;
+    $stdev += $tmp * $size;
+  }
+  $stdev = sqrt($stdev - $avg**2); # sigma = sqrt( E(X^2) - E(X)^2 )
+  $stderr = $stdev;
+  $stdev /= sqrt($nof_gens) unless ($nof_gens == 0);
+  return $avg, $stdev, $stderr;
+}
+
+
