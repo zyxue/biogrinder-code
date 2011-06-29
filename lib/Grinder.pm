@@ -1878,7 +1878,7 @@ Default: abundance_model.default
 
 Number of independent libraries to create. Specify how diverse and similar they
 should be with <diversity>, <shared_perc> and <permuted_perc>. Assign them
-different MID tags with <multiplex_mids>.
+different MID tags with < ex_mids>.
 Default: num_libraries.default
 
 =for Euclid:
@@ -1887,8 +1887,9 @@ Default: num_libraries.default
 
 =item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
 
-Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or
-barcodes) to add to the sequences (one per library).
+Specify an optional FASTA file that contains multiplex sequence identifiers
+(a.k.a MIDs or barcodes) to add to the sequences (one per library). The MIDs
+are included in the length specified with the -read_dist option.
 
 =for Euclid:
    multiplex_ids.type: readable

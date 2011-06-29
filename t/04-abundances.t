@@ -12,7 +12,7 @@ my ($factory, $nof_reads, $read, %sources);
 
 ok $factory = Grinder->new(
    -genome_file    => './t/data/shotgun_database.fa',
-   -abundance_file => './t/data/test_abundances.txt',
+   -abundance_file => './t/data/abundances.txt',
    -length_bias    => 0                             ,
    -random_seed    => 1910567890                    ,
    -total_reads    => 1000                           ), 'Genome abundance for a single libraries';
@@ -47,7 +47,7 @@ is $factory->next_lib, undef;
 
 ok $factory = Grinder->new(
    -genome_file    => './t/data/shotgun_database.fa'         ,
-   -abundance_file => './t/data/test_abundances_multiple.txt',
+   -abundance_file => './t/data/abundances_multiple.txt',
    -length_bias    => 0                                      ,
    -random_seed    => 1232567890                             ,
    -total_reads    => 1000                                    ), 'Genome abundance for multiple libraries';
