@@ -2,8 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 13;
-#use Test::More tests => 17;
+use Test::More tests => 17;
 use Bio::Seq;
 
 use Grinder;
@@ -43,15 +42,15 @@ ok $min >= 40;
 ok $max <= 60;
 ok $mean < 51;
 ok $mean > 49;
-####ok $stddev < XXX;
-####ok $stddev > XXX;
+ok $stddev < 6;
+ok $stddev > 5;
 @reads = ();
 
 # Normal distribution
 ok $factory = Grinder->new(
    -genome_file => './t/data/shotgun_database.fa' ,
    -read_dist   => (50, 'normal', 10)             ,
-   -random_seed => 1910567890                     ,
+   -random_seed => 191057890                     ,
    -total_reads => 1000                            ), 'Normal distribution';
 
 while ( $read = $factory->next_read ) {
@@ -60,8 +59,8 @@ while ( $read = $factory->next_read ) {
 ($min, $max, $mean, $stddev) = stats(\@reads);
 ok $mean < 51;
 ok $mean > 49;
-####ok $stddev < XXX;
-####ok $stddev > XXX;
+ok $stddev < 11;
+ok $stddev > 9;
 @reads = ();
 
 
@@ -78,8 +77,6 @@ sub stats {
       $sqsum += $val**2
    }
    $mean = $sum / $num;
-  
-   #### calculate stddev
-
+   $stddev = sqrt( $sqsum / $num - $mean**2 );
    return $min, $max, $mean, $stddev;
 }

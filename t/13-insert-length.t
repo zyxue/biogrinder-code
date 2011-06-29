@@ -2,8 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 13;
-#use Test::More tests => 17;
+use Test::More tests => 17;
 use Bio::Seq;
 
 use Grinder;
@@ -55,8 +54,8 @@ ok $min >= 120;
 ok $max <= 180;
 ok $mean < 151;
 ok $mean > 149;
-####ok $stddev < XXX;
-####ok $stddev > XXX;
+ok $stddev < 18;
+ok $stddev > 16;
 @inserts = ();
 
 
@@ -79,8 +78,8 @@ while ( $mate1 = $factory->next_read ) {
 ($min, $max, $mean, $stddev) = stats(\@inserts);
 ok $mean < 151;
 ok $mean > 149;
-####ok $stddev < XXX;
-####ok $stddev > XXX;
+ok $stddev < 11;
+ok $stddev > 9;
 @inserts = ();
 
 
@@ -97,8 +96,6 @@ sub stats {
       $sqsum += $val**2
    }
    $mean = $sum / $num;
-  
-   #### calculate stddev
-
+   $stddev = sqrt( $sqsum / $num - $mean**2 );
    return $min, $max, $mean, $stddev;
 }
