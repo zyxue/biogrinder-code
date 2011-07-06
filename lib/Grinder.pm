@@ -126,7 +126,7 @@ sub new {
   my ($class, @args) = @_;
   my $self = {};
   bless $self, ref($class) || $class;
-  $self->argparse(@args);
+  $self->argparse(\@args);
   $self->initialize();
   return $self;
 }
@@ -189,9 +189,11 @@ sub get_random_seed {
 
 sub argparse {
   # Process arguments
-  my ($self, @args) = @_;
+  my ($self, $args) = @_;
+  # Read profile file
+  $args = process_profile_file($args);
   # Parse and validate arguments with Getopt::Euclid
-  Getopt::Euclid->process_args(\@args);
+  Getopt::Euclid->process_args($args);
   # Get parsed arguments from %ARGV and put them in $self
   for my $arg (keys %ARGV) {
     # Skip short argument names (they are also represented with long names)
@@ -205,9 +207,39 @@ sub argparse {
     } else {
       die "Error: unsupported operation on argument '$arg' which is a reference".
          "of type $ref\n";
-    } 
+    }
   }
   return 1;
+}
+
+
+sub process_profile_file {
+  # Find profile file in arguments and read the profiles. The profile file
+  # only contains Grinder arguments, and lines starting with a '#' are comments.
+  my ($args) = @_;
+  my $file;
+  for (my $i = 0; $i < scalar @$args; $i++) {
+    my $arg = $$args[$i];
+    if ($arg =~ m/^-profile_file/ || $arg =~ m/-pf/) {
+      $file = $$args[$i+1];
+      if ( (not defined $file) || ($file =~ m/^-/) ) {
+        die "Error: no value was given to --profile_file\n";
+      }
+    }
+  }
+  if (defined $file) {
+    open my $in, '<', $file or die "Error: Could not read file '$file'\n$!\n";
+    my $profile = '';
+    while (my $line = <$in>) {
+      chomp $line;
+      next if $line =~ m/^\s*$/;
+      next if $line =~ m/^\s*#/;
+      $profile .= "$line ";
+    }
+    close $in;
+    push @$args, split /\s+/, $profile;
+  }
+  return $args;
 }
 
 
@@ -1982,6 +2014,22 @@ Default: output_dir.default
 =for Euclid:
    output_dir.type: writable
    output_dir.default: '.'
+
+=item -pf <profile_file> | -profile_file <profile_file>
+
+A file that contains Grinder arguments. This is useful if you use many options
+or often use the same options. Lines with comments (#) are ignored. Consider the
+profile file, 'simple_profile.txt':
+
+  # A simple Grinder profile
+  -read_dist 105 normal 12
+  -total_reads 1000
+
+Running: Grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt
+
+Translates into: Grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000
+
+Note that the arguments specified in the profile should not be specified again on the command line.
 
 =back
 
