@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+x.x.x	
+        implemented Grinder profiles function
+
 0.3.4   23-Jun-2011
         New option to generate basic quality scores if desired (-qual_levels)
         New option to not track the read info in the read description (-desc_track)
