@@ -1945,7 +1945,7 @@ Seed number to use for the pseudo-random number generator.
 
 Track read information (reference sequence, position, errors, ...) by writing
 it in the read description.
-Default: desc_track.default %
+Default: desc_track.default
 
 =for Euclid:
    desc_track.type: number, desc_track == 0 || desc_track == 1
