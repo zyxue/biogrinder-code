@@ -41,6 +41,7 @@ ok $factory = Grinder->new(
    -num_libraries => 2,
    -profile_file  => './t/data/profile.txt',
    -multiplex_ids => './t/data/mids.fa',
+   -shared_perc   => 100,
 ), 'Mix of profile and manually-specified options';
 
 while ( $read = $factory->next_read ) {

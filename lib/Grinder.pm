@@ -598,10 +598,6 @@ sub community_shared {
 
   # Sanity checks
   my $nof_refs = scalar @$seq_ids;
-  if ($nof_refs < $nof_indep) {
-    die "Error: Cannot make $nof_indep independent random shotgun libraries ".
-      "from $nof_refs sequences";
-  }
 
   # If diversity is not specified (is '0'), use the maximum value possible
   my $min_diversity = 1E99;
@@ -616,6 +612,11 @@ sub community_shared {
     if ($$diversities[$i] < $min_diversity) {
       $min_diversity = $$diversities[$i];
     }
+  }
+
+  if ($min_diversity == 0) {
+    die "Error: Cannot make $nof_indep libraries sharing $perc_shared % species".
+      " from $nof_refs references\n";
   }
 
   # Calculate the number of sequences to share, noting that the percent shared
