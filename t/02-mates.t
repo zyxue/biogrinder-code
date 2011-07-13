@@ -2,35 +2,31 @@
 
 use strict;
 use warnings;
-use Test::More tests => 105;
+use Test::More tests => 403;
 
 use Grinder;
-my ($factory, $mate1, $mate2, $read, $nof_reads);
+my ($factory, $read, $nof_reads);
 
 ok $factory = Grinder->new(
    -genome_file => './t/data/shotgun_database.fa',
    -total_reads => 100                           ,
+   -read_dist   => 48                            ,
    -insert_dist => 250                            ), 'Mate pairs';
 
 ok $factory->next_lib;
 
-ok $mate1 = $factory->next_read;
-ok $mate2 = $factory->next_read;
-
-is ref($mate1), 'Bio::Seq::SimulatedRead';
-is ref($mate2), 'Bio::Seq::SimulatedRead';
-
-$nof_reads = 2;
+$nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
-   ok_read($read);
+   ok_mate($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
 
 
 
-sub ok_read {
-   my ($read, $req_strand) = @_;
+sub ok_mate {
+   my ($read, $req_strand, $nof_reads) = @_;
+   is ref($read), 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
    my $strand = $read->strand;
    if (not defined $req_strand) {
@@ -54,5 +50,8 @@ sub ok_read {
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
    ok $read->seq =~ m/[$letters]+/;
+   my $id = int($nof_reads/2+0.5).'/'.($nof_reads%2?1:2);
+   is $read->id, $id;
+   is $read->length, 48;
 }
 

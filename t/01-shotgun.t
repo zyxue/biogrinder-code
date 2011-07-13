@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 107;
+use Test::More tests => 405;
 use Bio::Seq;
 
 use Grinder;
@@ -22,27 +22,23 @@ ok $factory->next_read;
 
 ok $factory = Grinder->new(
    -genome_file => './t/data/shotgun_database.fa',
-   -read_dist   => 52                            ,
+   -read_dist   => 48                            ,
    -total_reads => 100                            ), 'Long arguments';
 
 ok $factory->next_lib;
 
-ok $read = $factory->next_read;
-
-is ref($read), 'Bio::Seq::SimulatedRead';
-is $read->length, 52;
-
-$nof_reads = 1;
+$nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
-   ok_read($read);
+   ok_read($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
 
 
 
 sub ok_read {
-   my ($read, $req_strand) = @_;
+   my ($read, $req_strand, $nof_reads) = @_;
+   is ref($read), 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
    my $strand = $read->strand;
    if (not defined $req_strand) {
@@ -66,5 +62,7 @@ sub ok_read {
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
    ok $read->seq =~ m/[$letters]+/;
+   is $read->id, $nof_reads;
+   is $read->length, 48;
 }
 

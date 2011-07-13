@@ -139,6 +139,7 @@ sub next_lib {
   $self->{cur_read} = 0;
   $self->{cur_total_reads} = 0;
   $self->{cur_coverage_fold} = 0;
+  $self->{next_mate} = undef;
   $self->{positions} = undef;
   my $c_struct = $self->{c_structs}[$self->{cur_lib}-1];
   if ( defined $c_struct ) {
@@ -820,6 +821,7 @@ sub next_mate_pair {
   my $ids            = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
   my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1];
   my $lib_num        = $self->{num_libraries} > 1 ? $self->{cur_lib} : undef;
+  my $pair_num       = int( $self->{cur_read} / 2 + 0.5 );
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
 
   # Choose a random genome
@@ -855,7 +857,7 @@ sub next_mate_pair {
       $self->{read_delta});
     my $seq_start   = $mate_start;
     my $seq_end     = $mate_start + $read_length - 1;
-    $shotgun_seq_1  = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
+    $shotgun_seq_1  = new_subseq($pair_num, $genome, $self->{unidirectional},
       $orientation, $seq_start, $seq_end, $mid, '1', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
@@ -868,7 +870,7 @@ sub next_mate_pair {
       $self->{read_delta});
     $seq_start     = $mate_end - $read_length + 1;
     $seq_end       = $mate_end;
-    $shotgun_seq_2 = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
+    $shotgun_seq_2 = new_subseq($pair_num, $genome, $self->{unidirectional},
       $orientation, $seq_start, $seq_end, $mid, '2', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_2 = $self->rand_seq_errors($shotgun_seq_2)
