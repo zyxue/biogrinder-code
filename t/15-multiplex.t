@@ -14,7 +14,7 @@ my ($factory, $nof_reads, $read);
 ok $factory = Grinder->new(
    -genome_file   => './t/data/shotgun_database.fa',
    -multiplex_ids => './t/data/mids.fa'            ,
-   -num_libraries => 1                             ,
+   -num_libraries => 2                             ,
    -read_dist     => 52                            ,
    -total_reads   => 10                             ), 'Single MID';
 

@@ -12,6 +12,7 @@ use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl qw(srand rand);
 
 our $VERSION = '0.3.4';
+# Version number is also in POD, so that it can be accessed by Getopt::Euclid
 
 #---------- GRINDER FUNCTIONAL API --------------------------------------------#
 
@@ -1627,6 +1628,10 @@ decide between alternative sequencing methods in an experiment.
 
 This is the documentation for the Grinder API. For the command-line program, run:
   Grinder --help
+
+=head1 VERSION
+
+0.3.4
 
 =head1 AUTHOR
 
