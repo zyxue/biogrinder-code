@@ -1657,6 +1657,12 @@ along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
 All complex software has bugs lurking in it, and this program is no exception.
 If you find a bug please email the author so that Grinder can be improved.
 
+Bug reports, suggestions and patches are welcome. Grinder's code is developed
+on Sourceforge (L<https://sourceforge.net/scm/?type=git&group_id=244196>) and is
+under Git revision control. To get started with a patch, do:
+
+   git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
+
 =head1 METHODS
 
 The rest of the documentation details the available Grinder methods.
