@@ -1020,7 +1020,8 @@ sub rand_seq_errors {
   my ($self, $seq) = @_;
   my $seq_str = $seq->seq();
   my $error_specs = {}; # Error specifications
-  # First, specify errors in homopolymeric sequences
+
+  # First, specify errors in homopolymeric stretches
   $error_specs = $self->rand_homopolymer_errors($seq_str, $error_specs)
     if $self->{homopolymer_dist};
 
@@ -1884,7 +1885,9 @@ Default: homopolymer_dist.default
 =item -cp <chimera_perc> | -chimera_perc <chimera_perc>
 
 Specify the percent of reads in amplicon libraries that should be chimeric
-sequences. A typical value is 10%. Default: chimera_perc.default %
+sequences. The 'reference' field in the description of chimeric reads will
+contain the ID of all the reference sequences forming the chimeric template. A
+typical value is 10%. Default: chimera_perc.default %
 
 =for Euclid:
    chimera_perc.type: number, chimera_perc >= 0 && chimera_perc <= 100
