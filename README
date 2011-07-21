@@ -11,7 +11,9 @@ libraries based on reference sequences in a FASTA file. Features include:
   * creation of datasets with a given richness (alpha diversity)
   * independent datasets can share a variable number of genomes (beta diversity)
   * modeling of the bias created by varying genome lengths
+  * profile mechanism to store preferred options
   * Perl API to automate the creation of a large number of simulated dataset
+
 
 Grinder can thus produce metagenomes, pyrotag datasets or shotgun sequencing
 projects, which can be used to test the accuracy of bioinformatic tools or help
