@@ -49,8 +49,6 @@ t/data/reverse_forward_primers.fa
 t/data/reverse_primer.fa
 t/data/shotgun_database.fa
 t/data/single_seq_database.fa
-t/data/test_abundances.txt
-t/data/test_abundances_multiple.txt
 t/pod.t
 utils/average_genome_size
 utils/change_paired_read_orientation
