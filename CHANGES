@@ -2,6 +2,7 @@ Revision history for Grinder
 
 x.x.x	
         implemented Grinder profiles function
+        change_paired_read_orientation script
 
 0.3.4   23-Jun-2011
         New option to generate basic quality scores if desired (-qual_levels)

@@ -1,0 +1,33 @@
+#! /usr/bin/env perl
+
+# Copyright Florent Angly <florent.angly@gmail.com> 2010
+# GNU General Public License v3
+# change_paired_end_orientation is a Perl script part of the Grinder package
+
+
+use strict;
+use warnings;
+use Bio::SeqIO;
+
+my $usage = "Usage: $0 INPUT_FASTA_FILE OUTPUT_FASTA_FILE\n".
+  "$0 reverses the orientation of each right-hand paired-end read (ID ending in /2) in a FASTA file\n";
+my $in_fasta  = $ARGV[0] || die $usage;
+my $out_fasta = $ARGV[1] || die $usage;
+change_paired_read_orientation($in_fasta, $out_fasta);
+exit;
+
+
+sub change_paired_read_orientation {
+   my ($in_fasta, $out_fasta) = @_;
+   my $in  = Bio::SeqIO->new( -file => "<$in_fasta" , -format => 'fasta' );
+   my $out = Bio::SeqIO->new( -file => ">$out_fasta", -format => 'fasta' );
+   while ( my $seq = $in->next_seq ) {
+      if ($seq->id =~ m#/2$#) {
+         $seq = $seq->revcom;
+      }
+      $out->write_seq($seq);
+   }
+   $in->close;
+   $out->close;
+   return 1;
+}

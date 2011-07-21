@@ -13,6 +13,7 @@ requires 'Bio::SeqIO'              =>  0;
 
 install_script 'script/Grinder';
 install_script 'utils/average_genome_size';
+install_script 'utils/change_paired_read_orientation';
 
 auto_install;
 

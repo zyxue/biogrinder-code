@@ -67,6 +67,9 @@ The 'utils' folder included in the Grinder package contains a utility:
 This calculates the average genome size (in bp) of a simulated random library
 produces by Grinder.
 
+* change_paired_read_orientation:
+This reverses the orientation of each second mate-pair read (ID endind in /2)
+in a FASTA file.
 
 EXAMPLES
 
