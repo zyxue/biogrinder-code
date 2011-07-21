@@ -11,7 +11,7 @@ use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl qw(srand rand);
 
-our $VERSION = '0.3.4';
+our $VERSION = '0.3.5';
 # Version number is also in POD, so that it can be accessed by Getopt::Euclid
 
 #---------- GRINDER FUNCTIONAL API --------------------------------------------#

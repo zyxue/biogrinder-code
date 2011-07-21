@@ -1,8 +1,15 @@
 Revision history for Grinder
 
-x.x.x	
-        implemented Grinder profiles function
-        change_paired_read_orientation script
+0.3.5	21-Jul-2011
+        Implemented a profile mechanisms to store user's preferred options
+        Added a script to reverse the orientation of right-hand mates
+	Fixed issues with reads with MIDs (in Bio::Seq::SimulatedRead)
+	Library number in ID of first sequence in libraries with even number was
+	  wrong when mate pair was used
+	Number of the pair in mate pair IDs was wrong
+	Grinder development put under Git versioning control on SourceForge
+	More unit tests
+	Versioning fix
 
 0.3.4   23-Jun-2011
         New option to generate basic quality scores if desired (-qual_levels)
