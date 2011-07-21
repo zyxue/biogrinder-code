@@ -1634,7 +1634,7 @@ This is the documentation for the Grinder API. For the command-line program, run
 
 =head1 VERSION
 
-0.3.4
+0.3.5
 
 =head1 AUTHOR
 
