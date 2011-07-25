@@ -37,10 +37,12 @@ sub Grinder {
     my $cur_lib   = $factory->{cur_lib};
 
     # Output filenames
-    my ($out_fasta_file, $out_ranks_file);
+    my ($out_fasta_file, $out_qual_file, $out_ranks_file);
     if ($factory->{num_libraries} == 1) {
       $out_fasta_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}.'-reads.fa');
+      $out_qual_file = File::Spec->catfile($factory->{output_dir},
+        $factory->{base_name}.'-reads.qual');
       $out_ranks_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}.'-ranks.txt');
     } elsif ($factory->{num_libraries} > 1) {
@@ -55,20 +57,29 @@ sub Grinder {
     write_community_structure($c_struct, $out_ranks_file);
 
     # Prepare output FASTA file
-    my $out = Bio::SeqIO->new( -format => 'fasta',
-                               -flush  => 0,
-                               -file => ">$out_fasta_file" );
+    my $out_fasta = Bio::SeqIO->new( -format => 'fasta',
+                                     -flush  => 0,
+                                     -file   => ">$out_fasta_file" );
+
+    my $out_qual;
+    if ( scalar @{$factory->{qual_levels}} > 0 ) {
+       $out_qual = Bio::SeqIO->new( -format => 'qual',
+                                    -flush  => 0,
+                                    -file   => ">$out_qual_file" );
+    }
 
     # Library report
     my $diversity = $factory->{diversity}[$cur_lib-1];
     library_report( $cur_lib, $out_ranks_file, $out_fasta_file,
       $factory->{cur_coverage_fold}, $factory->{cur_total_reads}, $diversity);
 
-    # Generate shotgun or amplicon reads and write them
+    # Generate shotgun or amplicon reads and write them to a file
     while ( my $read = $factory->next_read ) {
-      $out->write_seq($read);
+      $out_fasta->write_seq($read);
+      $out_qual->write_seq($read) if defined $out_qual
     }
-    $out->close;
+    $out_fasta->close;
+    $out_qual->close if defined $out_qual;
   }
 
   return 1;
