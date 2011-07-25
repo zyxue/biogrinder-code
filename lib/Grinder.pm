@@ -42,13 +42,15 @@ sub Grinder {
       $out_fasta_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}.'-reads.fa');
       $out_qual_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}.'-reads.qual');
+        $factory->{base_name}.'-reads.qual') if scalar @{$factory->{qual_levels}} > 0;
       $out_ranks_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}.'-ranks.txt');
     } elsif ($factory->{num_libraries} > 1) {
       my $cur_lib_f = sprintf( '%0'.length($factory->{num_libraries}).'d', $cur_lib );
       $out_fasta_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}."-$cur_lib_f-reads.fa");
+      $out_qual_file = File::Spec->catfile($factory->{output_dir},
+        $factory->{base_name}."-$cur_lib_f-reads.qual") if scalar @{$factory->{qual_levels}} > 0;
       $out_ranks_file = File::Spec->catfile($factory->{output_dir},
         $factory->{base_name}."-$cur_lib_f-ranks.txt");
     }
@@ -62,7 +64,7 @@ sub Grinder {
                                      -file   => ">$out_fasta_file" );
 
     my $out_qual;
-    if ( scalar @{$factory->{qual_levels}} > 0 ) {
+    if ( defined $out_qual_file ) {
        $out_qual = Bio::SeqIO->new( -format => 'qual',
                                     -flush  => 0,
                                     -file   => ">$out_qual_file" );
@@ -70,7 +72,7 @@ sub Grinder {
 
     # Library report
     my $diversity = $factory->{diversity}[$cur_lib-1];
-    library_report( $cur_lib, $out_ranks_file, $out_fasta_file,
+    library_report( $cur_lib, $out_ranks_file, $out_fasta_file, $out_qual_file,
       $factory->{cur_coverage_fold}, $factory->{cur_total_reads}, $diversity);
 
     # Generate shotgun or amplicon reads and write them to a file
@@ -118,12 +120,13 @@ sub write_community_structure {
 
 
 sub library_report {
-  my ($cur_lib, $ranks_file, $fasta_file, $coverage, $nof_seqs, $diversity) = @_;
+  my ($cur_lib, $ranks_file, $fasta_file, $qual_file, $coverage, $nof_seqs, $diversity) = @_;
   my $format = '%.3f';
   $coverage = sprintf($format, $coverage);
   print "Shotgun library $cur_lib:\n";
   print "   Community structure  = $ranks_file\n";
   print "   FASTA file           = $fasta_file\n";
+  print "   QUAL file            = $qual_file\n" if defined $qual_file;
   print "   Library coverage     = $coverage x\n";
   print "   Number of reads      = $nof_seqs\n";
   print "   Diversity (richness) = $diversity\n";
