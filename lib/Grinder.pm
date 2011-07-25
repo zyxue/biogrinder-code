@@ -1748,7 +1748,7 @@ this if you specify the coverage.
 
 =item -rd <read_dist>... | -read_dist <read_dist>...
 
-Desired sequence length distribution specified as:
+Desired shotgun or amplicon read length distribution specified as:
    average length, distribution ('uniform' or 'normal') and standard deviation
 Only the first element is required.
 Examples:
