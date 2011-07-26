@@ -34,26 +34,22 @@ sub Grinder {
 
   # Generate sequences
   while ( my $c_struct = $factory->next_lib ) {
-    my $cur_lib   = $factory->{cur_lib};
+    my $cur_lib = $factory->{cur_lib};
 
     # Output filenames
-    my ($out_fasta_file, $out_qual_file, $out_ranks_file);
-    if ($factory->{num_libraries} == 1) {
-      $out_fasta_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}.'-reads.fa');
-      $out_qual_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}.'-reads.qual') if scalar @{$factory->{qual_levels}} > 0;
-      $out_ranks_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}.'-ranks.txt');
-    } elsif ($factory->{num_libraries} > 1) {
-      my $cur_lib_f = sprintf( '%0'.length($factory->{num_libraries}).'d', $cur_lib );
-      $out_fasta_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}."-$cur_lib_f-reads.fa");
-      $out_qual_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}."-$cur_lib_f-reads.qual") if scalar @{$factory->{qual_levels}} > 0;
-      $out_ranks_file = File::Spec->catfile($factory->{output_dir},
-        $factory->{base_name}."-$cur_lib_f-ranks.txt");
+    my $lib_str = '';
+    if ($factory->{num_libraries} > 1) {
+      $lib_str = '-'.sprintf('%0'.length($factory->{num_libraries}).'d', $cur_lib);
     }
+    my $out_fasta_file = File::Spec->catfile($factory->{output_dir}, 
+        $factory->{base_name}.$lib_str."-reads.fa");
+    my $out_qual_file;
+    if (scalar @{$factory->{qual_levels}} > 0) {
+      $out_qual_file = File::Spec->catfile($factory->{output_dir}, 
+        $factory->{base_name}.$lib_str."-reads.qual");
+    }
+    my $out_ranks_file = File::Spec->catfile($factory->{output_dir},
+      $factory->{base_name}.$lib_str."-ranks.txt");
 
     # Write community structure file
     write_community_structure($c_struct, $out_ranks_file);
