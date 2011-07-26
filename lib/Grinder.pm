@@ -258,8 +258,6 @@ sub process_profile_file {
 sub initialize {
   my ($self) = @_;
   # Returns:
-  #   an arrayref of the sequence objects
-  #   a hashref containing the genome id and abundance indexed by rank
 
   # Parameter processing: read length distribution
   if ( (not ref $self->{read_dist}) or (ref $self->{read_dist} eq 'SCALAR') ){
@@ -1348,41 +1346,28 @@ sub database_create {
     if ($unidirectional == -1) {
       $seq = $seq->revcom;
     }
-    # Amplicon processing
+
+    # Extract amplicons if needed
+    my $valid_seqs;
     if (defined $forward_regexp) {
-      if ( $seq->seq =~ m/($forward_regexp.*)$/ ) {
-        # Trim sequence that match forward primer
-        $seq->seq($1);
-      } else {
-        # Skip sequence that does not match forward primer
-        if (scalar keys %ids_to_keep > 0) {
-          die "Error: Requested sequence ".$seq->id." does not match the specified forward primer.\n";
-        }
-        next;
-      }
-    }
-    if (defined $reverse_regexp) {
-      if ( $seq->seq =~ m/^(.*$reverse_regexp)/ ) {
-        # Trim sequence that match reverse primer
-        $seq->seq($1);
-      } else {
-        # Skip sequence that does not match reverse primer
-        if (scalar keys %ids_to_keep > 0) {
-          die "Error: Requested sequence ".$seq->id." does not match the specified reverse primer.\n";
-        }
-        next;
-      }
+      $valid_seqs = $self->database_extract_amplicons($seq, $forward_regexp,
+        $reverse_regexp, \%ids_to_keep);
+      next if scalar @$valid_seqs == 0;
+    } else {
+      $valid_seqs = [$seq];
     }
 
-    # Remove forbidden chars
-    if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
-      my $clean_seq = $seq->seq;
-      $clean_seq =~ s/[$delete_chars]//gi;
-      $seq->seq($clean_seq);
+    for my $valid_seq (@$valid_seqs) {
+      # Remove forbidden chars
+      if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
+        my $clean_seq = $valid_seq->seq;
+        $clean_seq =~ s/[$delete_chars]//gi;
+        $valid_seq->seq($clean_seq);
+      }
+      # Save sequence and collect some stats
+      $seq_db{$valid_seq->id} = $valid_seq;
     }
 
-    # Save sequence and collect some stats
-    $seq_db{$seq->id} = $seq;
   }
   undef $in; # close the filehandle (maybe?!)
   my @seq_ids = keys %seq_db;   # IDs of the sequences long enough
@@ -1392,6 +1377,50 @@ sub database_create {
   }
   my $database = { 'db' => \%seq_db, 'ids' => \@seq_ids };
   return $database;
+}
+
+
+sub database_extract_amplicons {
+  my ($self, $seq, $forward_regexp, $reverse_regexp, $ids_to_keep) = @_;
+  # A database sequence can have several amplicons, e.g. a genome can have 
+  # several 16S genes. Extract all amplicons from a sequence. Only the shortest
+  # amplicons are returned, which means that for a sequence that matches the
+  # primer twice, there are 3 primer combinations, but only two amplicons are
+  # returned, not three.
+
+  my $seqstr = $seq->seq;
+  my $seqid  = $seq->id;
+  my @amplicons;
+  if ( (defined $forward_regexp) && (not defined $reverse_regexp) ) {
+    while ( $seqstr =~ m/($forward_regexp)/g ) {
+      my $start    = pos($seqstr) - length($1) + 1;
+      my $end      = $seq->length;
+      my $amplicon = $seq->trunc($start, $end);
+      my $id       = $seqid.'_amplicon_'.$start.'-'.$end;
+      $amplicon->id($id);
+      push @amplicons, $amplicon;
+    }
+  } elsif ( (defined $forward_regexp) && (defined $reverse_regexp) ) {
+    while ( $seqstr =~ m/($forward_regexp.*?$reverse_regexp)/g ) {
+      my $end      = pos($seqstr);
+      my $start    = $end - length($1) + 1;
+      my $amplicon = $seq->trunc($start, $end);
+      my $id       = $seqid.'_amplicon_'.$start.'-'.$end;
+      $amplicon->id($id);
+      push @amplicons, $amplicon;
+    }
+  } else {
+    die "Error: Need to provide at least a forward primer\n";
+  }
+
+  # Complain if primers did not match explicitly specified database sequence
+  if ( (scalar keys %{$ids_to_keep} > 0) &&
+       (exists $$ids_to_keep{$seqid} ) &&
+       (scalar @amplicons == 0         ) ) {
+    die "Error: Requested sequence $seqid does not match the specified forward primer.\n";
+  }
+
+  return \@amplicons;
 }
 
 
@@ -1815,7 +1844,7 @@ options to generate amplicon reads. To sequence from the forward strand
 (<unidirectional> = 1), put the forward primer first and reverse primer second.
 To sequence from the reverse strand, invert the primers in the FASTA file and
 use <unidirectional> = -1. The second primer sequence in the FASTA file is always
-optional. The sequences should use the IUPAC convention for degenerate residues).
+optional. The sequences should use the IUPAC convention for degenerate residues.
 Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers
 respectively (primers that target the v6 to v9 region of the 16S rRNA gene).
 Genome sequences that do not match the specified primers are excluded.

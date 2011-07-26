@@ -100,15 +100,15 @@ sub ok_read {
       is $strand, $req_strand;
    }
    my $letters;
-   if ( $source eq 'seq1' ) {
+   if ( $source =~ m/^seq1/ ) {
       $letters = 'a';
-   } elsif ( $source eq 'seq2' ) {
+   } elsif ( $source =~ m/^seq2/ ) {
       $letters = 'c';
-   } elsif ( $source eq 'seq3' ) {
+   } elsif ( $source =~ m/^seq3/ ) {
       $letters = 'g';
-   } elsif ( $source eq 'seq4' ) {
+   } elsif ( $source =~ m/^seq4/ ) {
       $letters = 't';
-   } elsif ( $source eq 'seq5' ) {
+   } elsif ( $source =~ m/^seq5/ ) {
       $letters = 'atg';
    }
    if ( $req_strand == -1 ) { # Take the reverse complement
