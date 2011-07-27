@@ -73,6 +73,37 @@ produces by Grinder.
 This reverses the orientation of each second mate-pair read (ID endind in /2)
 in a FASTA file.
 
+
+REFERENCE SEQUENCE DATABASE
+
+A variety of FASTA databases can be used as input for Grinder. For example, the
+GreenGenes database (http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta)
+contains over 180,000 16S rRNA clone sequences from various species which would
+be appropriate to produce a 16S amplicon dataset. A set of over 41,000 OTU
+representative sequences and their affiliation in seven different taxonomic
+sytems can also be used for the same purpose (http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/rep_set/gg_97_otus_6oct2010.fasta
+and http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/). While
+16S rRNA is a popular gene, datasets containing any type of gene could be used
+in the same fashion to generate simulated amplicon datasets, provided appropriate
+primers are used.
+
+The >2,400 curated microbial genome sequences in the NCBI RefSeq collection
+(ftp://ftp.ncbi.nih.gov/refseq/release/microbial/) would also be suitable for
+producing 16S rRNA simulated datasets (using the adequate primers). However, the
+lower diversity of this database compared to the previous two makes it more
+appropriate for producing artificial microbial metagenomes. Individual genomes
+from this database are also very suitable for the simulation of single or
+double-barreled shotgun libraries. Similarly, the RefSeq database contains
+over 3,100 curated viral sequences (ftp://ftp.ncbi.nih.gov/refseq/release/viral/)
+which can be used to produce artificial viral metagenomes.
+
+Quite a few eukaryotic organisms have been sequenced and their genome and the
+genes it contains can be the basis for simulating genomic and transcriptomic
+(RNA-seq) datasets. For example, the human genome is available at
+ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/ and its transcripts can be
+downloaded from ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz
+
+
 EXAMPLES
 
 -- On the command-line
@@ -142,7 +173,9 @@ EXAMPLES
       my $read_mid    = $read->mid;    # MID or tag attached to the read
       my $read_errors = $read->errors; # errors that the read contains
  
-      # Where was the read taken from?
+      # Where was the read taken from? The reference sequence refers to the
+      # database sequence for shotgun libraries, amplicon obtained from the
+      # database sequence, or could even be a chimeric sequence
       my $ref_id     = $read->reference->id; # ID of the reference sequence
       my $ref_start  = $read->start;         # start of the read on the reference
       my $ref_end    = $read->end;           # end of the read on the reference

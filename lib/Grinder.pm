@@ -1639,7 +1639,9 @@ Grinder - a simulator of random shotgun and amplicon sequence libraries
       my $read_mid    = $read->mid;    # MID or tag attached to the read
       my $read_errors = $read->errors; # errors that the read contains
  
-      # Where was the read taken from?
+      # Where was the read taken from? The reference sequence refers to the
+      # database sequence for shotgun libraries, amplicon obtained from the
+      # database sequence, or could even be a chimeric sequence
       my $ref_id     = $read->reference->id; # ID of the reference sequence
       my $ref_start  = $read->start;         # start of the read on the reference
       my $ref_end    = $read->end;           # end of the read on the reference
@@ -1773,8 +1775,9 @@ Returns : seed number
 
 =item -rf <reference_file> | -reference_file <reference_file> | -gf <reference_file> | -genome_file <reference_file>
 
-FASTA file that contains the input reference sequences (genomes, 16S rRNA,
-transcripts, ...) or '-' to read them from the standard input.
+FASTA file that contains the input reference sequences (full genomes, 16S rRNA
+genes, transcripts, ...) or '-' to read them from the standard input. See the
+README file for examples of databases you can use and their location.
 Default: reference_file.default
 
 =for Euclid:
