@@ -1,4 +1,4 @@
->seq1
+>seq1 comment: has a RNA-specific residue (U) and an ambiguous base (R)
 AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 GTACACACCGCCCGTccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 AAACTTAAAGGAATTGRCGGtttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
