@@ -55,8 +55,8 @@ sub ok_read_forward_reverse {
       is $strand, $req_strand;
    }
    my $readseq = $read->seq;
-   ok (($readseq eq 'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT')
-     or ($readseq eq 'AAACTTAAAGGAATTGACGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
+   ok (($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT')
+     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
    is $read->id, $nof_reads;
    is $read->length, 95;
 }
@@ -73,8 +73,8 @@ sub ok_read_forward_only {
       is $strand, $req_strand;
    }
    my $readseq = $read->seq;
-   ok (($readseq eq 'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc')
-     or ($readseq eq 'AAACTTAAAGGAATTGACGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
+   ok (($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc')
+     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
    is $read->id, $nof_reads;
    my $readlength = $read->length;
    ok ( ($readlength == 95) or ($readlength == 100) );

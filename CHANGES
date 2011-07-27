@@ -1,6 +1,8 @@
 Revision history for Grinder
 
 0.3.x	
+        Primer ability to match ambiguous residues of the reference sequence
+        Primer ability to match RNA sequences
         Support for reference sequences that contain several amplicons
         Fixed bug: the quality scores were generated but never written to file
         Write on screen when QUAL files are generated

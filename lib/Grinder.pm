@@ -1441,24 +1441,45 @@ sub iupac_to_regexp {
   # Create a regular expression to match a nucleotide sequence that contain
   # degeneracies (in IUPAC standard)
   my ($seq) = @_;
+  # Basic IUPAC code
+  #my %iupac = (
+  #  'A' => ['A'],
+  #  'C' => ['C'],
+  #  'G' => ['G'],
+  #  'T' => ['T'],
+  #  'U' => ['U'],
+  #  'R' => ['G', 'A'],
+  #  'Y' => ['T', 'C'],
+  #  'K' => ['G', 'T'],
+  #  'M' => ['A', 'C'],
+  #  'S' => ['G', 'C'],
+  #  'W' => ['A', 'T'],
+  #  'B' => ['G', 'T', 'C'],
+  #  'D' => ['G', 'A', 'T'],
+  #  'H' => ['A', 'C', 'T'],
+  #  'V' => ['G', 'C', 'A'],
+  #  'N' => ['A', 'G', 'C', 'T'],
+  #);
   # IUPAC code
+  #   + degenerate primer residues matching ambiguous template residues
+  #   + degenerate primer residues matching uracil U
   my %iupac = (
     'A' => ['A'],
     'C' => ['C'],
     'G' => ['G'],
     'T' => ['T'],
     'U' => ['U'],
-    'R' => ['G', 'A'],
-    'Y' => ['T', 'C'],
-    'K' => ['G', 'T'],
-    'M' => ['A', 'C'],
-    'S' => ['G', 'C'],
-    'W' => ['A', 'T'],
-    'B' => ['G', 'T', 'C'],
-    'D' => ['G', 'A', 'T'],
-    'H' => ['A', 'C', 'T'],
-    'V' => ['G', 'C', 'A'],
-    'N' => ['A', 'G', 'C', 'T'],
+    'R' => ['G', 'A', 'R'],
+    'Y' => ['T', 'U', 'C', 'Y'],
+    'K' => ['G', 'T', 'U', 'K'],
+    'M' => ['A', 'C', 'M'],
+    'S' => ['G', 'C', 'S'],
+    'W' => ['A', 'T', 'U', 'W'],
+    'B' => ['G', 'T', 'U', 'C', 'Y', 'K', 'S', 'B'],
+    'D' => ['G', 'A', 'T', 'U', 'R', 'K', 'W', 'D'],
+    'H' => ['A', 'C', 'T', 'U', 'Y', 'M', 'W', 'H'],
+    'V' => ['G', 'C', 'A', 'R', 'M', 'S', 'V'],
+    'N' => ['A', 'G', 'C', 'T', 'U', 'R', 'Y', 'K', 'M', 'S', 'W', 'B', 'D', 'H', 'V', 'N'],
   );
   # Regular expression to catch this sequence
   my $regexp;
