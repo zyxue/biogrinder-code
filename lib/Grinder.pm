@@ -3,7 +3,6 @@ package Grinder;
 # See end of file for POD documentation
 
 use 5.006;
-use warnings;
 use strict;
 use File::Spec;
 use Bio::SeqIO;
@@ -322,11 +321,11 @@ sub initialize {
     $self->{delete_chars} );
 
   # Genome relative abundance in the different independent libraries to create
-  $self->{c_structs} = $self->community_structures($self->{database}->{ids},
+  $self->{c_structs} = $self->community_structures( $self->{database}->{ids},
     $self->{abundance_file}, $self->{distrib}, $self->{param},
     $self->{num_libraries}, $self->{shared_perc}, $self->{permuted_perc},
-    $self->{diversity});
-
+    $self->{diversity}, $self->{forward_reverse} );
+  
   # Markers to keep track of computation progress
   $self->{cur_lib}  = 0;
   $self->{cur_read} = 0;
@@ -362,8 +361,9 @@ sub read_multiplex_id_file {
 
 sub community_structures {
   # Create communities with a specified structure, alpha and beta-diversity
-  my ($self, $seq_ids, $abundance_file, $distrib, $param, $nof_indep, $perc_shared,
-    $perc_permuted, $diversities) = @_;
+  my ($self, $seq_ids, $abundance_file, $distrib, $param, $nof_indep,
+    $perc_shared, $perc_permuted, $diversities, $forward_reverse) = @_;
+
   my $c_structs; # Community structures
   if ($abundance_file) {
     # Sanity check
@@ -379,7 +379,8 @@ sub community_structures {
     # One or several communities with specified rank-abundances
     $c_structs = community_given_abundances($abundance_file, $seq_ids);
     # Calculate number of libraries
-    $self->{num_libraries} = scalar @$c_structs;
+    $nof_indep = scalar @$c_structs;
+    $self->{num_libraries} = $nof_indep;
     # Calculate diversities based on given community abundances
     ($self->{diversity}, $self->{overall_diversity}, $self->{shared_perc},
       $self->{permuted_perc}) = community_calculate_diversities($c_structs);
@@ -418,13 +419,23 @@ sub community_structures {
     for my $c (1 .. $nof_indep) {
       # Calculate relative abundance of the community members
       my $diversity = $self->{diversity}[$c-1];
-      my $c_abs = community_calculate_abundance($distrib, $param, $diversity);
+      my $c_abs = community_calculate_species_abundance($distrib, $param, $diversity);
+      my $c_ids = $$c_ids[$c-1];
       my $c_struct;
-      $c_struct->{'ids'} = $$c_ids[$c-1];
+      $c_struct->{'ids'} = $c_ids;
       $c_struct->{'abs'} = $c_abs;
       push @$c_structs, $c_struct;
     }
   }
+
+  # Convert abundance of species into abundance of amplicons
+  if ( defined $forward_reverse ) {
+    for my $c_struct (@$c_structs) {
+      my ($c_abs, $c_ids) = community_calculate_amplicon_abundance(
+        $c_struct->{'abs'}, $c_struct->{'ids'}, $seq_ids );
+    }
+  }
+
   return $c_structs;
 }
 
@@ -478,11 +489,7 @@ sub community_given_abundances {
   # valid IDs can be provided. Then the abundances are normalized so that their
   # sum is 1.
   my ($file, $seq_ids) = @_;
-  # Get IDs of sequences to keep
-  my %names;
-  if (defined $seq_ids) {
-    %names = map {$_ => undef} (@$seq_ids);
-  }
+
   # Read abundances
   my ($ids, $abs) = community_read_abundances($file);
   # Remove genomes with unknown IDs and calculate cumulative abundance
@@ -492,7 +499,7 @@ sub community_given_abundances {
     while ( $i < scalar @{$$ids[$comm_num]} ) {
       my $id = $$ids[$comm_num][$i];
       my $ab = $$abs[$comm_num][$i];
-      if ( (scalar keys %names == 0) || (exists $names{$id}) ) {
+      if ( (scalar keys %$seq_ids == 0) || (exists $$seq_ids{$id}) ) {
         $$totals[$comm_num] += $ab;
         $i++;
       } else {
@@ -606,10 +613,8 @@ sub community_shared {
   #         arrayref of arrayref with the unique IDs for each community
   my ($seq_ids, $nof_indep, $perc_shared, $diversities) = @_;
 
-  # Sanity checks
-  my $nof_refs = scalar @$seq_ids;
-
   # If diversity is not specified (is '0'), use the maximum value possible
+  my $nof_refs = scalar keys %$seq_ids;
   my $min_diversity = 1E99;
   for my $i (0 .. scalar @$diversities - 1) {
     if ($$diversities[$i] == 0) {
@@ -653,7 +658,7 @@ sub community_shared {
   }
 
   # Add shared sequences
-  my @ids = @$seq_ids;
+  my @ids = keys %$seq_ids;
   my @shared_ids;
   for (0 .. $nof_shared - 1) {
     # Pick a random sequence
@@ -706,7 +711,7 @@ sub community_shared {
 }
 
 
-sub community_calculate_abundance {
+sub community_calculate_species_abundance {
   # Calculate relative abundance based on a distribution and its parameters.
   # Input is a model, its 2 parameters, and the number of values to generate
   # Output is a reference to a list of relative abundance. The abundance adds up
@@ -771,6 +776,38 @@ sub community_calculate_abundance {
     die "Error: $distrib is not a valid rank-abundance distribution\n";
   }
   return $rel_ab;
+}
+
+
+sub community_calculate_amplicon_abundance {
+  my ($r_spp_abs, $r_spp_ids, $seq_ids) = @_;
+  # Convert abundance of species into abundance of their amplicons because there
+  # can be multiple amplicon per species and the amplicons have a different ID
+  # from the species. The r_spp_ids and r_spp_abs arrays are the ID and abundance
+  # of the species, sorted by decreasing abundance.
+
+  # Convert from species to amplicons
+  my $sum = 0;
+  for (my $i  = 0; $i < scalar @$r_spp_ids; $i++) {
+    my $species_ab    = $$r_spp_abs[$i];
+    my $species_id    = $$r_spp_ids[$i];
+    my @amplicon_ids  = keys %{$seq_ids->{$species_id}};
+    my $nof_amplicons = scalar @amplicon_ids;
+    my @amplicon_abs  = ($species_ab) x $nof_amplicons;
+    splice @$r_spp_abs, $i, 1, @amplicon_abs;
+    splice @$r_spp_ids, $i, 1, @amplicon_ids;
+    $sum += $species_ab * $nof_amplicons;
+    $i += $nof_amplicons - 1;
+  }
+
+  # Normalize the relative abundance
+  if ($sum != 1) {
+    for my $i (0 .. scalar @$r_spp_abs - 1) {
+      $$r_spp_abs[$i] /= $sum;
+    }
+  }
+
+  return $r_spp_abs, $r_spp_ids;
 }
 
 
@@ -1337,45 +1374,48 @@ sub database_create {
     }
   }
   # Process database sequences
-  my %seq_db;         # hash of BioPerl sequence objects
-  my $warning = 1;
-  while ( my $seq = <$in> ) {
+  my %seq_db;        # hash of BioPerl sequence objects (all amplicons)
+  my %seq_ids;       # hash of reference sequence IDs and IDs of their amplicons
+  while ( my $ref_seq = <$in> ) {
     # Skip unwanted sequences
-    next if (scalar keys %ids_to_keep > 0) && (not exists $ids_to_keep{$seq->id});
+    my $ref_seq_id = $ref_seq->id;
+    next if (scalar keys %ids_to_keep > 0) && (not exists $ids_to_keep{$ref_seq_id});
     # If we are sequencing from the reverse strand, reverse complement now
     if ($unidirectional == -1) {
-      $seq = $seq->revcom;
+      $ref_seq = $ref_seq->revcom;
     }
-
     # Extract amplicons if needed
-    my $valid_seqs;
+    my $amp_seqs;
     if (defined $forward_regexp) {
-      $valid_seqs = $self->database_extract_amplicons($seq, $forward_regexp,
+      $amp_seqs = $self->database_extract_amplicons($ref_seq, $forward_regexp,
         $reverse_regexp, \%ids_to_keep);
-      next if scalar @$valid_seqs == 0;
+      next if scalar @$amp_seqs == 0;
     } else {
-      $valid_seqs = [$seq];
+      $amp_seqs = [$ref_seq];
     }
 
-    for my $valid_seq (@$valid_seqs) {
+    for my $amp_seq (@$amp_seqs) {
       # Remove forbidden chars
       if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
-        my $clean_seq = $valid_seq->seq;
+        my $clean_seq = $amp_seq->seq;
         $clean_seq =~ s/[$delete_chars]//gi;
-        $valid_seq->seq($clean_seq);
+        $amp_seq->seq($clean_seq);
       }
-      # Save sequence and collect some stats
-      $seq_db{$valid_seq->id} = $valid_seq;
+      # Save amplicon sequence
+      my $amp_seq_id = $amp_seq->id;
+      $seq_db{$amp_seq_id} = $amp_seq;
+      $seq_ids{$ref_seq_id}{$amp_seq_id} = undef;
     }
 
   }
   undef $in; # close the filehandle (maybe?!)
-  my @seq_ids = keys %seq_db;   # IDs of the sequences long enough
+
   # Sanity check
-  if (scalar @seq_ids < 1) {
+  if (scalar keys %seq_ids == 0) {
     die "Error: No genome sequences could be used. If you specified a file of abundances for the genome sequences, make sure that their ID match the ID in the FASTA file. If you specified amplicon primers, verify that they match some genome sequences.\n";
   }
-  my $database = { 'db' => \%seq_db, 'ids' => \@seq_ids };
+
+  my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
   return $database;
 }
 
@@ -1415,7 +1455,7 @@ sub database_extract_amplicons {
 
   # Complain if primers did not match explicitly specified database sequence
   if ( (scalar keys %{$ids_to_keep} > 0) &&
-       (exists $$ids_to_keep{$seqid} ) &&
+       (exists $$ids_to_keep{$seqid}   ) &&
        (scalar @amplicons == 0         ) ) {
     die "Error: Requested sequence $seqid does not match the specified forward primer.\n";
   }

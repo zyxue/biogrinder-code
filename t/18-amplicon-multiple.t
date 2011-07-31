@@ -47,7 +47,7 @@ sub ok_read_forward_reverse {
    my ($read, $req_strand, $nof_reads) = @_;
    is ref($read), 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
-   ok (($source eq 'seq1_amplicon_1-95') or ($source eq 'seq1_amplicon_161-255'));
+   ok ($source =~ m/seq\d+_amplicon_\d+-\d+/);
    my $strand = $read->strand;
    if (not defined $req_strand) {
       $req_strand = $strand;
@@ -65,7 +65,7 @@ sub ok_read_forward_only {
    my ($read, $req_strand, $nof_reads) = @_;
    is ref($read), 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
-   ok (($source eq 'seq1_amplicon_1-255') or ($source eq 'seq1_amplicon_161-255'));
+   ok ($source =~ m/seq\d+_amplicon_\d+-\d+/);
    my $strand = $read->strand;
    if (not defined $req_strand) {
       $req_strand = $strand;
@@ -73,8 +73,9 @@ sub ok_read_forward_only {
       is $strand, $req_strand;
    }
    my $readseq = $read->seq;
-   ok (($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc')
-     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
+   ok ( ($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' )
+     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGTggggg')
+     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'     ));
    is $read->id, $nof_reads;
    my $readlength = $read->length;
    ok ( ($readlength == 95) or ($readlength == 100) );

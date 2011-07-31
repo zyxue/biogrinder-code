@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 31;
 
 use Grinder;
 my ($factory, $nof_reads, $read, %sources);
@@ -15,7 +15,7 @@ ok $factory = Grinder->new(
    -abundance_file => './t/data/abundances.txt',
    -length_bias    => 0                             ,
    -random_seed    => 1910567890                    ,
-   -total_reads    => 1000                           ), 'Genome abundance for a single libraries';
+   -total_reads    => 1000                           ), 'Genome abundance for a single shotgun libraries';
 
 while ( $read = $factory->next_read ) {
    my $source = $read->reference->id;
@@ -43,6 +43,43 @@ is $factory->next_lib, undef;
 %sources = ();
 
 
+# Specified genome abundance for a single library
+
+ok $factory = Grinder->new(
+   -abundance_file  => './t/data/abundances2.txt'      ,
+   -genome_file     => './t/data/amplicon_database.fa',
+   -forward_reverse => './t/data/forward_reverse_primers.fa'   ,
+   -length_bias     => 0                              ,
+   -unidirectional  => 1                              ,
+   -read_dist       => 48                             ,
+   -random_seed     => 1910567890                     ,
+   -total_reads     => 1000                           ), 'Genome abundance for a single amplicon libraries';
+
+while ( $read = $factory->next_read ) {
+   my $source = $read->reference->id;
+   # Strip amplicon sources of the 'amplicon' part
+   $source =~ s/_amplicon.*$//;
+   if (not exists $sources{$source}) {
+     $sources{$source} = 1;
+   } else {
+     $sources{$source}++;
+   }
+};
+
+ok exists $sources{'seq1'};
+ok exists $sources{'seq2'};
+ok exists $sources{'seq3'};
+
+# This tests are quite sensitive to the seed used. Ideal average answer should
+# be 600, 300 and 100 here
+ok ( ($sources{'seq1'} > 570) && ($sources{'seq1'} < 630) );
+ok ( ($sources{'seq2'} > 270) && ($sources{'seq2'} < 330) );
+ok ( ($sources{'seq3'} >  70) && ($sources{'seq3'} < 130) );
+
+is $factory->next_lib, undef;
+%sources = ();
+
+
 # Specified genome abundance for multiple libraries
 
 ok $factory = Grinder->new(
@@ -50,7 +87,7 @@ ok $factory = Grinder->new(
    -abundance_file => './t/data/abundances_multiple.txt',
    -length_bias    => 0                                      ,
    -random_seed    => 1232567890                             ,
-   -total_reads    => 1000                                    ), 'Genome abundance for multiple libraries';
+   -total_reads    => 1000                                    ), 'Genome abundance for multiple shotgun libraries';
 
 ok $factory->next_lib;
 
