@@ -155,7 +155,8 @@ sub next_lib {
     # Calculate needed number of sequences based on desired coverage
     ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
     # Create probabilities of picking genomes from community structure
-    $self->{positions} = $self->proba_create($c_struct, $self->{length_bias});
+    $self->{positions} = $self->proba_create($c_struct, $self->{length_bias},
+      $self->{copy_bias});
   }
   return $c_struct;
 }
@@ -786,7 +787,7 @@ sub community_calculate_amplicon_abundance {
   # from the species. The r_spp_ids and r_spp_abs arrays are the ID and abundance
   # of the species, sorted by decreasing abundance.
 
-  # Convert from species to amplicons
+  # Give amplicons from the same species the same sampling probability
   my $sum = 0;
   for (my $i  = 0; $i < scalar @$r_spp_ids; $i++) {
     my $species_ab    = $$r_spp_abs[$i];
@@ -950,40 +951,57 @@ sub is_valid {
 
 
 sub proba_create {
-  my ($self, $c_struct, $size_dep) = @_;
-  # 1/ Calculate size-dependent probabilities
-  my $probas = $self->proba_size_dependency($c_struct, $self->{database}->{db}, $size_dep);
+  my ($self, $c_struct, $size_dep, $copy_bias) = @_;
+  # 1/ Calculate size-dependent, copy number-dependent probabilities
+  my $probas = $self->proba_bias_dependency($c_struct, $self->{database}->{db},
+    $size_dep, $copy_bias);
   # 2/ Generate proba starting position
   my $positions = $self->proba_cumul($probas);
   return $positions;
 }
 
 
-sub proba_size_dependency {
-  # Affect probability of picking a genome by considering that the longer the
-  # sequence, the more chances of it being picked.
-  my ($self, $c_struct, $seq_db, $size_dep) = @_;
+sub proba_bias_dependency {
+  # Affect probability of picking a species by considering genome length or gene
+  # copy number bias
+  my ($self, $c_struct, $seq_db, $size_dep, $copy_bias) = @_;
+
   # Calculate probability
   my @probas;
   my $totproba = 0;
   my $diversity = scalar @{$c_struct->{'ids'}};
   for my $i (0 .. scalar $diversity - 1) {
     my $proba = $c_struct->{'abs'}[$i];
-    if ($size_dep) {
-      my $id  = $c_struct->{'ids'}[$i];
-      my $seq = $self->database_get_seq($id);
-      my $len = $seq->length;
-      $proba /= $len;
+
+    if ( defined $self->{forward_reverse} ) {
+      # Gene copy number bias
+      if ($copy_bias) {
+        my $ref_id = $c_struct->{'ids'}[$i];
+        $ref_id =~ s/_amplicon.*$//;
+        my $nof_amplicons = scalar keys %{$self->{'database'}->{'ids'}->{$ref_id}}; 
+        $proba *= $nof_amplicons;
+      }
+    } else {
+      # Genome length bias
+      if ($size_dep) {
+        my $id  = $c_struct->{'ids'}[$i];
+        my $seq = $self->database_get_seq($id);
+        my $len = $seq->length;
+        $proba /= $len;
+      }
     }
+
     push @probas, $proba;
     $totproba += $proba;
   }
+
   # Normalize if necessary
   if ($totproba != 1) {
     for my $i (0 .. scalar $diversity - 1) {
       $probas[$i] /= $totproba;
     }
   }
+
   return \@probas;
 }
 
@@ -1412,7 +1430,10 @@ sub database_create {
 
   # Sanity check
   if (scalar keys %seq_ids == 0) {
-    die "Error: No genome sequences could be used. If you specified a file of abundances for the genome sequences, make sure that their ID match the ID in the FASTA file. If you specified amplicon primers, verify that they match some genome sequences.\n";
+    die "Error: No genome sequences could be used. If you specified a file of".
+      " abundances for the genome sequences, make sure that their ID match the".
+      " ID in the FASTA file. If you specified amplicon primers, verify that ".
+      "they match some genome sequences.\n";
   }
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
@@ -1724,11 +1745,11 @@ libraries based on reference sequences in a FASTA file. Features include:
   * specific rank-abundance settings or manually given abundance for each genome
   * creation of datasets with a given richness (alpha diversity)
   * independent datasets can share a variable number of genomes (beta diversity)
-  * modeling of the bias created by varying genome lengths
+  * modeling of the bias created by varying genome lengths or gene copy number
   * Perl API to automate the creation of a large number of simulated dataset
 
-Grinder can thus produce metagenomes, pyrotag datasets or shotgun sequencing
-projects, which can be used to test the accuracy of bioinformatic tools or help
+Grinder can thus produce metagenomic, amplicon or shotgun sequence datasets
+which can be used to test the accuracy of bioinformatic tools or help
 decide between alternative sequencing methods in an experiment.
 
 This is the documentation for the Grinder API. For the command-line program, run:
@@ -1930,14 +1951,29 @@ Default: unidirectional.default
 
 =item -lb <length_bias> | -length_bias <length_bias>
 
-More realistic size-dependent probability of chosing a given genome; larger
-genomes get more represented in a random shotgun library. 0 = no, 1 = yes.
+In shotgun libraries, sample species proportionally to their genome length:
+at the same relative abundance, larger genomes contribute more reads than smaller
+genomes. 0 = no, 1 = yes.
 Default: length_bias.default
 
 =for Euclid:
    length_bias.type: number, length_bias == 0 || length_bias == 1
    length_bias.type.error: <length_bias> must be 0 or 1 (not length_bias)
    length_bias.default: 1
+
+=item -cb <copy_bias> | -copy_bias <copy_bias>
+
+In amplicon libraries, sample species proportionally to the number of copies of
+the target gene: at equal relative abundance, genomes that have multiple copies
+of the target gene contribute more amplicon reads than genomes that have a
+single copy. Note: you should use full genomes in <reference_file> to make use
+of this option. 0 = no, 1 = yes.
+Default: copy_bias.default
+
+=for Euclid:
+   copy_bias.type: number, copy_bias == 0 || copy_bias == 1
+   copy_bias.type.error: <copy_bias> must be 0 or 1 (not copy_bias)
+   copy_bias.default: 1
 
 =back
 

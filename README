@@ -10,13 +10,13 @@ libraries based on reference sequences in a FASTA file. Features include:
   * specific rank-abundance settings or manually given abundance for each genome
   * creation of datasets with a given richness (alpha diversity)
   * independent datasets can share a variable number of genomes (beta diversity)
-  * modeling of the bias created by varying genome lengths
+  * modeling of the bias created by varying genome lengths or gene copy number
   * profile mechanism to store preferred options
   * Perl API to automate the creation of a large number of simulated dataset
 
 
-Grinder can thus produce metagenomes, pyrotag datasets or shotgun sequencing
-projects, which can be used to test the accuracy of bioinformatic tools or help
+Grinder can thus produce metagenomic, amplicon or shotgun sequence datasets
+which can be used to test the accuracy of bioinformatic tools or help
 decide between alternative sequencing methods in an experiment.
 
 

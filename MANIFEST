@@ -38,6 +38,7 @@ t/15-multiplex.t
 t/16-profile.t
 t/17-libraries.t
 t/18-amplicon-multiple.t
+t/19-gene-copy-bias.t
 t/data/abundances.txt
 t/data/abundances2.txt
 t/data/abundances_multiple.txt
