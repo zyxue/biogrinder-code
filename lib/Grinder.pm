@@ -1250,15 +1250,15 @@ sub rand_seq_length {
     if ($model eq 'uniform') {
       # Uniform distribution: decimal number uniformly distributed in [min, max)
       my ($min, $max) = ($avg - $stddev, $avg + $stddev);
-      $length = $min + ($max-$min) * rand();
+      $length = $min + int( ($max - $min + 1) * rand() );
     } elsif ($model eq 'normal') {
       # Gaussian distribution: decimal number normally distribution in N(avg,stddev)
       $length = $avg + $stddev * randn();
+      $length = int( $length + 0.5 );
     } else {
       die "Error: '$model' is not a supported read or insert length distribution\n";
     }
   }
-  $length = int( $length + 0.5 );
   $length = 1 if ($length < 1);
   return $length;
 }

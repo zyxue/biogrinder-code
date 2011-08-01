@@ -1,6 +1,9 @@
 Revision history for Grinder
 
 0.3.x	
+        More tests to test read and insert length distributions
+        Improved accuracy for insert and read length uniform distribution
+        More tests to test multiple amplicons with specified genome abundance
         Implemented the gene copy bias option for amplicon libraries
 	Added links to example databases that users can use as Grinder input
         Primer ability to match ambiguous residues of the reference sequence
