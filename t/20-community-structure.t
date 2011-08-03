@@ -2,11 +2,12 @@
 
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 19;
 use Bio::Seq;
 
 use Grinder;
-my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean, $stddev);
+my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean,
+    $stddev, $struct, $param1, $param2);
 
 
 # Uniform community structure
@@ -20,7 +21,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    push @reads, $read->reference->id;
-};
+}
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
@@ -42,7 +43,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    push @reads, $read->reference->id;
-};
+}
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
@@ -64,7 +65,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    push @reads, $read->reference->id;
-};
+}
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
@@ -86,7 +87,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    push @reads, $read->reference->id;
-};
+}
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
@@ -106,15 +107,62 @@ ok $factory = Grinder->new(
    -abundance_model => ('exponential', 0.5)          ,
    -total_reads     => 1000                           ), 'Exponential community structure';
 
+$struct = $factory->next_lib;
 while ( $read = $factory->next_read ) {
    push @reads, $read->reference->id;
-};
+}
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = exponential(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 ok ($coeff > 0.97);
+is $struct->{param}, 0.5;
+@reads = ();
+
+
+# Communities with random structure parameter value
+
+ok $factory = Grinder->new(
+   -genome_file     => './t/data/shotgun_database.fa',
+   -read_dist       => 48                            ,
+   -length_bias     => 0                             ,
+   -num_libraries   => 2                             ,
+   -shared_perc     => 100                           ,
+   -abundance_model => ('exponential')               ,
+   -total_reads     => 1000                           ), 'Communities with random structure parameter value';
+
+$struct = $factory->next_lib;
+while ( $read = $factory->next_read ) {
+   push @reads, $read->reference->id;
+}
+
+$ra = rank_abundance(\@reads, 10);
+($min, $max, $mean, $stddev) = stats($ra);
+$param1 = $struct->{param};
+ok $param1 > 0;
+ok $param1 < 1000;
+$era = exponential(10, 5, $param1, 1000);
+$coeff = corr_coeff($ra, $era, $mean);
+ok ($coeff > 0.97);
+
+@reads = ();
+
+$struct = $factory->next_lib;
+while ( $read = $factory->next_read ) {
+   push @reads, $read->reference->id;
+}
+
+$ra = rank_abundance(\@reads, 10);
+($min, $max, $mean, $stddev) = stats($ra);
+$param2 = $struct->{param};
+ok $param2 > 0;
+ok $param2 < 1000;
+$era = exponential(10, 5, $param2, 1000);
+$coeff = corr_coeff($ra, $era, $mean);
+ok ($coeff > 0.97);
+
+ok $param1 != $param2;
 
 @reads = ();
 

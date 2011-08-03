@@ -1,18 +1,18 @@
 Revision history for Grinder
 
-0.3.x   
-        More tests to assess community structure
-        Specified where to report bugs
-        More tests to test read and insert length distributions
-        Improved accuracy for insert and read length uniform distribution
-        More tests to test multiple amplicons with specified genome abundance
-        Implemented the gene copy bias option for amplicon libraries
-        Added links to example databases that users can use as Grinder input
-        Primer ability to match ambiguous residues of the reference sequence
-        Primer ability to match RNA sequences
+0.3.6   03-Aug-2011
         Support for reference sequences that contain several amplicons
-        Fixed bug: the quality scores were generated but never written to file
+        Implemented a gene copy bias option for amplicon libraries
+        Primers can now match RNA sequences or ambiguous residues of the reference
+           sequence 
+        Automatic community structure parameter value picking when none is provided
+        Fixed uniform insert and read length distribution
+        Fixed quality scores, which were generated but never written to disk
         Write on screen when QUAL files are generated
+        Added links to example databases that users can use as Grinder input
+        Specified the URL where to report bugs
+        More unit tests: community structure, read and insert length distributions
+           amplicons with specified genome abundance
 
 0.3.5   21-Jul-2011
         Implemented a profile mechanisms to store user's preferred options

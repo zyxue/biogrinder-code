@@ -10,7 +10,7 @@ use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl qw(srand rand);
 
-our $VERSION = '0.3.5';
+our $VERSION = '0.3.6';
 # Version number is also in POD, so that it can be accessed by Getopt::Euclid
 
 #---------- GRINDER FUNCTIONAL API --------------------------------------------#
@@ -282,7 +282,7 @@ sub initialize {
     $self->{abundance_model} = [$self->{abundance_model}];
   }
   $self->{distrib} = $self->{abundance_model}[0] || 'uniform';
-  $self->{param}   = $self->{abundance_model}[1] ||= 0;
+  $self->{param}   = $self->{abundance_model}[1];
   delete $self->{abundance_model};
 
   # Parameter processing: point sequencing error distribution
@@ -365,7 +365,8 @@ sub community_structures {
   my ($self, $seq_ids, $abundance_file, $distrib, $param, $nof_indep,
     $perc_shared, $perc_permuted, $diversities, $forward_reverse) = @_;
 
-  my $c_structs; # Community structures
+  # Calculate community structures
+  my $c_structs;
   if ($abundance_file) {
     # Sanity check
     if ( (scalar @$diversities > 1) || $$diversities[0] ) {
@@ -418,13 +419,18 @@ sub community_structures {
     $self->{permuted_perc} = $perc_permuted;
     # Put results in a community structure "object"
     for my $c (1 .. $nof_indep) {
+      # Assign a random parameter if needed
+      my $comm_param = defined $param ? $param : randig(1,0.05);
       # Calculate relative abundance of the community members
       my $diversity = $self->{diversity}[$c-1];
-      my $c_abs = community_calculate_species_abundance($distrib, $param, $diversity);
+      my $c_abs = community_calculate_species_abundance($distrib, $comm_param,
+         $diversity);
       my $c_ids = $$c_ids[$c-1];
       my $c_struct;
-      $c_struct->{'ids'} = $c_ids;
-      $c_struct->{'abs'} = $c_abs;
+      $c_struct->{'ids'}   = $c_ids;
+      $c_struct->{'abs'}   = $c_abs;
+      $c_struct->{'param'} = $comm_param;
+      $c_struct->{'model'} = $distrib;
       push @$c_structs, $c_struct;
     }
   }
@@ -1292,8 +1298,8 @@ sub rand_seq_pos {
 
 
 sub randn {
-  # Normally distributed random value (mean 0 and standard deviation 1)
-  # Code adapted from the Perl Cookbook
+  # Normally distributed random value (mean 0 and standard deviation 1) using
+  # the Box-Mueller transformation method, adapted from the Perl Cookbook
   my ($g1, $g2, $w);
   do {
     $g1 = 2 * rand() - 1; # uniformly distributed
@@ -1308,6 +1314,22 @@ sub randn {
   } else {
     return $g1;
   }
+}
+
+
+sub randig {
+   # Random value sampled from the inverse gaussian (a.k.a. Wald) distribution,
+   # using the method at http://en.wikipedia.org/wiki/Inverse_Gaussian_distribution
+   my ($mu, $lambda) = @_;
+   my $y = randn()**2;
+   my $x = $mu + ($mu**2 * $y)/(2 * $lambda) - $mu / (2 * $lambda)
+           * sqrt(4 * $mu * $lambda * $y + $mu**2 * $y**2);
+   if ( rand() <= $mu / ($mu + $x) ) {
+      $y = $x;
+   } else {
+      $y = $mu**2 / $x;
+   }
+   return $y;
 }
 
 
@@ -1757,7 +1779,7 @@ This is the documentation for the Grinder API. For the command-line program, run
 
 =head1 VERSION
 
-0.3.5
+0.3.6
 
 =head1 AUTHOR
 
@@ -2052,11 +2074,16 @@ communities.
 
 =item -am <abundance_model>... | -abundance_model <abundance_model>...
 
-Relative abundance model for the input genomes:
-   uniform, linear, powerlaw, logarithmic or exponential.
+Relative abundance model for the input genomes: uniform, linear, powerlaw,
+logarithmic or exponential. The uniform and linear models do not require a
+parameter, but the other models take a parameter in the range [0, infinity). If
+this parameter is not specified, then it is randomly picked.
 Examples:
-   1/ uniform distribution: uniform,
-   2/ powerlaw distribution with parameter 0.1: powerlaw 0.1.
+
+   1/ uniform distribution: uniform
+   2/ powerlaw distribution with parameter 0.1: powerlaw 0.1
+   3/ exponential distribution with automatically chosen parameter: exponential
+
 Default: abundance_model.default
 
 =for Euclid:
