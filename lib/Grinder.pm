@@ -1781,7 +1781,8 @@ along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
 =head1 BUGS
 
 All complex software has bugs lurking in it, and this program is no exception.
-If you find a bug please email the author so that Grinder can be improved.
+If you find a bug, please report it on the SourceForge Tracker for Grinder:
+L<http://sourceforge.net/tracker/?group_id=244196&atid=1124737>
 
 Bug reports, suggestions and patches are welcome. Grinder's code is developed
 on Sourceforge (L<https://sourceforge.net/scm/?type=git&group_id=244196>) and is

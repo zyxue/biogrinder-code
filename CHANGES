@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.3.x	
+	Specified where to report bugs
         More tests to test read and insert length distributions
         Improved accuracy for insert and read length uniform distribution
         More tests to test multiple amplicons with specified genome abundance
