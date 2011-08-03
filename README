@@ -227,12 +227,10 @@ OPTIONS
         average length, distribution ('uniform' or 'normal') and standard
         deviation Only the first element is required. Examples:
 
-        1.  All sequences exactly 250 bp long: 250
-
-        2.  Uniform distribution around 100+-10 bp: 100 uniform 10
-
-        3.  Read normally distributed with an average of 800 and a standard
-            deviation of 100 bp: 800 normal 100
+          All sequences exactly 250 bp long: 250
+          Uniform distribution around 100+-10 bp: 100 uniform 10
+          Read normally distributed with an average of 800 and a standard deviation of 100
+            bp: 800 normal 100
 
         Genomes smaller than the specified length are not used. Default:
         read_dist.default
@@ -310,14 +308,9 @@ OPTIONS
         homopolymeric stretches (e.g. AAA, CCCCC) using a specified model
         (n: homopolymer length).
 
-        Margulies
-            N(n, 0.15 * n), Margulies et al. 2005.
-
-        Richter
-            N(n, 0.15 * sqrt(n)), Richter et al. 2008.
-
-        Balzer
-            N(n, 0.03494 + n * 0.06856), Balzer et al. 2010.
+          Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
+          Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
+          Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.
 
         Default: homopolymer_dist.default
 
@@ -342,12 +335,9 @@ OPTIONS
         the range [0, infinity). If this parameter is not specified, then it
         is randomly picked. Examples:
 
-        1.  uniform distribution: uniform
-
-        2.  powerlaw distribution with parameter 0.1: powerlaw 0.1
-
-        3.  exponential distribution with automatically chosen parameter:
-            exponential
+          uniform distribution: uniform
+          powerlaw distribution with parameter 0.1: powerlaw 0.1
+          exponential distribution with automatically chosen parameter: exponential
 
         Default: abundance_model.default
 
