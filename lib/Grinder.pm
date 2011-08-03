@@ -739,7 +739,7 @@ sub community_calculate_species_abundance {
     }
   } elsif ($distrib eq 'powerlaw') {
     # 1 parameter
-    die "Error: The powerlaw model requires an input paramater (-p option)\n"
+    die "Error: The powerlaw model requires an input parameter (-p option)\n"
       if not defined $param;
     my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
@@ -751,7 +751,7 @@ sub community_calculate_species_abundance {
     }
   } elsif ($distrib eq 'logarithmic') {
     # 1 parameter
-    die "Error: The logarithmic model requires an input paramater (-p option)\n"
+    die "Error: The logarithmic model requires an input parameter (-p option)\n"
       if not defined $param;
     my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
@@ -763,11 +763,11 @@ sub community_calculate_species_abundance {
     }
   } elsif ($distrib eq 'exponential') {
     # 1 parameter
-    die "Error: The exponential model requires an input paramater (-p option)\n"
+    die "Error: The exponential model requires an input parameter (-p option)\n"
       if not defined $param;
     my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
-      $$rel_ab[$index] = exp(1)**(-($index+1)*$param);
+      $$rel_ab[$index] = exp(-($index+1)*$param);
       $total += $$rel_ab[$index];
     }
     for (my $index = 0 ; $index < $diversity ; $index++) {
@@ -1009,7 +1009,7 @@ sub proba_bias_dependency {
 sub proba_cumul {
   # Put the probas end to end on a line and generate their start position on the
   # line (cumulative distribution). This will help with picking genomes or 
-  # nucleotides at random.
+  # nucleotides at random using the rand_weighted() subroutine.
   my ($self, $probas) = @_;
   my $sum = 0;
   return [ 0, map { $sum += $_ } @$probas ];

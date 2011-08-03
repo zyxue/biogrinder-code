@@ -1,28 +1,29 @@
 Revision history for Grinder
 
-0.3.x	
-	Specified where to report bugs
+0.3.x   
+        More tests to assess community structure
+        Specified where to report bugs
         More tests to test read and insert length distributions
         Improved accuracy for insert and read length uniform distribution
         More tests to test multiple amplicons with specified genome abundance
         Implemented the gene copy bias option for amplicon libraries
-	Added links to example databases that users can use as Grinder input
+        Added links to example databases that users can use as Grinder input
         Primer ability to match ambiguous residues of the reference sequence
         Primer ability to match RNA sequences
         Support for reference sequences that contain several amplicons
         Fixed bug: the quality scores were generated but never written to file
         Write on screen when QUAL files are generated
 
-0.3.5	21-Jul-2011
+0.3.5   21-Jul-2011
         Implemented a profile mechanisms to store user's preferred options
         Added a script to reverse the orientation of right-hand mates
-	Fixed issues with reads with MIDs (in Bio::Seq::SimulatedRead)
-	Library number in ID of first sequence in libraries with even number was
-	  wrong when mate pair was used
-	Number of the pair in mate pair IDs was wrong
-	Grinder development put under Git versioning control on SourceForge
-	More unit tests
-	Versioning fix
+        Fixed issues with reads with MIDs (in Bio::Seq::SimulatedRead)
+        Library number in ID of first sequence in libraries with even number was
+          wrong when mate pair was used
+        Number of the pair in mate pair IDs was wrong
+        Grinder development put under Git versioning control on SourceForge
+        More unit tests
+        Versioning fix
 
 0.3.4   23-Jun-2011
         New option to generate basic quality scores if desired (-qual_levels)
