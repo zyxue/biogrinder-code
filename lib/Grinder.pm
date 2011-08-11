@@ -1357,7 +1357,7 @@ sub database_create {
   #     that does not contain the primer (or its reverse complement for the
   #     reverse primer) is skipped, while any sequence that match is trimmed so
   #     that it is flush with the primer sequence.
-  #   * Abundance file (optional): This allows to not register into the database
+  #   * Abundance file (optional): To avoid registering sequences in the database
   #     unless they are needed
   #   * Delete chars (optional): Characters to delete form the sequences.
   my ($self, $fasta_file, $unidirectional, $forward_reverse_primers,
