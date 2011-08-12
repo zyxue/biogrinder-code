@@ -1,7 +1,5 @@
 package Grinder;
 
-# See end of file for POD documentation
-
 use 5.006;
 use strict;
 use File::Spec;
@@ -9,9 +7,787 @@ use Bio::SeqIO;
 use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl qw(srand rand);
-
 our $VERSION = '0.3.6';
-# Version number is also in POD, so that it can be accessed by Getopt::Euclid
+
+#---------- GRINDER POD DOC ---------------------------------------------------#
+
+=head1 NAME
+
+Grinder - a simulator of random shotgun and amplicon sequence libraries
+
+=head1 DESCRIPTION
+
+Grinder is a program to create artificial random shotgun and amplicon sequence
+libraries based on reference sequences in a FASTA file. Features include:
+
+=over
+
+=item *
+
+shotgun library or amplicon library
+
+=item *
+
+arbitrary read length distribution and number of reads
+
+=item *
+
+simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
+
+=item *
+
+support for creating paired-end (mate pair) datasets
+
+=item *
+
+specific rank-abundance settings or manually given abundance for each genome
+
+=item *
+
+creation of datasets with a given richness (alpha diversity)
+
+=item *
+
+independent datasets can share a variable number of genomes (beta diversity)
+
+=item *
+
+modeling of the bias created by varying genome lengths or gene copy number
+
+=item *
+
+profile mechanism to store preferred options
+
+=item *
+
+API to automate the creation of a large number of simulated dataset
+
+=back
+
+Grinder can thus produce metagenomic, amplicon or shotgun sequence datasets
+which can be used to test the accuracy of bioinformatic tools or help
+decide between alternative sequencing methods in an experiment.
+
+=head1 CITATION
+
+If you use Grinder in your research, please cite:
+
+   Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
+   GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
+   Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
+   L<http://dx.doi.org/10.1371/journal.pcbi.1000593>
+
+=head1 VERSION
+
+0.3.6
+
+=head1 AUTHOR
+
+Florent Angly <florent.angly@gmail.com>
+
+=head1 INSTALLATION
+
+You need to install these dependencies first:
+
+=over
+
+=item *
+
+Perl (L<http://www.perl.com/download.csp>)
+
+=back
+
+The following Perl modules are dependencies that will be installed automatically
+for you:
+
+=over
+
+
+=item *
+
+Bio::SeqIO (from Bioperl)
+
+=item *
+
+Bio::Seq::SimulatedRead (from Bioperl but included here because it is so recent)
+
+=item *
+
+Getopt::Euclid
+
+=item *
+
+Math::Random::MT::Perl
+
+=back
+
+To install Grinder globally on your system, run the following commands in a
+terminal or command prompt:
+
+On Linux, Unix, MacOS:
+
+   perl Makefile.PL
+   make
+   make test
+
+And finally, with administrator privileges:
+
+   make install
+
+On Windows, run the same commands but with nmake instead of make.
+
+If you do not have administrator rights and want to install the module locally,
+try something along these lines:
+
+   perl Makefile.PL INSTALL_BASE=/home/fangly/bin/perl
+
+
+=head1 RUNNING GRINDER
+
+After installation, you can run Grinder using a command-line interface (CLI) or
+an application programming interface (API). To get the usage of the CLI, type:
+
+  Grinder --help
+
+If you are interested in running Grinder from within other Perl programs, see
+the documentation of the Grinder API:
+
+  perldoc Grinder
+
+The 'utils' folder included in the Grinder package contains utilities:
+
+=over
+
+=item average genome size:
+
+This calculates the average genome size (in bp) of a simulated random library
+produces by Grinder.
+
+=item change_paired_read_orientation:
+
+This reverses the orientation of each second mate-pair read (ID endind in /2)
+in a FASTA file.
+
+=back
+
+=head1 REFERENCE SEQUENCE DATABASE
+
+A variety of FASTA databases can be used as input for Grinder. For example, the
+GreenGenes database (L<http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta>)
+contains over 180,000 16S rRNA clone sequences from various species which would
+be appropriate to produce a 16S amplicon dataset. A set of over 41,000 OTU
+representative sequences and their affiliation in seven different taxonomic
+sytems can also be used for the same purpose (L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/rep_set/gg_97_otus_6oct2010.fasta>
+and L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/>).
+While 16S rRNA is a popular gene, datasets containing any type of gene could be used
+in the same fashion to generate simulated amplicon datasets, provided appropriate
+primers are used.
+
+The >2,400 curated microbial genome sequences in the NCBI RefSeq collection
+(L<ftp://ftp.ncbi.nih.gov/refseq/release/microbial/>) would also be suitable for
+producing 16S rRNA simulated datasets (using the adequate primers). However, the
+lower diversity of this database compared to the previous two makes it more
+appropriate for producing artificial microbial metagenomes. Individual genomes
+from this database are also very suitable for the simulation of single or
+double-barreled shotgun libraries. Similarly, the RefSeq database contains
+over 3,100 curated viral sequences (<ftp://ftp.ncbi.nih.gov/refseq/release/viral/>)
+which can be used to produce artificial viral metagenomes.
+
+Quite a few eukaryotic organisms have been sequenced and their genome and the
+genes it contains can be the basis for simulating genomic and transcriptomic
+(RNA-seq) datasets. For example, the human genome is available at
+L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/> and its transcripts can be
+downloaded from L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz>
+
+=head1 CLI EXAMPLES
+
+=over
+
+=item *
+
+A shotgun library with a coverage of 0.1X
+
+   Grinder -reference_file genomes.fna -coverage_fold 0.1
+
+=item *
+
+Same thing but save the result files in a specific folder and with a specific name
+
+   Grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir
+
+=item *
+
+A shotgun library with 1000 reads
+
+   Grinder -reference_file genomes.fna -total_reads 1000
+
+=item *
+
+A shotgun library where species are distributed according to a power law
+
+   Grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
+
+=item *
+
+A shotgun library with 123 species
+
+   Grinder -reference_file genomes.fna -diversity 123
+
+=item *
+
+Two shotgun libraries that have 50% of the species in common
+
+   Grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
+
+=item *
+
+A shotgun library where species relative abundances are manually specified
+
+   Grinder -reference_file genomes.fna -abundance_file my_abundances.txt
+
+=item *
+
+A shotgun library with Sanger reads
+
+   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4
+
+=item *
+
+A shotgun library with first-generation 454 reads
+
+   Grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
+
+=item *
+
+A paired-end shotgun library (insert size normally distributed around 2.5 kbp
+with 0.2 kbp standard deviation)
+
+   Grinder -reference_file genomes.fna -insert_dist 2500 normal 200
+
+=item *
+
+A 16S amplicon library
+
+   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
+
+=item *
+
+The same amplicon library with 20% of chimeric reads
+
+   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
+
+=item *
+
+Three 16S amplicon libraries with specified MIDs
+
+   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
+
+=item *
+
+Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly
+
+   zcat microbial_db.fna.gz | Grinder -total_reads 100
+
+=back
+
+=head1 OPTIONS
+
+=head2 Basic parameters
+
+=over
+
+=item -rf <reference_file> | -reference_file <reference_file> | -gf <reference_file> | -genome_file <reference_file>
+
+FASTA file that contains the input reference sequences (full genomes, 16S rRNA
+genes, transcripts, ...) or '-' to read them from the standard input. See the
+README file for examples of databases you can use and their location.
+Default: reference_file.default
+
+=for Euclid:
+   reference_file.type: readable
+   reference_file.default: '-'
+
+=item -cf <coverage_fold> | -coverage_fold <coverage_fold>
+
+Desired fold coverage of the input reference sequences (the output FASTA length divided
+by the input FASTA length).
+Default: coverage_fold.default x
+
+=for Euclid:
+   coverage_fold.type: +number
+   coverage_fold.default: 0.1
+   coverage_fold.excludes: total_reads
+
+=item -tr <total_reads> | -total_reads <total_reads>
+
+Number of shotgun or amplicon reads to generate for each library. Do not specify
+this if you specify the coverage.
+
+=for Euclid:
+   total_reads.type: +integer
+
+=back
+
+=head2 Advanced shotgun and amplicon parameters
+
+=over
+
+=item -rd <read_dist>... | -read_dist <read_dist>...
+
+Desired shotgun or amplicon read length distribution specified as:
+   average length, distribution ('uniform' or 'normal') and standard deviation
+Only the first element is required.
+Examples:
+
+  All sequences exactly 250 bp long: 250
+  Uniform distribution around 100+-10 bp: 100 uniform 10
+  Read normally distributed with an average of 800 and a standard deviation of 100
+    bp: 800 normal 100
+
+Genomes smaller than the specified length are not used. Default: read_dist.default
+
+=for Euclid:
+   read_dist.type: string
+   read_dist.default: [100]
+
+=item -id <insert_dist>... | -insert_dist <insert_dist>...
+
+Create shotgun paired end reads (mate pairs) spanning the given insert length
+(the reads are interior to the insert):
+   0 : off,
+   or: insert size distribution in bp, in the same format as the read length
+       distribution (a typical value is 2,500 bp)
+Two distinct reads are generated whether or not the mate pair overlaps.
+Default: insert_dist.default
+
+=for Euclid:
+   insert_dist.type: string
+   insert_dist.default: [0]
+
+=item -ec <exclude_chars> | -exclude_chars <exclude_chars>
+
+Do not create reads containing any of the specified characters (case 
+insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N).
+Default: 'exclude_chars.default'
+
+=for Euclid:
+   exclude_chars.type: string
+   exclude_chars.default: ''
+
+=item -dc <delete_chars> | -delete_chars <delete_chars>
+
+Remove the specified characters from the reference sequences (case
+insensitive), e.g. 'N-' to renove gaps (-) and ambiguities (N).
+Default: delete_chars.default
+
+=for Euclid:
+   delete_chars.type: string
+   delete_chars.default: ''
+
+=item -fr <forward_reverse> | -forward_reverse <forward_reverse>
+
+Use amplicon sequencing using the given forward and reverse PCR primer sequences
+(in a FASTA file). It is recommended to use the <length_bias> and <unidirectional>
+options to generate amplicon reads. To sequence from the forward strand
+(<unidirectional> = 1), put the forward primer first and reverse primer second.
+To sequence from the reverse strand, invert the primers in the FASTA file and
+use <unidirectional> = -1. The second primer sequence in the FASTA file is always
+optional. The sequences should use the IUPAC convention for degenerate residues.
+Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers
+respectively (primers that target the v6 to v9 region of the 16S rRNA gene).
+Genome sequences that do not match the specified primers are excluded.
+
+=for Euclid:
+   forward_reverse.type: readable
+
+=item -un <unidirectional> | -unidirectional <unidirectional>
+
+Instead of producing reads bidirectionally, i.e. from the reference strand and
+its reverse complement, proceed unidirectionally, i.e. from one strand only
+(forward or reverse). Values: 0 (off), 1 (forward), -1 (reverse)
+Default: unidirectional.default
+
+=for Euclid:
+   unidirectional.type: integer, unidirectional >= -1 && unidirectional <= 1
+   unidirectional.type.error: <unidirectional> must be 0, 1 or -1 (not unidirectional)
+   unidirectional.default: 0
+
+=item -lb <length_bias> | -length_bias <length_bias>
+
+In shotgun libraries, sample species proportionally to their genome length:
+at the same relative abundance, larger genomes contribute more reads than smaller
+genomes. 0 = no, 1 = yes.
+Default: length_bias.default
+
+=for Euclid:
+   length_bias.type: integer, length_bias == 0 || length_bias == 1
+   length_bias.type.error: <length_bias> must be 0 or 1 (not length_bias)
+   length_bias.default: 1
+
+=item -cb <copy_bias> | -copy_bias <copy_bias>
+
+In amplicon libraries, sample species proportionally to the number of copies of
+the target gene: at equal relative abundance, genomes that have multiple copies
+of the target gene contribute more amplicon reads than genomes that have a
+single copy. Note: you should use full genomes in <reference_file> to make use
+of this option. 0 = no, 1 = yes.
+Default: copy_bias.default
+
+=for Euclid:
+   copy_bias.type: integer, copy_bias == 0 || copy_bias == 1
+   copy_bias.type.error: <copy_bias> must be 0 or 1 (not copy_bias)
+   copy_bias.default: 1
+
+=back
+
+=head2 Aberrations and sequencing errors
+
+=over
+
+=item -md <mutation_dist>... | -mutation_dist <mutation_dist>...
+
+Introduce sequencing errors in the reads, under the form of mutations
+(substitutions, insertions and deletions) using a specified frequency
+distribution:
+   average probability (%),
+   model (uniform, linear),
+   value at 3' end (not applicable for uniform model).
+For example, for Sanger-type errors, use:
+   1.5 linear 2
+Use the <mutation_ratio> option to alter how many of these mutations are
+substitutions or indels.
+Default: mutation_dist.default
+
+=for Euclid:
+   mutation_dist.type: string
+   mutation_dist.default: [0, 'uniform', 0]
+
+=item -mr <mutation_ratio> | -mutation_ratio <mutation_ratio>
+
+Indicate the ratio of the number of substitutions to the number of indels
+(insertions and deletions). For example, use 4 (4 substitutions for 1 indel)
+for Sanger reads.
+Default: mutation_ratio.default
+
+=for Euclid:
+   mutation_ratio.type: num, mutation_ratio >= 0
+   mutation_ratio.default: 0
+
+=item -hd <homopolymer_dist> | -homopolymer_dist <homopolymer_dist>
+
+Introduce sequencing errors in the reads under the form of homopolymeric
+stretches (e.g. AAA, CCCCC) using a specified model where the homopolymer length
+follows a normal distribution N(mean, standard deviation) that is function of
+the homopolymer length n:
+
+  Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
+  Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
+  Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.
+
+Default: homopolymer_dist.default
+
+=for Euclid:
+   homopolymer_dist.type: string
+   homopolymer_dist.default: 0
+
+=item -cp <chimera_perc> | -chimera_perc <chimera_perc>
+
+Specify the percent of reads in amplicon libraries that should be chimeric
+sequences. The 'reference' field in the description of chimeric reads will
+contain the ID of all the reference sequences forming the chimeric template. A
+typical value is 10%. Default: chimera_perc.default %
+
+=for Euclid:
+   chimera_perc.type: number, chimera_perc >= 0 && chimera_perc <= 100
+   chimera_perc.type.error: <chimera_perc> must be a number between 0 and 100 (not chimera_perc)
+   chimera_perc.default: 0
+
+=back
+
+=head2 Community structure and diversity
+
+=over
+
+=item -af <abundance_file> | -abundance_file <abundance_file>
+
+Specify the relative abundance of the genomes manually in an input file. Each
+line of the file should contain a sequence name and its relative abundance (%),
+e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different
+communities.
+
+=for Euclid:
+   abundance_file.type: readable
+
+=item -am <abundance_model>... | -abundance_model <abundance_model>...
+
+Relative abundance model for the input genomes: uniform, linear, powerlaw,
+logarithmic or exponential. The uniform and linear models do not require a
+parameter, but the other models take a parameter in the range [0, infinity). If
+this parameter is not specified, then it is randomly picked.
+Examples:
+
+  uniform distribution: uniform
+  powerlaw distribution with parameter 0.1: powerlaw 0.1
+  exponential distribution with automatically chosen parameter: exponential
+
+Default: abundance_model.default
+
+=for Euclid:
+   abundance_model.type: string
+   abundance_model.default: ['uniform', 1]
+
+=item -nl <num_libraries> | -num_libraries <num_libraries>
+
+Number of independent libraries to create. Specify how diverse and similar they
+should be with <diversity>, <shared_perc> and <permuted_perc>. Assign them
+different MID tags with <multiplex_mids>.
+Default: num_libraries.default
+
+=for Euclid:
+   num_libraries.type: +integer
+   num_libraries.default: 1
+
+=item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
+
+Specify an optional FASTA file that contains multiplex sequence identifiers
+(a.k.a MIDs or barcodes) to add to the sequences (one per library). The MIDs
+are included in the length specified with the -read_dist option.
+
+=for Euclid:
+   multiplex_ids.type: readable
+
+=item -di <diversity>... | -diversity <diversity>...
+
+Richness, or number of genomes to include in the shotgun libraries. Use 0 for
+the maximum diversity possible (based on the number of reference sequences
+available). Provide one value to make all libraries have the same diversity, or
+one diversity value per library otherwise.
+Default: diversity.default
+
+=for Euclid:
+   diversity.type: 0+integer
+   diversity.default: [ 0 ]
+
+=item -sp <shared_perc> | -shared_perc <shared_perc>
+
+For multiple libraries, percent of genomes they should have in common (relative
+to the diversity of the least diverse library).
+Default: shared_perc.default %
+
+=for Euclid:
+   shared_perc.type: number, shared_perc >= 0 && shared_perc <= 100
+   shared_perc.type.error: <shared_perc> must be a number between 0 and 100 (not shared_perc)
+   shared_perc.default: 0
+
+=item -pp <permuted_perc> | -permuted_perc <permuted_perc>
+
+For multiple libraries, percent of the most-abundant genomes to permute in
+rank-abundance.
+Default: permuted_perc.default %
+
+=for Euclid:
+   permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
+   permuted_perc.type.error: <permuted_perc> must be a number between 0 and 100 (not permuted_perc)
+   permuted_perc.default: 0
+
+=back
+
+=head2 Miscellaneous
+
+=over
+
+=item -rs <random_seed> | -random_seed <random_seed>
+
+Seed number to use for the pseudo-random number generator.
+
+=for Euclid:
+   random_seed.type: +integer
+
+=item -dt <desc_track> | -desc_track <desc_track>
+
+Track read information (reference sequence, position, errors, ...) by writing
+it in the read description.
+Default: desc_track.default
+
+=for Euclid:
+   desc_track.type: number, desc_track == 0 || desc_track == 1
+   desc_track.type.error: <desc_track> must be 0 or 1 (not desc_track)
+   desc_track.default: 1
+
+=item -ql <qual_levels>... | -qual_levels <qual_levels>...
+
+Generate very basic quality scores for the simulated reads. Good residues are
+given a specified good score (e.g. 30) and residues that are the result of an
+insertion or substitution are given a specified bad score (e.g. 10). Specify
+first the good score and then the bad score on the command-line, e.g.: 30 10
+Default: qual_levels.default
+
+=for Euclid:
+   qual_levels.type: 0+integer
+   qual_levels.default: [ ]
+
+=item -bn <base_name> | -base_name <base_name>
+
+Prefix of the output files.
+Default: base_name.default
+
+=for Euclid:
+   base_name.type: string
+   base_name.default: 'grinder'
+
+=item -od <output_dir> | -output_dir <output_dir>
+
+Directory where the results should be written. This folder will be created if
+needed.
+Default: output_dir.default
+
+=for Euclid:
+   output_dir.type: writable
+   output_dir.default: '.'
+
+=item -pf <profile_file> | -profile_file <profile_file>
+
+A file that contains Grinder arguments. This is useful if you use many options
+or often use the same options. Lines with comments (#) are ignored. Consider the
+profile file, 'simple_profile.txt':
+
+  # A simple Grinder profile
+  -read_dist 105 normal 12
+  -total_reads 1000
+
+Running: Grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt
+
+Translates into: Grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000
+
+Note that the arguments specified in the profile should not be specified again on the command line.
+
+=back
+
+=head1 API EXAMPLES
+
+  use Grinder;
+
+  # Set up a new factory (see the OPTIONS section for a complete list of parameters)
+  my $factory = Grinder->new( -reference_file => 'genomes.fna' );
+
+  # Process all shotgun libraries requested
+  while ( my $struct = $factory->next_lib ) {
+
+    # The ID and abundance of the 3rd most abundant genome in this community
+    my $id = $struct->{ids}->[2];
+    my $ab = $struct->{abs}->[2];
+
+    # Create shotgun reads
+    while ( my $read = $factory->next_read) {
+
+      # The read is a Bioperl sequence object with these properties:
+      my $read_id     = $read->id;     # read ID given by Grinder
+      my $read_seq    = $read->seq;    # nucleotide sequence
+      my $read_mid    = $read->mid;    # MID or tag attached to the read
+      my $read_errors = $read->errors; # errors that the read contains
+ 
+      # Where was the read taken from? The reference sequence refers to the
+      # database sequence for shotgun libraries, amplicon obtained from the
+      # database sequence, or could even be a chimeric sequence
+      my $ref_id     = $read->reference->id; # ID of the reference sequence
+      my $ref_start  = $read->start;         # start of the read on the reference
+      my $ref_end    = $read->end;           # end of the read on the reference
+      my $ref_strand = $read->strand;        # strand of the reference
+      
+    }
+  }
+
+  # Similarly, for shotgun mate pairs
+  my $factory = Grinder->new( -reference_file => 'genomes.fna',
+                              -insert_dist    => 250            );
+  while ( $factory->next_lib ) {
+    while ( my $read = $factory->next_read ) {
+      # The first read is the first mate of the mate pair
+      # The second read is the second mate of the mate pair
+      # The third read is the first mate of the next mate pair
+      # ...
+    }
+  }
+
+  # To generate an amplicon library
+  my $factory = Grinder->new( -reference_file  => 'genomes.fna',
+                              -forward_reverse => '16Sgenes.fna',
+                              -length_bias     => 0,
+                              -unidirectional  => 1              );
+  while ( $factory->next_lib ) {
+    while ( my $read = $factory->next_read) {
+      # ...
+    }
+  }
+
+=head1 API METHODS
+
+The rest of the documentation details the available Grinder API methods.
+
+=head2 new
+
+Title   : new
+Function: Create a new Grinder factory initialized with the passed arguments.
+          Available parameters described in the OPTIONS section.
+Usage   : my $factory = Grinder->new( -reference_file => 'genomes.fna' );
+Returns : a new Grinder object
+
+=head2 next_lib
+
+Title   : next_lib
+Function: Go to the next shotgun library to process.
+Usage   : my $struct = $factory->next_lib;
+Returns : Community structure to be used for this library, where $struct->{ids}
+          is an array reference containing the IDs of the genome making up the
+          community (sorted by decreasing relative abundance) and $struct->{abs}
+          is an array reference of the genome abundances (in the same order as
+          the IDs).
+
+=head2 next_read
+
+Title   : next_read
+Function: Create a amplicon or shotgun read  for the current library.
+Usage   : my $read  = $factory->next_read; # for single read
+          my $mate1 = $factory->next_read; # for mate pairs
+          my $mate2 = $factory->next_read; 
+Returns : A sequence represented as a Bio::Seq::SimulatedRead object
+
+=head2 get_random_seed
+
+Title   : get_random_seed
+Function: Return the number used to seed the pseudo-random number generator
+Usage   : my $seed = $factory->get_random_seed;
+Returns : seed number
+
+
+=head1 COPYRIGHT
+
+Copyright 2009,2010,2011 Florent ANGLY <florent.angly@gmail.com>
+
+Grinder is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License (GPL) as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+Grinder is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
+
+=head1 BUGS
+
+All complex software has bugs lurking in it, and this program is no exception.
+If you find a bug, please report it on the SourceForge Tracker for Grinder:
+L<http://sourceforge.net/tracker/?group_id=244196&atid=1124737>
+
+Bug reports, suggestions and patches are welcome. Grinder's code is developed
+on Sourceforge (L<https://sourceforge.net/scm/?type=git&group_id=244196>) and is
+under Git revision control. To get started with a patch, do:
+
+   git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
+
+=cut
 
 #---------- GRINDER FUNCTIONAL API --------------------------------------------#
 
@@ -1114,7 +1890,7 @@ sub rand_homopolymer_errors {
     my $len = length($2) + 1;           # length of the homopolymer
     my $pos = pos($seq_str) - $len + 1; # start of the homopolymer (residue no.)
 
-    # Apply homopolymer model:
+    # Apply homopolymer model based on normal distribution N(mean, standard deviation)
     #   Balzer:    N(n, 0.03494 + n * 0.06856)  Balzer et al. 2010
     #   Richter:   N(n, 0.15 * sqrt(n))         Richter et al. 2008
     #   Margulies: N(n, 0.15 * n)               Margulies et al. 2005
@@ -1491,7 +2267,6 @@ sub database_extract_amplicons {
   } else {
     die "Error: Need to provide at least a forward primer\n";
   }
-
   # Complain if primers did not match explicitly specified database sequence
   if ( (scalar keys %{$ids_to_keep} > 0) &&
        (exists $$ids_to_keep{$seqid}   ) &&
@@ -1501,7 +2276,6 @@ sub database_extract_amplicons {
 
   return \@amplicons;
 }
-
 
 
 sub database_get_seq {
@@ -1527,7 +2301,6 @@ sub database_get_children_seq {
   }
   return \@children;
 }
-
 
 sub database_get_parent_id {
   # Based on a sequence object ID, retrieve the ID of the reference sequence it
@@ -1665,7 +2438,7 @@ sub new_subseq {
     $newid .= $mate_sep.$mate_number;
   }
 
-  # Create a new simulated read object
+    # Create a new simulated read object
   my $newseq = Bio::Seq::SimulatedRead->new(
      -id          => $newid,
      -reference   => $seq_obj,
@@ -1719,778 +2492,4 @@ sub two_array_sort {
 
 
 1;
-
-
-#---------- GRINDER POD -------------------------------------------------------#
-
-=head1 NAME
-
-Grinder - a simulator of random shotgun and amplicon sequence libraries
-
-=head1 DESCRIPTION
-
-Grinder is a program to create artificial random shotgun and amplicon sequence
-libraries based on reference sequences in a FASTA file. Features include:
-
-=over
-
-=item *
-
-shotgun library or amplicon library
-
-=item *
-
-arbitrary read length distribution and number of reads
-
-=item *
-
-simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
-
-=item *
-
-support for creating paired-end (mate pair) datasets
-
-=item *
-
-specific rank-abundance settings or manually given abundance for each genome
-
-=item *
-
-creation of datasets with a given richness (alpha diversity)
-
-=item *
-
-independent datasets can share a variable number of genomes (beta diversity)
-
-=item *
-
-modeling of the bias created by varying genome lengths or gene copy number
-
-=item *
-
-profile mechanism to store preferred options
-
-=item *
-
-API to automate the creation of a large number of simulated dataset
-
-=back
-
-Grinder can thus produce metagenomic, amplicon or shotgun sequence datasets
-which can be used to test the accuracy of bioinformatic tools or help
-decide between alternative sequencing methods in an experiment.
-
-=head1 CITATION
-
-If you use Grinder in your research, please cite:
-
-   Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
-   GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
-   Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
-   L<http://dx.doi.org/10.1371/journal.pcbi.1000593>
-
-=head1 VERSION
-
-0.3.6
-
-=head1 AUTHOR
-
-Florent Angly <florent.angly@gmail.com>
-
-=head1 INSTALLATION
-
-You need to install these dependencies first:
-
-=over
-
-=item *
-
-Perl (L<http://www.perl.com/download.csp>)
-
-=back
-
-The following Perl modules are dependencies that will be installed automatically
-for you:
-
-=over
-
-=item *
-
-Bio::SeqIO (from Bioperl)
-
-=item *
-
-Bio::Seq::SimulatedRead (from Bioperl but included here because it is so recent)
-
-=item *
-
-Getopt::Euclid
-
-=item *
-
-Math::Random::MT::Perl
-
-=back
-
-To install Grinder globally on your system, run the following commands in a
-terminal or command prompt:
-
-On Linux, Unix, MacOS:
-
-   perl Makefile.PL
-   make
-   make test
-
-And finally, with administrator privileges:
-
-   make install
-
-On Windows, run the same commands but with nmake instead of make.
-
-If you do not have administrator rights and want to install the module locally,
-try something along these lines:
-
-   perl Makefile.PL INSTALL_BASE=/home/fangly/bin/perl
-
-
-=head1 RUNNING GRINDER
-
-After installation, you can run Grinder using a command-line interface (CLI) or
-an application programming interface (API). To get the usage of the CLI, type:
-
-  Grinder --help
-
-If you are interested in running Grinder from within other Perl programs, see
-the documentation of the Grinder API:
-
-  perldoc Grinder
-
-The 'utils' folder included in the Grinder package contains utilities:
-
-=over
-
-=item average genome size:
-
-This calculates the average genome size (in bp) of a simulated random library
-produces by Grinder.
-
-=item change_paired_read_orientation:
-
-This reverses the orientation of each second mate-pair read (ID endind in /2)
-in a FASTA file.
-
-=back
-
-=head1 REFERENCE SEQUENCE DATABASE
-
-A variety of FASTA databases can be used as input for Grinder. For example, the
-GreenGenes database (L<http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta>)
-contains over 180,000 16S rRNA clone sequences from various species which would
-be appropriate to produce a 16S amplicon dataset. A set of over 41,000 OTU
-representative sequences and their affiliation in seven different taxonomic
-sytems can also be used for the same purpose (L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/rep_set/gg_97_otus_6oct2010.fasta>
-and L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/>).
-While 16S rRNA is a popular gene, datasets containing any type of gene could be used
-in the same fashion to generate simulated amplicon datasets, provided appropriate
-primers are used.
-
-The >2,400 curated microbial genome sequences in the NCBI RefSeq collection
-(L<ftp://ftp.ncbi.nih.gov/refseq/release/microbial/>) would also be suitable for
-producing 16S rRNA simulated datasets (using the adequate primers). However, the
-lower diversity of this database compared to the previous two makes it more
-appropriate for producing artificial microbial metagenomes. Individual genomes
-from this database are also very suitable for the simulation of single or
-double-barreled shotgun libraries. Similarly, the RefSeq database contains
-over 3,100 curated viral sequences (<ftp://ftp.ncbi.nih.gov/refseq/release/viral/>)
-which can be used to produce artificial viral metagenomes.
-
-Quite a few eukaryotic organisms have been sequenced and their genome and the
-genes it contains can be the basis for simulating genomic and transcriptomic
-(RNA-seq) datasets. For example, the human genome is available at
-L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/> and its transcripts can be
-downloaded from L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz>
-
-=head1 CLI EXAMPLES
-
-=over
-
-=item *
-
-A shotgun library with a coverage of 0.1X
-
-   Grinder -reference_file genomes.fna -coverage_fold 0.1
-
-=item *
-
-Same thing but save the result files in a specific folder and with a specific name
-
-   Grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir
-
-=item *
-
-A shotgun library with 1000 reads
-
-   Grinder -reference_file genomes.fna -total_reads 1000
-
-=item *
-
-A shotgun library where species are distributed according to a power law
-
-   Grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
-
-=item *
-
-A shotgun library with 123 species
-
-   Grinder -reference_file genomes.fna -diversity 123
-
-=item *
-
-Two shotgun libraries that have 50% of the species in common
-
-   Grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
-
-=item *
-
-A shotgun library where species relative abundances are manually specified
-
-   Grinder -reference_file genomes.fna -abundance_file my_abundances.txt
-
-=item *
-
-A shotgun library with Sanger reads
-
-   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4
-
-=item *
-
-A shotgun library with first-generation 454 reads
-
-   Grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
-
-=item *
-
-A paired-end shotgun library (insert size normally distributed around 2.5 kbp
-with 0.2 kbp standard deviation)
-
-   Grinder -reference_file genomes.fna -insert_dist 2500 normal 200
-
-=item *
-
-A 16S amplicon library
-
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
-
-=item *
-
-The same amplicon library with 20% of chimeric reads
-
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
-
-=item *
-
-Three 16S amplicon libraries with specified MIDs
-
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
-
-=item *
-
-Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly
-
-   zcat microbial_db.fna.gz | Grinder -total_reads 100
-
-=back
-
-=head1 OPTIONS
-
-=head2 Basic parameters
-
-=over
-
-=item -rf <reference_file> | -reference_file <reference_file> | -gf <reference_file> | -genome_file <reference_file>
-
-FASTA file that contains the input reference sequences (full genomes, 16S rRNA
-genes, transcripts, ...) or '-' to read them from the standard input. See the
-README file for examples of databases you can use and their location.
-Default: reference_file.default
-
-=for Euclid:
-   reference_file.type: readable
-   reference_file.default: '-'
-
-=item -cf <coverage_fold> | -coverage_fold <coverage_fold>
-
-Desired fold coverage of the input reference sequences (the output FASTA length divided
-by the input FASTA length).
-Default: coverage_fold.default x
-
-=for Euclid:
-   coverage_fold.type: +number
-   coverage_fold.default: 0.1
-   coverage_fold.excludes: total_reads
-
-=item -tr <total_reads> | -total_reads <total_reads>
-
-Number of shotgun or amplicon reads to generate for each library. Do not specify
-this if you specify the coverage.
-
-=for Euclid:
-   total_reads.type: +integer
-
-=back
-
-=head2 Advanced shotgun and amplicon parameters
-
-=over
-
-=item -rd <read_dist>... | -read_dist <read_dist>...
-
-Desired shotgun or amplicon read length distribution specified as:
-   average length, distribution ('uniform' or 'normal') and standard deviation
-Only the first element is required.
-Examples:
-
-  All sequences exactly 250 bp long: 250
-  Uniform distribution around 100+-10 bp: 100 uniform 10
-  Read normally distributed with an average of 800 and a standard deviation of 100
-    bp: 800 normal 100
-
-Genomes smaller than the specified length are not used. Default: read_dist.default
-
-=for Euclid:
-   read_dist.type: string
-   read_dist.default: [100]
-
-=item -id <insert_dist>... | -insert_dist <insert_dist>...
-
-Create shotgun paired end reads (mate pairs) spanning the given insert length
-(the reads are interior to the insert):
-   0 : off,
-   or: insert size distribution in bp, in the same format as the read length
-       distribution (a typical value is 2,500 bp)
-Two distinct reads are generated whether or not the mate pair overlaps.
-Default: insert_dist.default
-
-=for Euclid:
-   insert_dist.type: string
-   insert_dist.default: [0]
-
-=item -ec <exclude_chars> | -exclude_chars <exclude_chars>
-
-Do not create reads containing any of the specified characters (case 
-insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N).
-Default: 'exclude_chars.default'
-
-=for Euclid:
-   exclude_chars.type: string
-   exclude_chars.default: ''
-
-=item -dc <delete_chars> | -delete_chars <delete_chars>
-
-Remove the specified characters from the reference sequences (case
-insensitive), e.g. 'N-' to renove gaps (-) and ambiguities (N).
-Default: delete_chars.default
-
-=for Euclid:
-   delete_chars.type: string
-   delete_chars.default: ''
-
-=item -fr <forward_reverse> | -forward_reverse <forward_reverse>
-
-Use amplicon sequencing using the given forward and reverse PCR primer sequences
-(in a FASTA file). It is recommended to use the <length_bias> and <unidirectional>
-options to generate amplicon reads. To sequence from the forward strand
-(<unidirectional> = 1), put the forward primer first and reverse primer second.
-To sequence from the reverse strand, invert the primers in the FASTA file and
-use <unidirectional> = -1. The second primer sequence in the FASTA file is always
-optional. The sequences should use the IUPAC convention for degenerate residues.
-Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers
-respectively (primers that target the v6 to v9 region of the 16S rRNA gene).
-Genome sequences that do not match the specified primers are excluded.
-
-=for Euclid:
-   forward_reverse.type: readable
-
-=item -un <unidirectional> | -unidirectional <unidirectional>
-
-Instead of producing reads bidirectionally, i.e. from the reference strand and
-its reverse complement, proceed unidirectionally, i.e. from one strand only
-(forward or reverse). Values: 0 (off), 1 (forward), -1 (reverse)
-Default: unidirectional.default
-
-=for Euclid:
-   unidirectional.type: integer, unidirectional >= -1 && unidirectional <= 1
-   unidirectional.type.error: <unidirectional> must be 0, 1 or -1 (not unidirectional)
-   unidirectional.default: 0
-
-=item -lb <length_bias> | -length_bias <length_bias>
-
-In shotgun libraries, sample species proportionally to their genome length:
-at the same relative abundance, larger genomes contribute more reads than smaller
-genomes. 0 = no, 1 = yes.
-Default: length_bias.default
-
-=for Euclid:
-   length_bias.type: number, length_bias == 0 || length_bias == 1
-   length_bias.type.error: <length_bias> must be 0 or 1 (not length_bias)
-   length_bias.default: 1
-
-=item -cb <copy_bias> | -copy_bias <copy_bias>
-
-In amplicon libraries, sample species proportionally to the number of copies of
-the target gene: at equal relative abundance, genomes that have multiple copies
-of the target gene contribute more amplicon reads than genomes that have a
-single copy. Note: you should use full genomes in <reference_file> to make use
-of this option. 0 = no, 1 = yes.
-Default: copy_bias.default
-
-=for Euclid:
-   copy_bias.type: number, copy_bias == 0 || copy_bias == 1
-   copy_bias.type.error: <copy_bias> must be 0 or 1 (not copy_bias)
-   copy_bias.default: 1
-
-=back
-
-=head2 Aberrations and sequencing errors
-
-=over
-
-=item -md <mutation_dist>... | -mutation_dist <mutation_dist>...
-
-Introduce sequencing errors in the reads, under the form of mutations
-(substitutions, insertions and deletions) using a specified frequency
-distribution:
-   average probability (%),
-   model (uniform, linear),
-   value at 3' end (not applicable for uniform model).
-For example, for Sanger-type errors, use:
-   1.5 linear 2.
-Default: mutation_dist.default
-
-=for Euclid:
-   mutation_dist.type: string
-   mutation_dist.default: [0, 'uniform', 0]
-
-=item -mr <mutation_ratio> | -mutation_ratio <mutation_ratio>
-
-Indicate the ratio of the number of substitutions to the number of indels
-(insertions and deletions). For example, use 4 (4 substitutions for 1 indel)
-for Sanger reads.
-Default: mutation_ratio.default
-
-=for Euclid:
-   mutation_ratio.type: num, mutation_ratio >= 0
-   mutation_ratio.default: 0
-
-=item -hd <homopolymer_dist> | -homopolymer_dist <homopolymer_dist>
-
-Introduce sequencing errors in the reads under the form of homopolymeric
-stretches (e.g. AAA, CCCCC) using a specified model (n: homopolymer length).
-
-  Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
-  Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
-  Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.
-
-Default: homopolymer_dist.default
-
-=for Euclid:
-   homopolymer_dist.type: string
-   homopolymer_dist.default: 0
-
-=item -cp <chimera_perc> | -chimera_perc <chimera_perc>
-
-Specify the percent of reads in amplicon libraries that should be chimeric
-sequences. The 'reference' field in the description of chimeric reads will
-contain the ID of all the reference sequences forming the chimeric template. A
-typical value is 10%. Default: chimera_perc.default %
-
-=for Euclid:
-   chimera_perc.type: number, chimera_perc >= 0 && chimera_perc <= 100
-   chimera_perc.type.error: <chimera_perc> must be a number between 0 and 100 (not chimera_perc)
-   chimera_perc.default: 0
-
-=back
-
-=head2 Community structure and diversity
-
-=over
-
-=item -af <abundance_file> | -abundance_file <abundance_file>
-
-Specify the relative abundance of the genomes manually in an input file. Each
-line of the file should contain a sequence name and its relative abundance (%),
-e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different
-communities.
-
-=for Euclid:
-   abundance_file.type: readable
-
-=item -am <abundance_model>... | -abundance_model <abundance_model>...
-
-Relative abundance model for the input genomes: uniform, linear, powerlaw,
-logarithmic or exponential. The uniform and linear models do not require a
-parameter, but the other models take a parameter in the range [0, infinity). If
-this parameter is not specified, then it is randomly picked.
-Examples:
-
-  uniform distribution: uniform
-  powerlaw distribution with parameter 0.1: powerlaw 0.1
-  exponential distribution with automatically chosen parameter: exponential
-
-Default: abundance_model.default
-
-=for Euclid:
-   abundance_model.type: string
-   abundance_model.default: ['uniform', 1]
-
-=item -nl <num_libraries> | -num_libraries <num_libraries>
-
-Number of independent libraries to create. Specify how diverse and similar they
-should be with <diversity>, <shared_perc> and <permuted_perc>. Assign them
-different MID tags with <multiplex_mids>.
-Default: num_libraries.default
-
-=for Euclid:
-   num_libraries.type: +integer
-   num_libraries.default: 1
-
-=item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
-
-Specify an optional FASTA file that contains multiplex sequence identifiers
-(a.k.a MIDs or barcodes) to add to the sequences (one per library). The MIDs
-are included in the length specified with the -read_dist option.
-
-=for Euclid:
-   multiplex_ids.type: readable
-
-=item -di <diversity>... | -diversity <diversity>...
-
-Richness, or number of genomes to include in the shotgun libraries. Use 0 for
-the maximum diversity possible (based on the number of reference sequences
-available). Provide one value to make all libraries have the same diversity, or
-one diversity value per library otherwise.
-Default: diversity.default
-
-=for Euclid:
-   diversity.type: 0+integer
-   diversity.default: [ 0 ]
-
-=item -sp <shared_perc> | -shared_perc <shared_perc>
-
-For multiple libraries, percent of genomes they should have in common (relative
-to the diversity of the least diverse library).
-Default: shared_perc.default %
-
-=for Euclid:
-   shared_perc.type: number, shared_perc >= 0 && shared_perc <= 100
-   shared_perc.type.error: <shared_perc> must be a number between 0 and 100 (not shared_perc)
-   shared_perc.default: 0
-
-=item -pp <permuted_perc> | -permuted_perc <permuted_perc>
-
-For multiple libraries, percent of the most-abundant genomes to permute in
-rank-abundance.
-Default: permuted_perc.default %
-
-=for Euclid:
-   permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
-   permuted_perc.type.error: <permuted_perc> must be a number between 0 and 100 (not permuted_perc)
-   permuted_perc.default: 0
-
-=back
-
-=head2 Miscellaneous
-
-=over
-
-=item -rs <random_seed> | -random_seed <random_seed>
-
-Seed number to use for the pseudo-random number generator.
-
-=for Euclid:
-   random_seed.type: +integer
-
-=item -dt <desc_track> | -desc_track <desc_track>
-
-Track read information (reference sequence, position, errors, ...) by writing
-it in the read description.
-Default: desc_track.default
-
-=for Euclid:
-   desc_track.type: number, desc_track == 0 || desc_track == 1
-   desc_track.type.error: <desc_track> must be 0 or 1 (not desc_track)
-   desc_track.default: 1
-
-=item -ql <qual_levels>... | -qual_levels <qual_levels>...
-
-Generate very basic quality scores for the simulated reads. Good residues are
-given a specified good score (e.g. 30) and residues that are the result of an
-insertion or substitution are given a specified bad score (e.g. 10). Specify
-first the good score and then the bad score on the command-line, e.g.: 30 10
-Default: qual_levels.default
-
-=for Euclid:
-   qual_levels.type: 0+integer
-   qual_levels.default: [ ]
-
-=item -bn <base_name> | -base_name <base_name>
-
-Prefix of the output files.
-Default: base_name.default
-
-=for Euclid:
-   base_name.type: string
-   base_name.default: 'grinder'
-
-=item -od <output_dir> | -output_dir <output_dir>
-
-Directory where the results should be written. This folder will be created if
-needed.
-Default: output_dir.default
-
-=for Euclid:
-   output_dir.type: writable
-   output_dir.default: '.'
-
-=item -pf <profile_file> | -profile_file <profile_file>
-
-A file that contains Grinder arguments. This is useful if you use many options
-or often use the same options. Lines with comments (#) are ignored. Consider the
-profile file, 'simple_profile.txt':
-
-  # A simple Grinder profile
-  -read_dist 105 normal 12
-  -total_reads 1000
-
-Running: Grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt
-
-Translates into: Grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000
-
-Note that the arguments specified in the profile should not be specified again on the command line.
-
-=back
-
-=head1 API EXAMPLES
-
-  use Grinder;
-
-  # Set up a new factory (see the OPTIONS section for a complete list of parameters)
-  my $factory = Grinder->new( -reference_file => 'genomes.fna' );
-
-  # Process all shotgun libraries requested
-  while ( my $struct = $factory->next_lib ) {
-
-    # The ID and abundance of the 3rd most abundant genome in this community
-    my $id = $struct->{ids}->[2];
-    my $ab = $struct->{abs}->[2];
-
-    # Create shotgun reads
-    while ( my $read = $factory->next_read) {
-
-      # The read is a Bioperl sequence object with these properties:
-      my $read_id     = $read->id;     # read ID given by Grinder
-      my $read_seq    = $read->seq;    # nucleotide sequence
-      my $read_mid    = $read->mid;    # MID or tag attached to the read
-      my $read_errors = $read->errors; # errors that the read contains
- 
-      # Where was the read taken from? The reference sequence refers to the
-      # database sequence for shotgun libraries, amplicon obtained from the
-      # database sequence, or could even be a chimeric sequence
-      my $ref_id     = $read->reference->id; # ID of the reference sequence
-      my $ref_start  = $read->start;         # start of the read on the reference
-      my $ref_end    = $read->end;           # end of the read on the reference
-      my $ref_strand = $read->strand;        # strand of the reference
-      
-    }
-  }
-
-  # Similarly, for shotgun mate pairs
-  my $factory = Grinder->new( -reference_file => 'genomes.fna',
-                              -insert_dist    => 250            );
-  while ( $factory->next_lib ) {
-    while ( my $read = $factory->next_read ) {
-      # The first read is the first mate of the mate pair
-      # The second read is the second mate of the mate pair
-      # The third read is the first mate of the next mate pair
-      # ...
-    }
-  }
-
-  # To generate an amplicon library
-  my $factory = Grinder->new( -reference_file  => 'genomes.fna',
-                              -forward_reverse => '16Sgenes.fna',
-                              -length_bias     => 0,
-                              -unidirectional  => 1              );
-  while ( $factory->next_lib ) {
-    while ( my $read = $factory->next_read) {
-      # ...
-    }
-  }
-
-=head1 API METHODS
-
-The rest of the documentation details the available Grinder API methods.
-
-=head2 new
-
-Title   : new
-Function: Create a new Grinder factory initialized with the passed arguments.
-          Available parameters described in the OPTIONS section.
-Usage   : my $factory = Grinder->new( -reference_file => 'genomes.fna' );
-Returns : a new Grinder object
-
-=head2 next_lib
-
-Title   : next_lib
-Function: Go to the next shotgun library to process.
-Usage   : my $struct = $factory->next_lib;
-Returns : Community structure to be used for this library, where $struct->{ids}
-          is an array reference containing the IDs of the genome making up the
-          community (sorted by decreasing relative abundance) and $struct->{abs}
-          is an array reference of the genome abundances (in the same order as
-          the IDs).
-
-=head2 next_read
-
-Title   : next_read
-Function: Create a amplicon or shotgun read  for the current library.
-Usage   : my $read  = $factory->next_read; # for single read
-          my $mate1 = $factory->next_read; # for mate pairs
-          my $mate2 = $factory->next_read; 
-Returns : A sequence represented as a Bio::Seq::SimulatedRead object
-
-=head2 get_random_seed
-
-Title   : get_random_seed
-Function: Return the number used to seed the pseudo-random number generator
-Usage   : my $seed = $factory->get_random_seed;
-Returns : seed number
-
-
-=head1 COPYRIGHT
-
-Copyright 2009,2010,2011 Florent ANGLY <florent.angly@gmail.com>
-
-Grinder is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License (GPL) as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-Grinder is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
-
-=head1 BUGS
-
-All complex software has bugs lurking in it, and this program is no exception.
-If you find a bug, please report it on the SourceForge Tracker for Grinder:
-L<http://sourceforge.net/tracker/?group_id=244196&atid=1124737>
-
-Bug reports, suggestions and patches are welcome. Grinder's code is developed
-on Sourceforge (L<https://sourceforge.net/scm/?type=git&group_id=244196>) and is
-under Git revision control. To get started with a patch, do:
-
-   git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
 
