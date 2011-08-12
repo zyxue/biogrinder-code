@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 15;
 use Bio::Seq;
 
 use Grinder;
@@ -31,7 +31,20 @@ ok $factory = Grinder->new(
 ), 'amplicon tracking';
 
 ok $read = $factory->next_read;
-is ( $read->desc =~ m/reference=.*amplicon=.*position=.*strand=.*/, 1);
+is ( $read->desc =~ m/reference=\S+.*amplicon=\d+-\d+.*position=.*strand=.*/, 1);
+
+ok $factory = Grinder->new(
+   -reference_file  => './t/data/amplicon_database.fa',
+   -forward_reverse => './t/data/forward_primer.fa'   ,
+   -length_bias     => 0                              ,
+   -unidirectional  => 1                              ,
+   -total_reads     => 10                             ,
+   -desc_track      => 1                              ,
+   -chimera_perc    => 100                            ,
+), 'chimeric mplicon tracking';
+
+ok $read = $factory->next_read;
+is ( $read->desc =~ m/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*strand=.*/, 1);
 
 
 ok $factory = Grinder->new(
