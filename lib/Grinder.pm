@@ -51,7 +51,7 @@ sub Grinder {
       $factory->{base_name}.$lib_str."-ranks.txt");
 
     # Write community structure file
-    write_community_structure($c_struct, $out_ranks_file);
+    $factory->write_community_structure($c_struct, $out_ranks_file);
 
     # Prepare output FASTA file
     my $out_fasta = Bio::SeqIO->new( -format => 'fasta',
@@ -100,12 +100,13 @@ sub diversity_report {
 
 
 sub write_community_structure {
-  my ($c_struct, $filename) = @_;
+  my ($self, $c_struct, $filename) = @_;
   open(OUT, ">$filename") || die("Error: Could not write in file $filename: $!\n");
   print OUT "# rank\tseqID\trel. abundance\n";
   my $diversity = scalar @{$c_struct->{ids}};
   for my $rank ( 1 .. $diversity ) {
-    my $seqid = $c_struct->{'ids'}->[$rank-1];
+    my $oid   = $c_struct->{'ids'}->[$rank-1];
+    my $seqid = $self->database_get_parent_id($oid);
     my $relab = $c_struct->{'abs'}->[$rank-1];
     print OUT "$rank\t$seqid\t$relab\n";
   }
@@ -152,11 +153,11 @@ sub next_lib {
   $self->{positions} = undef;
   my $c_struct = $self->{c_structs}[$self->{cur_lib}-1];
   if ( defined $c_struct ) {
-    # Calculate needed number of sequences based on desired coverage
-    ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
     # Create probabilities of picking genomes from community structure
     $self->{positions} = $self->proba_create($c_struct, $self->{length_bias},
       $self->{copy_bias});
+    # Calculate needed number of sequences based on desired coverage
+    ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
   }
   return $c_struct;
 }
@@ -311,10 +312,8 @@ sub initialize {
   }
   
   # Read MIDs
-  if (defined $self->{multiplex_ids}) {
-    $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
-      $self->{num_libraries});
-  }
+  $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
+    $self->{num_libraries}) if defined $self->{multiplex_ids};
 
   # Import genome sequences, skipping genomes too short
   $self->{database} = $self->database_create( $self->{reference_file},
@@ -326,7 +325,7 @@ sub initialize {
     $self->{abundance_file}, $self->{distrib}, $self->{param},
     $self->{num_libraries}, $self->{shared_perc}, $self->{permuted_perc},
     $self->{diversity}, $self->{forward_reverse} );
-  
+
   # Markers to keep track of computation progress
   $self->{cur_lib}  = 0;
   $self->{cur_read} = 0;
@@ -435,12 +434,10 @@ sub community_structures {
     }
   }
 
-  # Convert abundance of species into abundance of amplicons
-  if ( defined $forward_reverse ) {
-    for my $c_struct (@$c_structs) {
-      my ($c_abs, $c_ids) = community_calculate_amplicon_abundance(
-        $c_struct->{'abs'}, $c_struct->{'ids'}, $seq_ids );
-    }
+  # Convert sequence IDs to object IDs
+  for my $c_struct (@$c_structs) {
+    my ($c_abs, $c_ids) = community_calculate_amplicon_abundance(
+      $c_struct->{'abs'}, $c_struct->{'ids'}, $seq_ids );
   }
 
   return $c_structs;
@@ -821,13 +818,13 @@ sub community_calculate_amplicon_abundance {
 sub next_single_read {
   # Generate a single shotgun or amplicon read
   my ($self) = @_;
-  my $ids            = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
+  my $oids           = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
   my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1];
   my $lib_num        = $self->{num_libraries} > 1 ? $self->{cur_lib} : undef;
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
 
   # Choose a random genome or amplicon
-  my $genome = $self->rand_seq($self->{positions}, $ids);
+  my $genome = $self->rand_seq($self->{positions}, $oids);
   my $nof_tries = 0;
   my $shotgun_seq;
   do {
@@ -852,7 +849,7 @@ sub next_single_read {
       $mid);
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc}, $start,
-      $end, $self->{positions}, $ids) if $self->{chimera_perc};
+      $end, $self->{positions}, $oids) if $self->{chimera_perc};
     # New sequence object
     $shotgun_seq = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
       $orientation, $start, $end, $mid, undef, $lib_num, $self->{desc_track},
@@ -870,14 +867,14 @@ sub next_single_read {
 sub next_mate_pair {
   # Generate a shotgun mate pair
   my ($self) = @_;
-  my $ids            = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
+  my $oids           = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
   my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1];
   my $lib_num        = $self->{num_libraries} > 1 ? $self->{cur_lib} : undef;
   my $pair_num       = int( $self->{cur_read} / 2 + 0.5 );
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
 
   # Choose a random genome
-  my $genome = $self->rand_seq($self->{positions}, $ids);
+  my $genome = $self->rand_seq($self->{positions}, $oids);
 
   my $nof_tries      = 0;
   my ($shotgun_seq_1, $shotgun_seq_2);
@@ -903,7 +900,7 @@ sub next_mate_pair {
       $self->{forward_reverse}, $mid);
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
-      $mate_start, $mate_end, $self->{positions}, $ids) if $self->{chimera_perc};
+      $mate_start, $mate_end, $self->{positions}, $oids) if $self->{chimera_perc};
     # First mate read
     my $read_length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
@@ -961,6 +958,7 @@ sub proba_create {
   # 1/ Calculate size-dependent, copy number-dependent probabilities
   my $probas = $self->proba_bias_dependency($c_struct, $self->{database}->{db},
     $size_dep, $copy_bias);
+
   # 2/ Generate proba starting position
   my $positions = $self->proba_cumul($probas);
   return $positions;
@@ -982,9 +980,8 @@ sub proba_bias_dependency {
     if ( defined $self->{forward_reverse} ) {
       # Gene copy number bias
       if ($copy_bias) {
-        my $ref_id = $c_struct->{'ids'}[$i];
-        $ref_id =~ s/_amplicon.*$//;
-        my $nof_amplicons = scalar keys %{$self->{'database'}->{'ids'}->{$ref_id}}; 
+        my $refseq_id = $self->database_get_parent_id($c_struct->{'ids'}[$i]);
+        my $nof_amplicons = scalar @{ $self->database_get_children_seq($refseq_id) };
         $proba *= $nof_amplicons;
       }
     } else {
@@ -1032,20 +1029,20 @@ sub rand_weighted {
 
 sub rand_seq {
   # Choose a sequence object randomly using a probability distribution
-  my ($self, $positions, $ids) = @_;
-  return $self->database_get_seq( $$ids[rand_weighted($positions)] ); 
+  my ($self, $positions, $oids) = @_;
+  return $self->database_get_seq( $$oids[rand_weighted($positions)] ); 
 }
 
 
 sub rand_seq_chimera {
-  my ($self, $sequence, $chimera_perc, $start, $end, $positions, $ids) = @_;
+  my ($self, $sequence, $chimera_perc, $start, $end, $positions, $oids) = @_;
   # Produce an amplicon that is a chimera of two sequences, starting with the
   # input sequence until a random position between the given start and end, and
   # ending with the end of another sequence taken at random from the database
   # and going at least as far as the specified end
   my $chimera;
   # Sanity check
-  if ( (scalar @$ids < 2) && ($chimera_perc > 0) ) {
+  if ( (scalar @$oids < 2) && ($chimera_perc > 0) ) {
     die "Error: Not enough sequences to produce chimeras\n";
   }
   # Fate now decides to produce a chimera or not
@@ -1053,7 +1050,7 @@ sub rand_seq_chimera {
     my $t1_seq = $sequence; # first template sequence
     my $t2_seq;             # second template sequence
     do {
-      $t2_seq = $self->rand_seq($positions, $ids);
+      $t2_seq = $self->rand_seq($positions, $oids);
     } while ($t2_seq->id eq $t1_seq->id);
 
     my $t1_start = 1;
@@ -1441,10 +1438,9 @@ sub database_create {
         $clean_seq =~ s/[$delete_chars]//gi;
         $amp_seq->seq($clean_seq);
       }
-      # Save amplicon sequence
-      my $amp_seq_id = $amp_seq->id;
-      $seq_db{$amp_seq_id} = $amp_seq;
-      $seq_ids{$ref_seq_id}{$amp_seq_id} = undef;
+      # Save amplicon sequence and identify them by their unique object reference
+      $seq_db{$amp_seq} = $amp_seq;
+      $seq_ids{$ref_seq_id}{$amp_seq} = undef;
     }
 
   }
@@ -1508,15 +1504,37 @@ sub database_extract_amplicons {
 
 
 sub database_get_seq {
-  # Retrieve a sequence object from the database based on its ID. 
-  my ($self, $id)  = @_;
+  # Retrieve a sequence object from the database based on its object ID
+  my ($self, $oid)  = @_;
   my $db = $self->{database}->{db};
   my $seq_obj;
-  if (not exists $$db{$id}) {
-    warn "Warning: Could not find sequence with ID '$id' in the database\n";
+  if (not exists $$db{$oid}) {
+    warn "Warning: Could not find sequence with object ID '$oid' in the database\n";
   }
-  $seq_obj = $$db{$id};
+  $seq_obj = $$db{$oid};
   return $seq_obj;
+}
+
+
+sub database_get_children_seq {
+  # Retrieve all the sequences object made from a reference sequence based on the
+  # ID of the reference sequence
+  my ($self, $refseqid)  = @_;
+  my @children;
+  for my $child_oid ( keys %{$self->{database}->{ids}->{$refseqid}} ) {
+    push @children, $self->database_get_seq($child_oid);
+  }
+  return \@children;
+}
+
+
+sub database_get_parent_id {
+  # Based on a sequence object ID, retrieve the ID of the reference sequence it
+  # came from
+  my ($self, $oid) = @_;
+  my $seq_id = $self->database_get_seq($oid)->id;
+  $seq_id =~ s/_amplicon.*$//;
+  return $seq_id;
 }
 
 
@@ -1592,11 +1610,11 @@ sub lib_coverage {
   my $nof_seqs    = $self->{total_reads};
   my $read_length = $self->{read_length};
   # 1/ Calculate library length and size
-  my $ids = $c_struct->{'ids'};
-  my $diversity = scalar @$ids;
+  my $ref_ids    = $c_struct->{'ids'};
+  my $diversity  = scalar @$ref_ids;
   my $lib_length = 0;
-  for my $seqid (@$ids) {
-    my $seqobj = $self->database_get_seq($seqid);
+  for my $ref_id (@$ref_ids) {
+    my $seqobj = $self->database_get_seq($ref_id);
     my $seqlen = $seqobj->length;
     $lib_length += $seqlen;
   }
