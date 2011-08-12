@@ -1,5 +1,10 @@
 Revision history for Grinder
 
+0.3.x   
+        Location of amplicon on reference sequence is now recorded in the read description
+        Internal database of reference sequences is now indexed by object ID, not sequence ID
+        Chimera description -> amplicon field is now be coma-separated.
+
 0.3.6   03-Aug-2011
         Support for reference sequences that contain several amplicons
         Implemented a gene copy bias option for amplicon libraries
