@@ -9,7 +9,7 @@ use Grinder;
 my ($factory, $nof_reads, $read);
 
 
-# Tracking read information in the read description 
+# Outputing basic quality scores
 
 ok $factory = Grinder->new(
    -genome_file => './t/data/shotgun_database.fa',

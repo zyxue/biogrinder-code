@@ -1475,8 +1475,7 @@ sub database_extract_amplicons {
       my $start    = pos($seqstr) - length($1) + 1;
       my $end      = $seq->length;
       my $amplicon = $seq->trunc($start, $end);
-      my $id       = $seqid.'_amplicon_'.$start.'-'.$end;
-      $amplicon->id($id);
+      $amplicon->{_amplicon} = $start.'-'.$end;
       push @amplicons, $amplicon;
     }
   } elsif ( (defined $forward_regexp) && (defined $reverse_regexp) ) {
@@ -1484,8 +1483,7 @@ sub database_extract_amplicons {
       my $end      = pos($seqstr);
       my $start    = $end - length($1) + 1;
       my $amplicon = $seq->trunc($start, $end);
-      my $id       = $seqid.'_amplicon_'.$start.'-'.$end;
-      $amplicon->id($id);
+      $amplicon->{_amplicon} = $start.'-'.$end;
       push @amplicons, $amplicon;
     }
   } else {
@@ -1501,6 +1499,7 @@ sub database_extract_amplicons {
 
   return \@amplicons;
 }
+
 
 
 sub database_get_seq {
@@ -1533,7 +1532,7 @@ sub database_get_parent_id {
   # came from
   my ($self, $oid) = @_;
   my $seq_id = $self->database_get_seq($oid)->id;
-  $seq_id =~ s/_amplicon.*$//;
+###  $seq_id =~ s/_amplicon.*$//;
   return $seq_id;
 }
 
@@ -1675,6 +1674,15 @@ sub new_subseq {
      -track       => $tracking,
      -qual_levels => $qual_levels,
   );
+  
+  # Record location of amplicon on reference sequence in the sequence description
+  my $amplicon_desc = $seq_obj->{_amplicon};
+  if (defined $amplicon_desc) {
+    $amplicon_desc = 'amplicon='.$amplicon_desc;
+    my $desc = $newseq->desc;
+    $desc =~ s/(reference=\S+)/$1 $amplicon_desc/;
+    $newseq->desc($desc);
+  }
 
   # Database genomes were already reverse complemented if reverse sequencing was requested
   if ($unidirectional == -1) {
