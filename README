@@ -175,7 +175,7 @@ CLI EXAMPLES
 
     *   A shotgun library with Sanger reads
 
-           Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4
+           Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
 
     *   A shotgun library with first-generation 454 reads
 
@@ -294,23 +294,26 @@ OPTIONS
         mutations (substitutions, insertions and deletions) using a
         specified frequency distribution: average probability (%), model
         (uniform, linear), value at 3' end (not applicable for uniform
-        model). For example, for Sanger-type errors, use: 1.5 linear 2.
-        Default: mutation_dist.default
+        model). For example, for Sanger-type errors, use: 1.5 linear 2 Use
+        the <mutation_ratio> option to alter how many of these mutations are
+        substitutions or indels. Default: mutation_dist.default
 
-    -mr <mutation_ratio> | -mutation_ratio <mutation_ratio>
-        Indicate the ratio of the number of substitutions to the number of
-        indels (insertions and deletions). For example, use 4 (4
-        substitutions for 1 indel) for Sanger reads. Default:
+    -mr <mutation_ratio>... | -mutation_ratio <mutation_ratio>...
+        Indicate the percentage of substitutions and the number of indels
+        (insertions and deletions). For example, use 80 20 (4 substitutions
+        for each indel) for Sanger reads. Note that this parameter has no
+        effect unless you specify the <mutation_dist> option. Default:
         mutation_ratio.default
 
     -hd <homopolymer_dist> | -homopolymer_dist <homopolymer_dist>
         Introduce sequencing errors in the reads under the form of
         homopolymeric stretches (e.g. AAA, CCCCC) using a specified model
-        (n: homopolymer length).
+        where the homopolymer length follows a normal distribution N(mean,
+        standard deviation) that is function of the homopolymer length n:
 
-          Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
-          Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
-          Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.
+          Margulies: N(n, 0.15 * n)              ,  Margulies et al. 2005.
+          Richter  : N(n, 0.15 * sqrt(n))        ,  Richter et al. 2008.
+          Balzer   : N(n, 0.03494 + n * 0.06856) ,  Balzer et al. 2010.
 
         Default: homopolymer_dist.default
 

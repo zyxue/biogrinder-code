@@ -257,7 +257,7 @@ downloaded from <a href="ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human
 <li>
 <p>A shotgun library with Sanger reads</p>
 <pre>
-   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4</pre>
+   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20</pre>
 </li>
 <li>
 <p>A shotgun library with first-generation 454 reads</p>
@@ -419,26 +419,30 @@ distribution:
    model (uniform, linear),
    value at 3' end (not applicable for uniform model).
 For example, for Sanger-type errors, use:
-   1.5 linear 2.
+   1.5 linear 2
+Use the &lt;mutation_ratio&gt; option to alter how many of these mutations are
+substitutions or indels.
 Default: mutation_dist.default</p>
 </dd>
-<dt><strong><a name="mr_mutation_ratio_mutation_ratio_mutation_ratio" class="item">-mr &lt;mutation_ratio&gt; | -mutation_ratio &lt;mutation_ratio&gt;</a></strong></dt>
+<dt><strong><a name="mr_mutation_ratio_mutation_ratio_mutation_ratio" class="item">-mr &lt;mutation_ratio&gt;... | -mutation_ratio &lt;mutation_ratio&gt;...</a></strong></dt>
 
 <dd>
-<p>Indicate the ratio of the number of substitutions to the number of indels
-(insertions and deletions). For example, use 4 (4 substitutions for 1 indel)
-for Sanger reads.
-Default: mutation_ratio.default</p>
+<p>Indicate the percentage of substitutions and the number of indels (insertions
+and deletions). For example, use 80 20 (4 substitutions for each indel) for
+Sanger reads. Note that this parameter has no effect unless you specify the
+&lt;mutation_dist&gt; option. Default: mutation_ratio.default</p>
 </dd>
 <dt><strong><a name="hd_homopolymer_dist_homopolymer_dist_homopolymer_dist" class="item">-hd &lt;homopolymer_dist&gt; | -homopolymer_dist &lt;homopolymer_dist&gt;</a></strong></dt>
 
 <dd>
 <p>Introduce sequencing errors in the reads under the form of homopolymeric
-stretches (e.g. AAA, CCCCC) using a specified model (n: homopolymer length).</p>
+stretches (e.g. AAA, CCCCC) using a specified model where the homopolymer length
+follows a normal distribution N(mean, standard deviation) that is function of
+the homopolymer length n:</p>
 <pre>
-  Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
-  Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
-  Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.</pre>
+  Margulies: N(n, 0.15 * n)              ,  Margulies et al. 2005.
+  Richter  : N(n, 0.15 * sqrt(n))        ,  Richter et al. 2008.
+  Balzer   : N(n, 0.03494 + n * 0.06856) ,  Balzer et al. 2010.</pre>
 <p>Default: homopolymer_dist.default</p>
 </dd>
 <dt><strong><a name="cp_chimera_perc_chimera_perc_chimera_perc" class="item">-cp &lt;chimera_perc&gt; | -chimera_perc &lt;chimera_perc&gt;</a></strong></dt>
