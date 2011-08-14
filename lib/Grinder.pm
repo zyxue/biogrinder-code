@@ -249,7 +249,7 @@ A shotgun library where species relative abundances are manually specified
 
 A shotgun library with Sanger reads
 
-   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 4
+   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
 
 =item *
 
@@ -462,16 +462,16 @@ Default: mutation_dist.default
    mutation_dist.type: string
    mutation_dist.default: [0, 'uniform', 0]
 
-=item -mr <mutation_ratio> | -mutation_ratio <mutation_ratio>
+=item -mr <mutation_ratio>... | -mutation_ratio <mutation_ratio>...
 
-Indicate the ratio of the number of substitutions to the number of indels
-(insertions and deletions). For example, use 4 (4 substitutions for 1 indel)
-for Sanger reads.
-Default: mutation_ratio.default
+Indicate the percentage of substitutions and the number of indels (insertions
+and deletions). For example, use 80 20 (4 substitutions for each indel) for
+Sanger reads. Note that this parameter has no effect unless you specify the
+<mutation_dist> option. Default: mutation_ratio.default
 
 =for Euclid:
    mutation_ratio.type: num, mutation_ratio >= 0
-   mutation_ratio.default: 0
+   mutation_ratio.default: [80, 20]
 
 =item -hd <homopolymer_dist> | -homopolymer_dist <homopolymer_dist>
 
@@ -480,9 +480,9 @@ stretches (e.g. AAA, CCCCC) using a specified model where the homopolymer length
 follows a normal distribution N(mean, standard deviation) that is function of
 the homopolymer length n:
 
-  Margulies: N(n, 0.15 * n)             ,  Margulies et al. 2005.
-  Richter  : N(n, 0.15 * sqrt(n))       ,  Richter et al. 2008.
-  Balzer   : N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010.
+  Margulies: N(n, 0.15 * n)              ,  Margulies et al. 2005.
+  Richter  : N(n, 0.15 * sqrt(n))        ,  Richter et al. 2008.
+  Balzer   : N(n, 0.03494 + n * 0.06856) ,  Balzer et al. 2010.
 
 Default: homopolymer_dist.default
 
@@ -1070,6 +1070,16 @@ sub initialize {
   $self->{mutation_model} = $self->{mutation_dist}[1] || 'uniform';
   $self->{mutation_end}   = $self->{mutation_dist}[2] || 0;
   delete $self->{mutation_dist};
+
+  # Parameter processing: mutation ratio
+  my $sum = ($self->{mutation_ratio}[0] || 0) + ($self->{mutation_ratio}[1] || 0);
+  if ($sum == 0) {
+    $self->{mutation_ratio}[0] = 50;
+    $self->{mutation_ratio}[1] = 50;
+  } else {
+    $self->{mutation_ratio}[0] = $self->{mutation_ratio}[0] *100 / $sum;
+    $self->{mutation_ratio}[1] = $self->{mutation_ratio}[1] *100 / $sum;
+  }
 
   # Parameter processing: homopolymer model
   $self->{homopolymer_dist} = lc $self->{homopolymer_dist};
@@ -1963,7 +1973,7 @@ sub rand_point_errors {
   my $mut_cdf = $self->proba_cumul($mut_pdf);
 
   # Make as many mutations in read as needed based on model
-  my $subst_frac = $self->{mutation_ratio} / ($self->{mutation_ratio} + 1);
+  my $subst_frac = $self->{mutation_ratio}->[0];
   for ( 1 .. $nof_mutations ) {
 
     # Position to mutate
