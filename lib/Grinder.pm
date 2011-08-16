@@ -880,11 +880,18 @@ sub write_community_structure {
   open(OUT, ">$filename") || die("Error: Could not write in file $filename: $!\n");
   print OUT "# rank\tseqID\trel. abundance\n";
   my $diversity = scalar @{$c_struct->{ids}};
+  my %species_abs;
   for my $rank ( 1 .. $diversity ) {
-    my $oid   = $c_struct->{'ids'}->[$rank-1];
-    my $seqid = $self->database_get_parent_id($oid);
-    my $relab = $c_struct->{'abs'}->[$rank-1];
-    print OUT "$rank\t$seqid\t$relab\n";
+    my $oid        = $c_struct->{'ids'}->[$rank-1];
+    my $species_id = $self->database_get_parent_id($oid);
+    my $seq_ab     = $c_struct->{'abs'}->[$rank-1];
+    $species_abs{$species_id} += $seq_ab;
+  }
+  my $rank = 0;
+  for my $species_id ( sort { $species_abs{$b} <=> $species_abs{$a} } keys %species_abs ) {
+    $rank++;
+    my $species_ab = $species_abs{$species_id};
+    print OUT "$rank\t$species_id\t$species_ab\n";
   }
   close OUT;
   return 1;
