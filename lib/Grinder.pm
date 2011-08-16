@@ -447,8 +447,8 @@ Default: copy_bias.default
 =item -md <mutation_dist>... | -mutation_dist <mutation_dist>...
 
 Introduce sequencing errors in the reads, under the form of mutations
-(substitutions, insertions and deletions) using a specified frequency
-distribution:
+(substitutions, insertions and deletions) at positions that follow a specified
+distribution (with replacement):
    average probability (%),
    model (uniform, linear),
    value at 3' end (not applicable for uniform model).
@@ -1943,10 +1943,9 @@ sub rand_point_errors {
   # Do some random point sequencing errors on a sequence based on a model
   my ($self, $seq_str, $error_specs) = @_;
 
-  my $seq_len = length($seq_str);
-
   # Number of mutations to make in this sequence is assumed to follow a Normal
   # distribution N( mutation_freq, 0.3 * mutation_freq )
+  my $seq_len = length($seq_str);
   my $read_mutation_freq = $self->{mutation_freq} + 0.3 * $self->{mutation_freq} * randn();
   my $nof_mutations = int( $seq_len*$read_mutation_freq/100 + 0.5 );
  
@@ -1973,7 +1972,7 @@ sub rand_point_errors {
   my $mut_cdf = $self->proba_cumul($mut_pdf);
 
   # Make as many mutations in read as needed based on model
-  my $subst_frac = $self->{mutation_ratio}->[0];
+  my $subst_frac = $self->{mutation_ratio}->[0] / 100;
   for ( 1 .. $nof_mutations ) {
 
     # Position to mutate
@@ -1982,22 +1981,17 @@ sub rand_point_errors {
     # Do a substitution or indel
     if ( rand() <= $subst_frac ) {
       # Substitute at given position by a random replacement nucleotide
-      $$error_specs{$idx+1}{'%'} = rand_nuc( substr($seq_str, $idx, 1) );
+      push @{$$error_specs{$idx+1}{'%'}}, rand_nuc( substr($seq_str, $idx, 1) );
 
     } else {
       # Equiprobably insert or delete
       if ( rand() < 0.5 ) {
         # Insertion after given position
-        my $add = rand_nuc();
-        if (exists $$error_specs{$idx+1}{'+'}) {
-          $$error_specs{$idx+1}{'+'} .= $add;
-        } else {
-          $$error_specs{$idx+1}{'+'} = $add;
-        }
+        push @{$$error_specs{$idx+1}{'+'}}, rand_nuc(); 
       } else {
         # Make a deletion at given position
         next if length($seq_str) == 1; # skip this deletion to avoid a 0 length
-        $$error_specs{$idx+1}{'-'} = '';
+        push @{$$error_specs{$idx+1}{'-'}}, undef;
       }
     }
 
