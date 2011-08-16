@@ -1072,7 +1072,9 @@ sub initialize {
   delete $self->{mutation_dist};
 
   # Parameter processing: mutation ratio
-  my $sum = ($self->{mutation_ratio}[0] || 0) + ($self->{mutation_ratio}[1] || 0);
+  $self->{mutation_ratio}[0] = $self->{mutation_ratio}[0] || 0;
+  $self->{mutation_ratio}[1] = $self->{mutation_ratio}[1] || 0;
+  my $sum = $self->{mutation_ratio}[0] + $self->{mutation_ratio}[1];
   if ($sum == 0) {
     $self->{mutation_ratio}[0] = 50;
     $self->{mutation_ratio}[1] = 50;
