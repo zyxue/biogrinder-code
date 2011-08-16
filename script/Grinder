@@ -1,21 +1,9 @@
 #! /usr/bin/env perl
 
-# Copyright 2009-2010 Florent Angly <florent.angly@gmail.com> under GNU GPLv3 license
+# Copyright 2009,2010,2011 Florent Angly <florent.angly@gmail.com> under GNU GPLv3 license
 
 # Grinder is a program to create artificial random shotgun and amplicon sequence
-# libraries based on reference genomes in a FASTA file. Features include:
-#   * shotgun library or amplicon library
-#   * arbitrary read length distribution and number of reads
-#   * simulation of mutations / sequencing errors
-#   * support for creating paired end datasets
-#   * specific rank-abundance settings or manually given abundance for each genome
-#   * creation of datasets with a given richness (alpha diversity)
-#   * independent datasets can share a variable number of genomes (beta diversity)
-#  * modeling of the bias created by different genome lengths
-#
-# This program provides a command-line and API interface. This has the advantage
-# that you can automate the creation of a large number of artificial metagenomes,
-# pyrotag datasets, or shotgun sequencing projects easily.
+# libraries based on reference genomes in a FASTA file.
 
 # Grinder is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
