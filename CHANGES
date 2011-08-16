@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.3.x   
+        Allow tracking of redundant mutations
         Location of amplicon on reference sequence is now recorded in the read description
         Internal database of reference sequences is now indexed by object ID, not sequence ID
         Chimera description -> amplicon field is now be coma-separated.
