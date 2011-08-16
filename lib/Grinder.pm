@@ -1861,7 +1861,9 @@ sub rand_seq_chimera {
     $chimera      = $t1_seq->trunc($t1_start, $t1_end);
     $chimera->seq( $chimera->seq . $t2_seq->subseq($t2_start, $t2_end) );
     $chimera->id( $chimera->id . ',' . $t2_seq->id );
-    $chimera->{_amplicon} = $t1_seq->{_amplicon}.','.$t2_seq->{_amplicon};
+    if (defined $t1_seq->{_amplicon} && defined $t2_seq->{_amplicon}) {
+      $chimera->{_amplicon} = $t1_seq->{_amplicon}.','.$t2_seq->{_amplicon};
+    }
 
   } else {
     # No chimera needed
