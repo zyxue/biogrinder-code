@@ -165,7 +165,7 @@ produces by Grinder.
 
 =item change_paired_read_orientation:
 
-This reverses the orientation of each second mate-pair read (ID endind in /2)
+This reverses the orientation of each second mate-pair read (ID ending in /2)
 in a FASTA file.
 
 =back
