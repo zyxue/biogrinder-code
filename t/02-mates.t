@@ -3,15 +3,17 @@
 use strict;
 use warnings;
 use Test::More tests => 403;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $read, $nof_reads);
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun_database.fa',
-   -total_reads => 100                           ,
-   -read_dist   => 48                            ,
-   -insert_dist => 250                            ), 'Mate pairs';
+   -genome_file => catfile(qw{t data shotgun_database.fa}),
+   -total_reads => 100                                    ,
+   -read_dist   => 48                                     ,
+   -insert_dist => 250                                    ,
+), 'Mate pairs';
 
 ok $factory->next_lib;
 

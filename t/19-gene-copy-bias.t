@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More tests => 8;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $nof_reads, $read, %sources);
@@ -11,14 +12,15 @@ my ($factory, $nof_reads, $read, %sources);
 # Specified genome abundance for a single library
 
 ok $factory = Grinder->new(
-   -abundance_file  => './t/data/abundances2.txt'              ,
-   -genome_file     => './t/data/multiple_amplicon_database.fa',
-   -forward_reverse => './t/data/forward_reverse_primers.fa'   ,
-   -copy_bias       => 1                                       ,
-   -unidirectional  => 1                                       ,
-   -read_dist       => 48                                      ,
-   -random_seed     => 1910567890                              ,
-   -total_reads     => 1000                                    ), 'Genome abundance for a single libraries';
+   -abundance_file  => catfile(qw{t data abundances2.txt})              ,
+   -genome_file     => catfile(qw{t data multiple_amplicon_database.fa}),
+   -forward_reverse => catfile(qw{t data forward_reverse_primers.fa})   ,
+   -copy_bias       => 1                                                ,
+   -unidirectional  => 1                                                ,
+   -read_dist       => 48                                               ,
+   -random_seed     => 1910567890                                       ,
+   -total_reads     => 1000                                             ,
+), 'Genome abundance for a single libraries';
 
 while ( $read = $factory->next_read ) {
    my $source = $read->reference->id;
@@ -30,8 +32,6 @@ while ( $read = $factory->next_read ) {
      $sources{$source}++;
    }
 };
-
-use Data::Dumper; print Dumper(\%sources);
 
 ok exists $sources{'seq1'};
 ok exists $sources{'seq2'};

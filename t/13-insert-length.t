@@ -5,6 +5,7 @@ use warnings;
 use Test::More tests => 19;
 use Bio::Seq;
 use constant PI => 4 * atan2(1, 1);
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $nof_reads, $mate1, $mate2, @inserts, $min, $max, $mean, $stddev,
@@ -14,11 +15,12 @@ my ($factory, $nof_reads, $mate1, $mate2, @inserts, $min, $max, $mean, $stddev,
 # All inserts the same length
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/single_seq_database.fa',
-   -total_reads => 1000                             ,
-   #-random_seed => 1910567890                       ,
-   -read_dist   => 50                               ,
-   -insert_dist => 150                               ), 'Same size inserts';
+   -genome_file => catfile(qw{t data single_seq_database.fa}),
+   -total_reads => 1000                                      ,
+   #-random_seed => 1910567890                               ,
+   -read_dist   => 50                                        ,
+   -insert_dist => 150                                       ,
+), 'Same size inserts';
 
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
@@ -38,11 +40,12 @@ is $stddev, 0;
 # Uniformly distributed inserts
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/single_seq_database.fa',
-   -total_reads => 1000                             ,
-   #-random_seed => 1910567890                       ,
-   -read_dist   => 50                               ,
-   -insert_dist => (150, 'uniform', 30)              ), 'Uniform distribution';
+   -genome_file => catfile(qw{t data single_seq_database.fa}),
+   -total_reads => 1000                                      ,
+   #-random_seed => 1910567890                               ,
+   -read_dist   => 50                                        ,
+   -insert_dist => (150, 'uniform', 30)                      ,
+), 'Uniform distribution';
 
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
@@ -70,11 +73,12 @@ ok ($coeff > 0.99);
 # Normally distributed inserts
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/single_seq_database.fa',
-   -total_reads => 1000                             ,
-   #-random_seed => 1910567890                       ,
-   -read_dist   => 50                               ,
-   -insert_dist => (150, 'normal', 10)              ), 'Normal distribution';
+   -genome_file => catfile(qw{t data single_seq_database.fa}),
+   -total_reads => 1000                                      ,
+   #-random_seed => 1910567890                               ,
+   -read_dist   => 50                                        ,
+   -insert_dist => (150, 'normal', 10)                       ,
+), 'Normal distribution';
 
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;

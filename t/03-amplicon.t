@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More tests => 2012;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $read, $nof_reads);
@@ -10,12 +11,13 @@ my ($factory, $read, $nof_reads);
 # Forward primer only, forward sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon_database.fa',
-   -forward_reverse => './t/data/forward_primer.fa'   ,
-   -length_bias     => 0                              ,
-   -unidirectional  => 1                              ,
-   -read_dist       => 48                             ,
-   -total_reads     => 100                             ), 'Forward primer only, forward sequencing';
+   -genome_file     => catfile(qw{t data amplicon_database.fa}),
+   -forward_reverse => catfile(qw{t data forward_primer.fa})   ,
+   -length_bias     => 0                                       ,
+   -unidirectional  => 1                                       ,
+   -read_dist       => 48                                      ,
+   -total_reads     => 100                                     ,
+), 'Forward primer only, forward sequencing';
 
 ok $factory->next_lib;
 
@@ -31,12 +33,13 @@ is $nof_reads, 100;
 # Forward and reverse primers
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon_database.fa'      ,
-   -forward_reverse => './t/data/forward_reverse_primers.fa',
-   -length_bias     => 0                                    ,
-   -unidirectional  => 1                                    ,
-   -read_dist       => 48                                   ,
-   -total_reads     => 100                                   ), 'Forward then reverse primers, forward sequencing';
+   -genome_file     => catfile(qw{t data amplicon_database.fa})      ,
+   -forward_reverse => catfile(qw{t data forward_reverse_primers.fa}),
+   -length_bias     => 0                                             ,
+   -unidirectional  => 1                                             ,
+   -read_dist       => 48                                            ,
+   -total_reads     => 100                                           ,
+), 'Forward then reverse primers, forward sequencing';
 
 ok $factory->next_lib;
 
@@ -51,12 +54,13 @@ is $nof_reads, 100;
 # Reverse primer only, reverse sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon_database.fa',
-   -forward_reverse => './t/data/reverse_primer.fa'   ,
-   -length_bias     => 0                              ,
-   -unidirectional  => -1                             ,
-   -read_dist       => 48                             ,
-   -total_reads     => 100                             ), 'Reverse primer only, reverse sequencing';
+   -genome_file     => catfile(qw{t data amplicon_database.fa}),
+   -forward_reverse => catfile(qw{t data reverse_primer.fa})   ,
+   -length_bias     => 0                                       ,
+   -unidirectional  => -1                                      ,
+   -read_dist       => 48                                      ,
+   -total_reads     => 100                                     ,
+), 'Reverse primer only, reverse sequencing';
 
 ok $factory->next_lib;
 
@@ -71,12 +75,13 @@ is $nof_reads, 100;
 # Reverse and forward primers, reverse sequencing
 
 ok $factory = Grinder->new(
-   -genome_file     => './t/data/amplicon_database.fa'      ,
-   -forward_reverse => './t/data/reverse_forward_primers.fa',
-   -length_bias     => 0                                    ,
-   -unidirectional  => -1                                   ,
-   -read_dist       => 48                                   ,
-   -total_reads     => 100                                   ), 'Reverse then forward primers, reverse sequencing';
+   -genome_file     => catfile(qw{t data amplicon_database.fa})      ,
+   -forward_reverse => catfile(qw{t data reverse_forward_primers.fa}),
+   -length_bias     => 0                                             ,
+   -unidirectional  => -1                                            ,
+   -read_dist       => 48                                            ,
+   -total_reads     => 100                                           ,
+), 'Reverse then forward primers, reverse sequencing';
 
 ok $factory->next_lib;
 

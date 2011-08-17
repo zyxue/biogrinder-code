@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Test::More tests => 7020;
 use Bio::Seq;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $nof_reads, $read, $errors, $min, $max, $mean, $stddev, $prof,
@@ -13,10 +14,11 @@ my ($factory, $nof_reads, $read, $errors, $min, $max, $mean, $stddev, $prof,
 # No errors by default
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                              ), 'No errors';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+), 'No errors';
 
 while ( $read = $factory->next_read ) {
    is $read->seq, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -27,12 +29,13 @@ while ( $read = $factory->next_read ) {
 # Substitutions
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                             ,
-   -mutation_ratio => (100, 0)                         ,
-   -mutation_dist  => (10, 'uniform')                     ), 'Substitutions only';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+   -mutation_ratio => (100, 0)                                  ,
+   -mutation_dist  => (10, 'uniform')                           ,
+), 'Substitutions only';
 
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
@@ -49,12 +52,13 @@ while ( $read = $factory->next_read ) {
 # Indels
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                             ,
-   -mutation_ratio => (0, 100)                         ,
-   -mutation_dist  => (10, 'uniform')                     ), 'Indels only';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+   -mutation_ratio => (0, 100)                                  ,
+   -mutation_dist  => (10, 'uniform')                           ,
+), 'Indels only';
 
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
@@ -71,12 +75,13 @@ while ( $read = $factory->next_read ) {
 # Indels and substitutions
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                             ,
-   -mutation_ratio => (50, 50)                         ,
-   -mutation_dist  => (10, 'uniform')                     ), 'Indels and substitutions';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+   -mutation_ratio => (50, 50)                                  ,
+   -mutation_dist  => (10, 'uniform')                           ,
+), 'Indels and substitutions';
 
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
@@ -96,12 +101,13 @@ ok $nof_substs / $nof_indels < 1.08;
 # Uniform distribution
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                             ,
-   -mutation_ratio => (50, 50)                         ,
-   -mutation_dist  => (10, 'uniform')                   ), 'Uniform';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+   -mutation_ratio => (50, 50)                                  ,
+   -mutation_dist  => (10, 'uniform')                           ,
+), 'Uniform';
 
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
@@ -125,12 +131,13 @@ $errors = {};
 # Linear distribution
 
 ok $factory = Grinder->new(
-   -genome_file    => './t/data/single_seq_database.fa',
-   -unidirectional => 1                                ,
-   -read_dist      => 50                               ,
-   -total_reads    => 1000                             ,
-   -mutation_ratio => (50, 50)                         ,
-   -mutation_dist  => (10, 'linear', 15)                 ), 'Linear';
+   -genome_file    => catfile(qw{t data single_seq_database.fa}),
+   -unidirectional => 1                                         ,
+   -read_dist      => 50                                        ,
+   -total_reads    => 1000                                      ,
+   -mutation_ratio => (50, 50)                                  ,
+   -mutation_dist  => (10, 'linear', 15)                        ,
+), 'Linear';
 
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);

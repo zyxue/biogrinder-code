@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Test::More tests => 3180;
 use Bio::Seq;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $lib, $nof_libs, $nof_reads, $read);
@@ -12,10 +13,11 @@ my ($factory, $lib, $nof_libs, $nof_reads, $read);
 # Multiple shotgun libraries
 
 ok $factory = Grinder->new(
-   -genome_file   => './t/data/shotgun_database.fa',
-   -read_dist     => 48                            ,
-   -num_libraries => 4                             ,
-   -total_reads   => 99                            ), 'Multiple shotgun libraries';
+   -genome_file   => catfile(qw{t data shotgun_database.fa}),
+   -read_dist     => 48                                     ,
+   -num_libraries => 4                                      ,
+   -total_reads   => 99                                     ,
+), 'Multiple shotgun libraries';
 
 $nof_libs = 0;
 while ( $lib = $factory->next_lib ) {
@@ -33,11 +35,12 @@ is $nof_libs, 4;
 # Multiple mate pair libraries
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun_database.fa',
-   -total_reads => 99                            ,
-   -read_dist   => 48                            ,
-   -num_libraries => 4                             ,
-   -insert_dist => 250                            ), 'Multiple mate pair';
+   -genome_file => catfile(qw{t data shotgun_database.fa}),
+   -total_reads => 99                                     ,
+   -read_dist   => 48                                     ,
+   -num_libraries => 4                                    ,
+   -insert_dist => 250                                    ,
+), 'Multiple mate pair libraries';
 
 $nof_libs = 0;
 while ( $lib = $factory->next_lib ) {
@@ -45,7 +48,6 @@ while ( $lib = $factory->next_lib ) {
    $nof_reads = 0;
    while ( $read = $factory->next_read ) {
       $nof_reads++;
-      print $read->id."\n";
       ok_mate($read, undef, $nof_reads, $nof_libs);
    };
    is $nof_reads, 99;
@@ -79,7 +81,7 @@ sub ok_read {
    }
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
-   };
+   }
    ok $read->seq =~ m/[$letters]+/;
    is $read->id, $nof_libs.'_'.$nof_reads;
    is $read->length, 48;

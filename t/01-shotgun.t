@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Test::More tests => 405;
 use Bio::Seq;
+use File::Spec::Functions;
 
 use Grinder;
 my ($factory, $nof_reads, $read);
@@ -12,8 +13,9 @@ my ($factory, $nof_reads, $read);
 # Initialization with short argument
 
 ok $factory = Grinder->new(
-   -gf => './t/data/shotgun_database.fa',
-   -tr => 10                             ), 'Shotgun & short arguments';
+   -gf => catfile(qw{t data shotgun_database.fa}),
+   -tr => 10                                     ,
+), 'Shotgun & short arguments';
 
 ok $factory->next_read;
 
@@ -21,9 +23,10 @@ ok $factory->next_read;
 # Long argument
 
 ok $factory = Grinder->new(
-   -genome_file => './t/data/shotgun_database.fa',
-   -read_dist   => 48                            ,
-   -total_reads => 100                            ), 'Long arguments';
+   -genome_file => catfile(qw{t data shotgun_database.fa}),
+   -read_dist   => 48                                     ,
+   -total_reads => 100                                    ,
+), 'Long arguments';
 
 ok $factory->next_lib;
 
