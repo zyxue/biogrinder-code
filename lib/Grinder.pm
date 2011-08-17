@@ -782,7 +782,7 @@ If you find a bug, please report it on the SourceForge Tracker for Grinder:
 L<http://sourceforge.net/tracker/?group_id=244196&atid=1124737>
 
 Bug reports, suggestions and patches are welcome. Grinder's code is developed
-on Sourceforge (L<https://sourceforge.net/scm/?type=git&group_id=244196>) and is
+on Sourceforge (L<http://sourceforge.net/scm/?type=git&group_id=244196>) and is
 under Git revision control. To get started with a patch, do:
 
    git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
