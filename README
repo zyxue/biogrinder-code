@@ -105,7 +105,7 @@ RUNNING GRINDER
 
     change_paired_read_orientation:
         This reverses the orientation of each second mate-pair read (ID
-        endind in /2) in a FASTA file.
+        ending in /2) in a FASTA file.
 
 REFERENCE SEQUENCE DATABASE
     A variety of FASTA databases can be used as input for Grinder. For
@@ -291,12 +291,13 @@ OPTIONS
   Aberrations and sequencing errors
     -md <mutation_dist>... | -mutation_dist <mutation_dist>...
         Introduce sequencing errors in the reads, under the form of
-        mutations (substitutions, insertions and deletions) using a
-        specified frequency distribution: average probability (%), model
-        (uniform, linear), value at 3' end (not applicable for uniform
-        model). For example, for Sanger-type errors, use: 1.5 linear 2 Use
-        the <mutation_ratio> option to alter how many of these mutations are
-        substitutions or indels. Default: mutation_dist.default
+        mutations (substitutions, insertions and deletions) at positions
+        that follow a specified distribution (with replacement): average
+        probability (%), model (uniform, linear), value at 3' end (not
+        applicable for uniform model). For example, for Sanger-type errors,
+        use: 1.5 linear 2 Use the <mutation_ratio> option to alter how many
+        of these mutations are substitutions or indels. Default:
+        mutation_dist.default
 
     -mr <mutation_ratio>... | -mutation_ratio <mutation_ratio>...
         Indicate the percentage of substitutions and the number of indels
@@ -519,7 +520,7 @@ BUGS
 
     Bug reports, suggestions and patches are welcome. Grinder's code is
     developed on Sourceforge
-    (<https://sourceforge.net/scm/?type=git&group_id=244196>) and is under
+    (<http://sourceforge.net/scm/?type=git&group_id=244196>) and is under
     Git revision control. To get started with a patch, do:
 
        git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
