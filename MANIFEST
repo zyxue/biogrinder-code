@@ -19,7 +19,7 @@ MANIFEST			This list of files
 META.yml
 README
 README.htm
-script/Grinder
+script/grinder
 t/00-load.t
 t/01-shotgun.t
 t/02-mates.t
