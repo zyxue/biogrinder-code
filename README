@@ -90,7 +90,7 @@ RUNNING GRINDER
     (CLI) or an application programming interface (API). To get the usage of
     the CLI, type:
 
-      Grinder --help
+      grinder --help
 
     If you are interested in running Grinder from within other Perl
     programs, see the documentation of the Grinder API:
@@ -144,64 +144,64 @@ REFERENCE SEQUENCE DATABASE
 CLI EXAMPLES
     *   A shotgun library with a coverage of 0.1X
 
-           Grinder -reference_file genomes.fna -coverage_fold 0.1
+           grinder -reference_file genomes.fna -coverage_fold 0.1
 
     *   Same thing but save the result files in a specific folder and with a
         specific name
 
-           Grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir
+           grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir
 
     *   A shotgun library with 1000 reads
 
-           Grinder -reference_file genomes.fna -total_reads 1000
+           grinder -reference_file genomes.fna -total_reads 1000
 
     *   A shotgun library where species are distributed according to a power
         law
 
-           Grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
+           grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
 
     *   A shotgun library with 123 species
 
-           Grinder -reference_file genomes.fna -diversity 123
+           grinder -reference_file genomes.fna -diversity 123
 
     *   Two shotgun libraries that have 50% of the species in common
 
-           Grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
+           grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
 
     *   A shotgun library where species relative abundances are manually
         specified
 
-           Grinder -reference_file genomes.fna -abundance_file my_abundances.txt
+           grinder -reference_file genomes.fna -abundance_file my_abundances.txt
 
     *   A shotgun library with Sanger reads
 
-           Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
+           grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
 
     *   A shotgun library with first-generation 454 reads
 
-           Grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
+           grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
 
     *   A paired-end shotgun library (insert size normally distributed
         around 2.5 kbp with 0.2 kbp standard deviation)
 
-           Grinder -reference_file genomes.fna -insert_dist 2500 normal 200
+           grinder -reference_file genomes.fna -insert_dist 2500 normal 200
 
     *   A 16S amplicon library
 
-           Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
+           grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
 
     *   The same amplicon library with 20% of chimeric reads
 
-           Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
+           grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
 
     *   Three 16S amplicon libraries with specified MIDs
 
-           Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
+           grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
 
     *   Reading reference sequences from the standard input, which allows
         you to decompress FASTA files on the fly
 
-           zcat microbial_db.fna.gz | Grinder -total_reads 100
+           zcat microbial_db.fna.gz | grinder -total_reads 100
 
 OPTIONS
   Basic parameters
@@ -405,10 +405,10 @@ OPTIONS
           -read_dist 105 normal 12
           -total_reads 1000
 
-        Running: Grinder -reference_file viral_genomes.fa -profile_file
+        Running: grinder -reference_file viral_genomes.fa -profile_file
         simple_profile.txt
 
-        Translates into: Grinder -reference_file viral_genomes.fa -read_dist
+        Translates into: grinder -reference_file viral_genomes.fa -read_dist
         105 normal 12 -total_reads 1000
 
         Note that the arguments specified in the profile should not be

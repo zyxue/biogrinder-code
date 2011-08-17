@@ -166,7 +166,7 @@ try something along these lines:</p>
 <p>After installation, you can run Grinder using a command-line interface (CLI) or
 an application programming interface (API). To get the usage of the CLI, type:</p>
 <pre>
-  Grinder --help</pre>
+  grinder --help</pre>
 <p>If you are interested in running Grinder from within other Perl programs, see
 the documentation of the Grinder API:</p>
 <pre>
@@ -222,73 +222,73 @@ downloaded from <a href="ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human
 <li>
 <p>A shotgun library with a coverage of 0.1X</p>
 <pre>
-   Grinder -reference_file genomes.fna -coverage_fold 0.1</pre>
+   grinder -reference_file genomes.fna -coverage_fold 0.1</pre>
 </li>
 <li>
 <p>Same thing but save the result files in a specific folder and with a specific name</p>
 <pre>
-   Grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir</pre>
+   grinder -reference_file genomes.fna -coverage_fold 0.1 -base_name my_name -output_dir my_dir</pre>
 </li>
 <li>
 <p>A shotgun library with 1000 reads</p>
 <pre>
-   Grinder -reference_file genomes.fna -total_reads 1000</pre>
+   grinder -reference_file genomes.fna -total_reads 1000</pre>
 </li>
 <li>
 <p>A shotgun library where species are distributed according to a power law</p>
 <pre>
-   Grinder -reference_file genomes.fna -abundance_model powerlaw 0.1</pre>
+   grinder -reference_file genomes.fna -abundance_model powerlaw 0.1</pre>
 </li>
 <li>
 <p>A shotgun library with 123 species</p>
 <pre>
-   Grinder -reference_file genomes.fna -diversity 123</pre>
+   grinder -reference_file genomes.fna -diversity 123</pre>
 </li>
 <li>
 <p>Two shotgun libraries that have 50% of the species in common</p>
 <pre>
-   Grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50</pre>
+   grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50</pre>
 </li>
 <li>
 <p>A shotgun library where species relative abundances are manually specified</p>
 <pre>
-   Grinder -reference_file genomes.fna -abundance_file my_abundances.txt</pre>
+   grinder -reference_file genomes.fna -abundance_file my_abundances.txt</pre>
 </li>
 <li>
 <p>A shotgun library with Sanger reads</p>
 <pre>
-   Grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20</pre>
+   grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20</pre>
 </li>
 <li>
 <p>A shotgun library with first-generation 454 reads</p>
 <pre>
-   Grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer</pre>
+   grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer</pre>
 </li>
 <li>
 <p>A paired-end shotgun library (insert size normally distributed around 2.5 kbp
 with 0.2 kbp standard deviation)</p>
 <pre>
-   Grinder -reference_file genomes.fna -insert_dist 2500 normal 200</pre>
+   grinder -reference_file genomes.fna -insert_dist 2500 normal 200</pre>
 </li>
 <li>
 <p>A 16S amplicon library</p>
 <pre>
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1</pre>
+   grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1</pre>
 </li>
 <li>
 <p>The same amplicon library with 20% of chimeric reads</p>
 <pre>
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20</pre>
+   grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20</pre>
 </li>
 <li>
 <p>Three 16S amplicon libraries with specified MIDs</p>
 <pre>
-   Grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna</pre>
+   grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna</pre>
 </li>
 <li>
 <p>Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly</p>
 <pre>
-   zcat microbial_db.fna.gz | Grinder -total_reads 100</pre>
+   zcat microbial_db.fna.gz | grinder -total_reads 100</pre>
 </li>
 </ul>
 <p>
@@ -567,8 +567,8 @@ profile file, 'simple_profile.txt':</p>
   # A simple Grinder profile
   -read_dist 105 normal 12
   -total_reads 1000</pre>
-<p>Running: Grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt</p>
-<p>Translates into: Grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000</p>
+<p>Running: grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt</p>
+<p>Translates into: grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000</p>
 <p>Note that the arguments specified in the profile should not be specified again on the command line.</p>
 </dd>
 </dl>

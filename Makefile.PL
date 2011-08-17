@@ -13,11 +13,6 @@ resources
    repository 'git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder';
 
 
-# Build the README from the module's POD using Perl's pod2text and pod2html
-generate_readme_text( catfile('lib','Grinder.pm'), 'README'     );
-generate_readme_html( catfile('lib','Grinder.pm'), 'README.htm' );
-
-
 # Dependencies
 
 build_requires 'Test::More';
@@ -28,6 +23,8 @@ requires 'Math::Random::MT::Perl'  => '1.06';
 requires 'Bio::SeqIO'              =>  0;
 #required 'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 
+auto_install; # process dependencies
+
 
 # Extra scripts to install
 
@@ -35,12 +32,28 @@ install_script 'script/grinder';
 install_script 'utils/average_genome_size';
 install_script 'utils/change_paired_read_orientation';
 
-auto_install;
+
+# Generate META.yml and Makefile
 
 WriteAll;
 
 
+# Build the README from the module's POD using Perl's pod2text and pod2html
+generate_readme();
 
+
+
+
+#--------- UTILS --------------------------------------------------------------#
+
+
+sub generate_readme {
+   print "*** Building README files...\n";
+   my $source = catfile('lib','Grinder.pm');
+   generate_readme_text( $source, 'README'     );
+   generate_readme_html( $source, 'README.htm' );
+   return 1;
+}
 
 sub generate_readme_text {
    my ($in, $out) = @_;
