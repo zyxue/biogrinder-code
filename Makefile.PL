@@ -31,7 +31,7 @@ requires 'Bio::SeqIO'              =>  0;
 
 # Extra scripts to install
 
-install_script 'script/Grinder';
+install_script 'script/grinder';
 install_script 'utils/average_genome_size';
 install_script 'utils/change_paired_read_orientation';
 
