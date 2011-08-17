@@ -1,14 +1,14 @@
 ---
 abstract: 'a simulator of random shotgun and amplicon sequence libraries'
 author:
-  - 'Florent Angly <florent.angly at gmail.com>'
+  - 'Florent Angly <florent.angly@gmail.com>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
   Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 1.00'
+generated_by: 'Module::Install version 1.01'
 license: gpl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,9 +20,12 @@ no_index:
     - t
 requires:
   Bio::SeqIO: 0
-  Getopt::Euclid: 0
+  Getopt::Euclid: 0.2.4
   Math::Random::MT::Perl: 1.06
   perl: 5.6.0
 resources:
+  bugtracker: http://sourceforge.net/tracker/?group_id=244196&atid=1124737
+  homepage: http://sourceforge.net/projects/biogrinder/
   license: http://opensource.org/licenses/gpl-license.php
-version: 0.3.3
+  repository: git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
+version: 0.3.6
