@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.3.x   
+        Tests use cross-platform filenames
         Output rank file now collapses amplicon by species
         Allow tracking of redundant mutations
         Location of amplicon on reference sequence is now recorded in the read description
