@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.3.x   
+        Added tests for chimeras
 	The Grinder script is now called 'grinder' (lowercase)
         Moved README build process in the Makefile.PL
         Tests use cross-platform filenames
