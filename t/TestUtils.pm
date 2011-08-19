@@ -16,6 +16,10 @@ BEGIN {
       PI
       data
       can_rfit
+      test_normal_dist
+      test_uniform_dist
+
+      
    };
 }
 
@@ -173,29 +177,21 @@ sub fit_beta {
    my $out = '';
    my $R = Statistics::R->new();
    $R->startR;
-   $R->send(q`library(fitdistrplus)`);
-   $out .= $R->read;
-   $R->send(qq`x <- c($x)`);
-   $out .= $R->read;
-   $R->send(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
-   $out .= $R->read;
-   $R->send(q`g <- gofstat(f)`);
-   $out .= $R->read;
-   $R->send(q`shape1 <- f$estimate[1]`);
-   my $shape1 = R_value('shape1', $R);
-   $R->send(q`shape2 <- f$estimate[2]`);
-   my $shape2 = R_value('shape2', $R);
-   $R->send(q`shape1_sd <- f$sd[1]`);
-   my $shape1_sd = R_value('shape1_sd', $R);
-   $R->send(q`shape2_sd <- f$sd[2]`);
-   my $shape2_sd = R_value('shape2_sd', $R);
-   $R->send(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqpvalue = R_value('chisqpvalue', $R);
+   $R->run(q`library(fitdistrplus)`);
+   $R->run(qq`x <- c($x)`);
+   $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
+   $R->run(q`g <- gofstat(f)`);
+   $R->run(q`shape1 <- f$estimate[1]`);
+   my $shape1 = $R->value('shape1');
+   $R->run(q`shape2 <- f$estimate[2]`);
+   my $shape2 = $R->value('shape2');
+   $R->run(q`shape1_sd <- f$sd[1]`);
+   my $shape1_sd = $R->value('shape1_sd');
+   $R->run(q`shape2_sd <- f$sd[2]`);
+   my $shape2_sd = $R->value('shape2_sd');
+   $R->run(q`chisqpvalue <- g$chisqpvalue`);
+   my $chisqpvalue = $R->value('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
-   $R->stopR();
-   if ($out =~ m/error/i) {
-      warn "Warning: There may have been a problem\n$out\n";
-   }
    return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
 }
 
@@ -222,25 +218,18 @@ sub fit_uniform {
    my $out = '';
    my $R = Statistics::R->new();
    $R->startR;
-   $R->send(q`library(fitdistrplus)`);
-   $out .= $R->read;
-   $R->send(qq`x <- c($x)`);
-   $out .= $R->read;
-   $R->send(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
-   $out .= $R->read;
-   $R->send(q`g <- gofstat(f)`);
-   $out .= $R->read;
-   $R->send(q`min <- f$estimate[1]`);
-   my $min = R_value('min', $R);
-   $R->send(q`max <- f$estimate[2]`);
-   my $max = R_value('max', $R);
-   $R->send(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqpvalue = R_value('chisqpvalue', $R);
+   $R->run(q`library(fitdistrplus)`);
+   $R->run(qq`x <- c($x)`);
+   $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
+   $R->run(q`g <- gofstat(f)`);
+   $R->run(q`min <- f$estimate[1]`);
+   my $min = $R->value('min');
+   $R->run(q`max <- f$estimate[2]`);
+   my $max = $R->value('max');
+   $R->run(q`chisqpvalue <- g$chisqpvalue`);
+   my $chisqpvalue = $R->value('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
    $R->stopR();
-   if ($out =~ m/error/i) {
-      warn "Warning: There may have been a problem\n$out\n";
-   }
    return $min, $max, $chisqtest;
 }
 
@@ -268,39 +257,53 @@ sub fit_normal {
    my $out = '';
    my $R = Statistics::R->new();
    $R->startR;
-   $R->send(q`library(fitdistrplus)`);
-   $out .= $R->read;
-   $R->send(qq`x <- c($x)`);
-   $out .= $R->read;
-   $R->send(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
-   $out .= $R->read;
-   $R->send(q`g <- gofstat(f)`);
-   $out .= $R->read;
-   $R->send(q`mean <- f$estimate[1]`);
-   my $mean = R_value('mean', $R);
-   $R->send(q`sd <- f$estimate[2]`);
-   my $sd = R_value('sd', $R);
-   $R->send(q`mean_sd <- f$sd[1]`);
-   my $mean_sd = R_value('mean_sd', $R);
-   $R->send(q`sd_sd <- f$sd[2]`);
-   my $sd_sd = R_value('sd_sd', $R);
-   $R->send(q`adtest <- g$adtest`);
-   my $adtest = R_value('adtest', $R);
-   $R->send(q`cvmtest <- g$cvmtest`);
-   my $cvmtest = R_value('cvmtest', $R);
-   $R->stopR();
-   if ($out =~ m/error/i) {
-      warn "Warning: There may have been a problem\n$out\n";
-   }
+   $R->run(q`library(fitdistrplus)`);
+   $R->run(qq`x <- c($x)`);
+   $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
+   $R->run(q`g <- gofstat(f)`);
+   $R->run(q`mean <- f$estimate[1]`);
+   my $mean = $R->value('mean');
+   $R->run(q`sd <- f$estimate[2]`);
+   my $sd = $R->value('sd');
+   $R->run(q`mean_sd <- f$sd[1]`);
+   my $mean_sd = $R->value('mean_sd');
+   $R->run(q`sd_sd <- f$sd[2]`);
+   my $sd_sd = $R->value('sd_sd');
+   $R->run(q`adtest <- g$adtest`);
+   my $adtest = $R->value('adtest');
+   $R->run(q`cvmtest <- g$cvmtest`);
+   my $cvmtest = $R->value('cvmtest');
    return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
 }
 
 
-sub R_value {
-   # Get the value of a variable through a Statistics::R::Bridge object
-   my ($varname, $R) = @_;
-   $R->send(qq`print($varname)`);
-   my $string = $R->read;
+#------------------------------------------------------------------------------#
+
+package Statistics::R;
+
+
+sub run {
+   my ($self, $cmd) = @_;
+   # Execute command
+   $self->send($cmd);
+   # Read command output
+   my $output = $self->read;
+   # Check for errors
+   if ($output =~ m/^<.*>$/) {
+      die "Error: There was a problem running the R command\n".
+          "   $cmd\n".
+          "Because\n".
+          "   $output\n";
+   }
+   return $output;
+}
+
+
+sub value {
+   # Get the value of a variable through a Statistics::R object
+   my ($self, $varname) = @_;
+   $self->send(qq`print($varname)`);
+   my $string = $self->read;
    my $value;
    if ($string eq 'NULL') {
       $value = undef;
