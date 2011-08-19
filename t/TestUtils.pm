@@ -7,10 +7,13 @@ use Test::More;
 use Statistics::R;
 use File::Spec::Functions;
 
+use constant PI => 4 * atan2(1, 1);
+
 use vars qw{@ISA @EXPORT};
 BEGIN {
    @ISA     = 'Exporter';
    @EXPORT  = qw{
+      PI
       data
       can_rfit
    };

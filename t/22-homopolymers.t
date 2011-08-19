@@ -5,7 +5,6 @@ use warnings;
 use Test::More;
 use t::TestUtils;
 use Grinder;
-use constant PI => 4 * atan2(1, 1);
 
 plan tests => 6648;
 
