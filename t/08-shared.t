@@ -1,24 +1,27 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 35;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 35;
+
+
 my ($factory, $nof_reads, $read, $lib_num, %sources, %shared);
 
 
 # No species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -length_bias     => 0                                      ,
-   -total_reads     => 100                                    ,
-   -num_libraries   => 3                                      ,
-   -shared_perc     => 0                                      ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -length_bias     => 0                          ,
+   -total_reads     => 100                        ,
+   -num_libraries   => 3                          ,
+   -shared_perc     => 0                          ,
 ), 'No species shared';
 
 while ($factory->next_lib) {
@@ -45,13 +48,13 @@ is scalar keys %shared, 0;
 # 50% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -length_bias     => 0                                      ,
-   -total_reads     => 100                                    ,
-   -num_libraries   => 3                                      ,
-   -shared_perc     => 50                                     ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -length_bias     => 0                          ,
+   -total_reads     => 100                        ,
+   -num_libraries   => 3                          ,
+   -shared_perc     => 50                         ,
 ), '50% species shared';
 
 while ($factory->next_lib) {
@@ -78,13 +81,13 @@ is scalar keys %shared, 1;
 # 66% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -length_bias     => 0                                      ,
-   -total_reads     => 100                                    ,
-   -num_libraries   => 3                                      ,
-   -shared_perc     => 66                                     ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -length_bias     => 0                          ,
+   -total_reads     => 100                        ,
+   -num_libraries   => 3                          ,
+   -shared_perc     => 66                         ,
 ), '66% species shared';
 
 while ($factory->next_lib) {
@@ -111,13 +114,13 @@ is scalar keys %shared, 1;
 # 67% species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -length_bias     => 0                                      ,
-   -total_reads     => 100                                    ,
-   -num_libraries   => 3                                      ,
-   -shared_perc     => 67                                     ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -length_bias     => 0                          ,
+   -total_reads     => 100                        ,
+   -num_libraries   => 3                          ,
+   -shared_perc     => 67                         ,
 ), '67% species shared';
 
 while ($factory->next_lib) {
@@ -144,13 +147,13 @@ is scalar keys %shared, 2;
 # All species shared
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -length_bias     => 0                                      ,
-   -total_reads     => 100                                    ,
-   -num_libraries   => 3                                      ,
-   -shared_perc     => 100                                    ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -length_bias     => 0                          ,
+   -total_reads     => 100                        ,
+   -num_libraries   => 3                          ,
+   -shared_perc     => 100                        ,
 ), 'All species shared';
 
 while ($factory->next_lib) {
@@ -177,14 +180,14 @@ is scalar keys %shared, 5;
 # Inequal richness
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -random_seed     => 1233567890                             ,
-   -abundance_model => 'uniform'                              ,
-   -total_reads     => 100                                    ,
-   -length_bias     => 0                                      ,
-   -num_libraries   => 2                                      ,
-   -diversity       => (3,5)                                  ,
-   -shared_perc     => 100                                    ,
+   -genome_file     => data('shotgun_database.fa'),
+   -random_seed     => 1233567890                 ,
+   -abundance_model => 'uniform'                  ,
+   -total_reads     => 100                        ,
+   -length_bias     => 0                          ,
+   -num_libraries   => 2                          ,
+   -diversity       => (3,5)                      ,
+   -shared_perc     => 100                        ,
 ), 'Inequal richness';
 
 while ($factory->next_lib) {

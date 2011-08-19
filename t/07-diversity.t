@@ -1,21 +1,24 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 8;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 8;
+
+
 my ($factory, $nof_reads, $read, %sources);
 
 
 # Single library, single diversity
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data shotgun_database.fa}),
-   -random_seed => 1233567880                             ,
-   -total_reads => 100                                    ,
-   -diversity   => 2                                      ,
+   -genome_file => data('shotgun_database.fa'),
+   -random_seed => 1233567880                 ,
+   -total_reads => 100                        ,
+   -diversity   => 2                          ,
 ), 'Single library, single diversity';
 
 while ( $read = $factory->next_read ) {
@@ -30,11 +33,11 @@ is scalar keys %sources, 2;
 # Two libraries, single diversity
 
 ok $factory = Grinder->new(
-   -genome_file   => catfile(qw{t data shotgun_database.fa}),
-   -random_seed   => 1233567880                             ,
-   -total_reads   => 100                                    ,
-   -num_libraries => 2                                      ,
-   -diversity     => 2                                      ,
+   -genome_file   => data('shotgun_database.fa'),
+   -random_seed   => 1233567880                 ,
+   -total_reads   => 100                        ,
+   -num_libraries => 2                          ,
+   -diversity     => 2                          ,
 ), 'Two libraries, single diversity';
 
 $factory->next_lib;
@@ -59,11 +62,11 @@ is scalar keys %sources, 2;
 # Two libraries, two diversities
 
 ok $factory = Grinder->new(
-   -genome_file   => catfile(qw{t data shotgun_database.fa}),
-   -random_seed   => 1233567880                             ,
-   -total_reads   => 100                                    ,
-   -num_libraries => 2                                      ,
-   -diversity     => (2, 3)                                 ,
+   -genome_file   => data('shotgun_database.fa'),
+   -random_seed   => 1233567880                 ,
+   -total_reads   => 100                        ,
+   -num_libraries => 2                          ,
+   -diversity     => (2, 3)                     ,
 ), 'Two libraries, two diversities';
 
 $factory->next_lib;

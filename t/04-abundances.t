@@ -1,22 +1,25 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 31;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 31;
+
+
 my ($factory, $nof_reads, $read, %sources);
 
 
 # Specified genome abundance for a single shotgun library
 
 ok $factory = Grinder->new(
-   -genome_file    => catfile(qw{t data shotgun_database.fa}),
-   -abundance_file => catfile(qw{t data abundances.txt})     ,
-   -length_bias    => 0                                      ,
-   -random_seed    => 1910567890                             ,
-   -total_reads    => 1000                                   ,
+   -genome_file    => data('shotgun_database.fa'),
+   -abundance_file => data('abundances.txt')     ,
+   -length_bias    => 0                          ,
+   -random_seed    => 1910567890                 ,
+   -total_reads    => 1000                       ,
 ), 'Genome abundance for a single shotgun libraries';
 
 while ( $read = $factory->next_read ) {
@@ -48,14 +51,14 @@ is $factory->next_lib, undef;
 # Specified genome abundance for a single amplicon library
 
 ok $factory = Grinder->new(
-   -abundance_file  => catfile(qw{t data abundances2.txt})           ,
-   -genome_file     => catfile(qw{t data amplicon_database.fa})      ,
-   -forward_reverse => catfile(qw{t data forward_reverse_primers.fa}),
-   -copy_bias       => 0                                             ,
-   -unidirectional  => 1                                             ,
-   -read_dist       => 48                                            ,
-   -random_seed     => 1910567890                                    ,
-   -total_reads     => 1000                                          ,
+   -abundance_file  => data('abundances2.txt')           ,
+   -genome_file     => data('amplicon_database.fa')      ,
+   -forward_reverse => data('forward_reverse_primers.fa'),
+   -copy_bias       => 0                                 ,
+   -unidirectional  => 1                                 ,
+   -read_dist       => 48                                ,
+   -random_seed     => 1910567890                        ,
+   -total_reads     => 1000                              ,
 ), 'Genome abundance for a single amplicon libraries';
 
 while ( $read = $factory->next_read ) {
@@ -86,11 +89,11 @@ is $factory->next_lib, undef;
 # Specified genome abundance for multiple shotgun libraries
 
 ok $factory = Grinder->new(
-   -genome_file    => catfile(qw{t data shotgun_database.fa})    ,
-   -abundance_file => catfile(qw{t data abundances_multiple.txt}),
-   -length_bias    => 0                                          ,
-   -random_seed    => 1232567890                                 ,
-   -total_reads    => 1000                                       ,
+   -genome_file    => data('shotgun_database.fa')    ,
+   -abundance_file => data('abundances_multiple.txt'),
+   -length_bias    => 0                              ,
+   -random_seed    => 1232567890                     ,
+   -total_reads    => 1000                           ,
 ), 'Genome abundance for multiple shotgun libraries';
 
 ok $factory->next_lib;

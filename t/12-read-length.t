@@ -1,13 +1,15 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 18;
-use Bio::Seq;
-use constant PI => 4 * atan2(1, 1);
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+use constant PI => 4 * atan2(1, 1);
+
+plan tests => 18;
+
+
 my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
     $ehist, $coeff);
 
@@ -15,10 +17,10 @@ my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
 # All sequences the same length
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data shotgun_database.fa}),
-   -read_dist   => 50                                     ,
-   #-random_seed => 1910567890                            ,
-   -total_reads => 1000                                   ,
+   -genome_file => data('shotgun_database.fa'),
+   -read_dist   => 50                         ,
+   #-random_seed => 1910567890                ,
+   -total_reads => 1000                       ,
 ), 'Same length reads';
 
 while ( $read = $factory->next_read ) {
@@ -34,10 +36,10 @@ is $stddev, 0;
 
 # Uniform distribution
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data shotgun_database.fa}),
-   -read_dist   => (50, 'uniform', 10)                    ,
-   #-random_seed => 1910567890                            ,
-   -total_reads => 1000                                   ,
+   -genome_file => data('shotgun_database.fa'),
+   -read_dist   => (50, 'uniform', 10)        ,
+   #-random_seed => 1910567890                ,
+   -total_reads => 1000                       ,
 ), 'Uniform distribution';
 
 while ( $read = $factory->next_read ) {
@@ -60,10 +62,10 @@ ok ($coeff > 0.99);
 
 # Normal distribution
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data shotgun_database.fa}),
-   -read_dist   => (50, 'normal', 10)                     ,
-   #-random_seed => 191057890                             ,
-   -total_reads => 1000                                   ,
+   -genome_file => data('shotgun_database.fa'),
+   -read_dist   => (50, 'normal', 10)         ,
+   #-random_seed => 191057890                 ,
+   -total_reads => 1000                       ,
 ), 'Normal distribution';
 
 while ( $read = $factory->next_read ) {

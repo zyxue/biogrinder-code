@@ -1,23 +1,25 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 80;
-use Bio::Seq;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 80;
+
+
 my ($factory, $nof_reads, $read);
 
 
 # Prepend a single multiplex identifier (MID): ACGT
 
 ok $factory = Grinder->new(
-   -genome_file   => catfile(qw{t data shotgun_database.fa}),
-   -multiplex_ids => catfile(qw{t data mids.fa})            ,
-   -num_libraries => 2                                      ,
-   -read_dist     => 52                                     ,
-   -total_reads   => 9                                      ,
+   -genome_file   => data('shotgun_database.fa'),
+   -multiplex_ids => data('mids.fa')            ,
+   -num_libraries => 2                          ,
+   -read_dist     => 52                         ,
+   -total_reads   => 9                          ,
 ), 'Single MID';
 
 while ( $read = $factory->next_read ) {
@@ -29,11 +31,11 @@ while ( $read = $factory->next_read ) {
 # Prepend two multiplex identifier: ACGT and AAAATTTT
 
 ok $factory = Grinder->new(
-   -genome_file   => catfile(qw{t data shotgun_database.fa}),
-   -multiplex_ids => catfile(qw{t data mids.fa})            ,
-   -num_libraries => 2                                      ,
-   -read_dist     => 52                                     ,
-   -total_reads   => 10                                     ,
+   -genome_file   => data('shotgun_database.fa'),
+   -multiplex_ids => data('mids.fa')            ,
+   -num_libraries => 2                          ,
+   -read_dist     => 52                         ,
+   -total_reads   => 10                         ,
 ), 'Two MIDs';
 
 while ( $read = $factory->next_read ) {

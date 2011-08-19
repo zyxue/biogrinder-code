@@ -44,6 +44,7 @@ t/20-community-structure.t
 t/21-errors.t
 t/22-homopolymers.t
 t/23-chimeras.t
+t/TestUtils.pm
 t/data/abundances.txt
 t/data/abundances2.txt
 t/data/abundances_multiple.txt

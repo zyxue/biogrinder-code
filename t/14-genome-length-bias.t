@@ -1,23 +1,25 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 10;
-use Bio::Seq;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 10;
+
+
 my ($factory, $nof_reads, $read, %sources);
 
 
 # Specified genome abundance for a single library
 
 ok $factory = Grinder->new(
-   -genome_file    => catfile(qw{t data shotgun_database.fa}),
-   -abundance_file => catfile(qw{t data abundances.txt})     ,
-   -length_bias    => 1                                      ,
-   -random_seed    => 1910567890                             ,
-   -total_reads    => 1000                                   ,
+   -genome_file    => data('shotgun_database.fa'),
+   -abundance_file => data('abundances.txt')     ,
+   -length_bias    => 1                          ,
+   -random_seed    => 1910567890                 ,
+   -total_reads    => 1000                       ,
 ), 'Genome abundance for a single libraries';
 
 while ( $read = $factory->next_read ) {

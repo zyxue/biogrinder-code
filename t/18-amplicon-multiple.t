@@ -1,22 +1,25 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 1204;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 1204;
+
+
 my ($factory, $read, $nof_reads);
 
 # Template with several matching amplicons and forward and reverse primers
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data multiple_amplicon_database.fa}),
-   -forward_reverse => catfile(qw{t data forward_reverse_primers.fa})   ,
-   -length_bias     => 0                                                ,
-   -unidirectional  => 1                                                ,
-   -read_dist       => 100                                              ,
-   -total_reads     => 100                                              ,
+   -genome_file     => data('multiple_amplicon_database.fa'),
+   -forward_reverse => data('forward_reverse_primers.fa')   ,
+   -length_bias     => 0                                    ,
+   -unidirectional  => 1                                    ,
+   -read_dist       => 100                                  ,
+   -total_reads     => 100                                  ,
 ), 'Forward and reverse primers';
 
 $nof_reads = 0;
@@ -30,12 +33,12 @@ is $nof_reads, 100;
 # Template with several matching amplicons and forward primer
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data multiple_amplicon_database.fa}),
-   -forward_reverse => catfile(qw{t data forward_primer.fa})            ,
-   -length_bias     => 0                                                ,
-   -unidirectional  => 1                                                ,
-   -read_dist       => 100                                              ,
-   -total_reads     => 100                                              ,
+   -genome_file     => data('multiple_amplicon_database.fa'),
+   -forward_reverse => data('forward_primer.fa')            ,
+   -length_bias     => 0                                    ,
+   -unidirectional  => 1                                    ,
+   -read_dist       => 100                                  ,
+   -total_reads     => 100                                  ,
 ), 'Forward primer only';
 
 $nof_reads = 0;

@@ -1,22 +1,15 @@
-#!/usr/bin/env perl
-
-# Compile testing for Module::Install
-
-#use strict;
-#BEGIN {
-#	$|       = 1;
-#	$^W      = 1;
-#}
+#! perl
 
 use strict;
 use warnings;
+use Test::More;
 use t::TestUtils;
-use Test::More tests => 6648;
-use Bio::Seq;
-use constant PI => 4 * atan2(1, 1);
-use File::Spec::Functions;
-
 use Grinder;
+use constant PI => 4 * atan2(1, 1);
+
+plan tests => 6648;
+
+
 my ($factory, $nof_reads, $read, $hpols, $min, $max, $mean, $stddev,
     $expected_mean, $expected_stddev, $hist, $ehist, $coeff);
 my $delta_perc = 0.05;
@@ -25,11 +18,11 @@ my $delta_perc = 0.05;
 # Balzer homopolymer distribution
 
 #ok $factory = Grinder->new(
-#   -genome_file      => catfile(qw{t data homopolymer_database.fa}),
-#   -unidirectional   => 1                                          ,
-#   -read_dist        => 220                                        ,
-#   -total_reads      => 1000                                       ,
-#   -homopolymer_dist => 'balzer'                                   ,
+#   -genome_file      => data('homopolymer_database.fa'),
+#   -unidirectional   => 1                              ,
+#   -read_dist        => 220                            ,
+#   -total_reads      => 1000                           ,
+#   -homopolymer_dist => 'balzer'                       ,
 #), 'Balzer';
 
 #while ( $read = $factory->next_read ) {
@@ -70,11 +63,11 @@ my $delta_perc = 0.05;
 # Richter homopolymer distribution
 
 #ok $factory = Grinder->new(
-#   -genome_file      => catfile(qw{t data homopolymer_database.fa}),
-#   -unidirectional   => 1                                          ,
-#   -read_dist        => 220                                        ,
-#   -total_reads      => 1000                                       ,
-#   -homopolymer_dist => 'richter'                                  ,
+#   -genome_file      => data('homopolymer_database.fa'),
+#   -unidirectional   => 1                              ,
+#   -read_dist        => 220                            ,
+#   -total_reads      => 1000                           ,
+#   -homopolymer_dist => 'richter'                      ,
 #), 'Richter';
 
 #while ( $read = $factory->next_read ) {
@@ -118,11 +111,11 @@ my $delta_perc = 0.05;
 # Margulies homopolymer distribution
 
 ok $factory = Grinder->new(
-   -genome_file      => catfile(qw{t data homopolymer_database.fa}),
-   -unidirectional   => 1                                          ,
-   -read_dist        => 220                                        ,
-   -total_reads      => 1000                                       ,
-   -homopolymer_dist => 'margulies'                                ,
+   -genome_file      => data('homopolymer_database.fa'),
+   -unidirectional   => 1                              ,
+   -read_dist        => 220                            ,
+   -total_reads      => 1000                           ,
+   -homopolymer_dist => 'margulies'                    ,
 ), 'Margulies';
 
 while ( $read = $factory->next_read ) {

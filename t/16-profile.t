@@ -1,22 +1,24 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 403;
-use Bio::Seq;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 403;
+
+
 my ($factory, $nof_reads, $read);
 
 
 # No profile
 
 ok $factory = Grinder->new(
-    -reference_file => catfile(qw{t data single_seq_database.fa}),
-    -read_dist      =>  50                                       ,
-    -total_reads    =>  100                                      ,
-    -unidirectional =>  1                                        ,
+    -reference_file => data('single_seq_database.fa'),
+    -read_dist      =>  50                           ,
+    -total_reads    =>  100                          ,
+    -unidirectional =>  1                            ,
 ), 'No profile';
 
 while ( $read = $factory->next_read ) {
@@ -27,7 +29,7 @@ while ( $read = $factory->next_read ) {
 # Grinder profile file that contains the same parameters as the previous test
 
 ok $factory = Grinder->new(
-   -profile_file => catfile(qw{t data profile.txt}),
+   -profile_file => data('profile.txt'),
 ), 'Grinder profile';
 
 while ( $read = $factory->next_read ) {
@@ -38,11 +40,11 @@ while ( $read = $factory->next_read ) {
 # A mix of profile and other command-line arguments
 
 ok $factory = Grinder->new(
-   -desc_track    => 0                              ,
-   -num_libraries => 2                              ,
-   -profile_file  => catfile(qw{t data profile.txt}),
-   -multiplex_ids => catfile(qw{t data mids.fa})    ,
-   -shared_perc   => 100                            ,
+   -desc_track    => 0                  ,
+   -num_libraries => 2                  ,
+   -profile_file  => data('profile.txt'),
+   -multiplex_ids => data('mids.fa')    ,
+   -shared_perc   => 100                ,
 ), 'Mix of profile and manually-specified options';
 
 while ( $read = $factory->next_read ) {

@@ -1,22 +1,24 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 3180;
-use Bio::Seq;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 3180;
+
+
 my ($factory, $lib, $nof_libs, $nof_reads, $read);
 
 
 # Multiple shotgun libraries
 
 ok $factory = Grinder->new(
-   -genome_file   => catfile(qw{t data shotgun_database.fa}),
-   -read_dist     => 48                                     ,
-   -num_libraries => 4                                      ,
-   -total_reads   => 99                                     ,
+   -genome_file   => data('shotgun_database.fa'),
+   -read_dist     => 48                         ,
+   -num_libraries => 4                          ,
+   -total_reads   => 99                         ,
 ), 'Multiple shotgun libraries';
 
 $nof_libs = 0;
@@ -35,11 +37,11 @@ is $nof_libs, 4;
 # Multiple mate pair libraries
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data shotgun_database.fa}),
-   -total_reads => 99                                     ,
-   -read_dist   => 48                                     ,
-   -num_libraries => 4                                    ,
-   -insert_dist => 250                                    ,
+   -genome_file => data('shotgun_database.fa'),
+   -total_reads => 99                         ,
+   -read_dist   => 48                         ,
+   -num_libraries => 4                        ,
+   -insert_dist => 250                        ,
 ), 'Multiple mate pair libraries';
 
 $nof_libs = 0;

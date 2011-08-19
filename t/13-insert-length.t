@@ -1,13 +1,15 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 19;
-use Bio::Seq;
-use constant PI => 4 * atan2(1, 1);
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+use constant PI => 4 * atan2(1, 1);
+
+plan tests => 19;
+
+
 my ($factory, $nof_reads, $mate1, $mate2, @inserts, $min, $max, $mean, $stddev,
     $hist, $ehist, $coeff);
 
@@ -15,11 +17,11 @@ my ($factory, $nof_reads, $mate1, $mate2, @inserts, $min, $max, $mean, $stddev,
 # All inserts the same length
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data single_seq_database.fa}),
-   -total_reads => 1000                                      ,
-   #-random_seed => 1910567890                               ,
-   -read_dist   => 50                                        ,
-   -insert_dist => 150                                       ,
+   -genome_file => data('single_seq_database.fa'),
+   -total_reads => 1000                          ,
+   #-random_seed => 1910567890                   ,
+   -read_dist   => 50                            ,
+   -insert_dist => 150                           ,
 ), 'Same size inserts';
 
 while ( $mate1 = $factory->next_read ) {
@@ -40,11 +42,11 @@ is $stddev, 0;
 # Uniformly distributed inserts
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data single_seq_database.fa}),
-   -total_reads => 1000                                      ,
-   #-random_seed => 1910567890                               ,
-   -read_dist   => 50                                        ,
-   -insert_dist => (150, 'uniform', 30)                      ,
+   -genome_file => data('single_seq_database.fa'),
+   -total_reads => 1000                          ,
+   #-random_seed => 1910567890                   ,
+   -read_dist   => 50                            ,
+   -insert_dist => (150, 'uniform', 30)          ,
 ), 'Uniform distribution';
 
 while ( $mate1 = $factory->next_read ) {
@@ -73,11 +75,11 @@ ok ($coeff > 0.99);
 # Normally distributed inserts
 
 ok $factory = Grinder->new(
-   -genome_file => catfile(qw{t data single_seq_database.fa}),
-   -total_reads => 1000                                      ,
-   #-random_seed => 1910567890                               ,
-   -read_dist   => 50                                        ,
-   -insert_dist => (150, 'normal', 10)                       ,
+   -genome_file => data('single_seq_database.fa'),
+   -total_reads => 1000                          ,
+   #-random_seed => 1910567890                   ,
+   -read_dist   => 50                            ,
+   -insert_dist => (150, 'normal', 10)           ,
 ), 'Normal distribution';
 
 while ( $mate1 = $factory->next_read ) {

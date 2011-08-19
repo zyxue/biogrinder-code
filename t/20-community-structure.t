@@ -1,12 +1,14 @@
-#!perl -T
+#! perl
 
 use strict;
 use warnings;
-use Test::More tests => 19;
-use Bio::Seq;
-use File::Spec::Functions;
-
+use Test::More;
+use t::TestUtils;
 use Grinder;
+
+plan tests => 19;
+
+
 my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean,
     $stddev, $struct, $param1, $param2);
 
@@ -14,11 +16,11 @@ my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean,
 # Uniform community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -abundance_model => ('uniform', 0)                         ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -abundance_model => ('uniform', 0)             ,
+   -total_reads     => 1000                       ,
 ), 'Uniform community structure';
 
 while ( $read = $factory->next_read ) {
@@ -37,11 +39,11 @@ ok ($coeff > 0.97);
 # Linear community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -abundance_model => ('linear', 0)                          ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -abundance_model => ('linear', 0)              ,
+   -total_reads     => 1000                       ,
 ), 'Linear community structure';
 
 while ( $read = $factory->next_read ) {
@@ -60,11 +62,11 @@ ok ($coeff > 0.97);
 # Power law community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -abundance_model => ('powerlaw', 0.5)                      ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -abundance_model => ('powerlaw', 0.5)          ,
+   -total_reads     => 1000                       ,
 ), 'Power law community structure';
 
 while ( $read = $factory->next_read ) {
@@ -83,11 +85,11 @@ ok ($coeff > 0.97);
 # Logarithmic community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -abundance_model => ('logarithmic', 0.5)                   ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -abundance_model => ('logarithmic', 0.5)       ,
+   -total_reads     => 1000                       ,
 ), 'Logarithmic community structure';
 
 while ( $read = $factory->next_read ) {
@@ -106,11 +108,11 @@ ok ($coeff > 0.97);
 # Exponential community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -abundance_model => ('exponential', 0.5)                   ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -abundance_model => ('exponential', 0.5)       ,
+   -total_reads     => 1000                       ,
 ), 'Exponential community structure';
 
 $struct = $factory->next_lib;
@@ -130,13 +132,13 @@ is $struct->{param}, 0.5;
 # Communities with random structure parameter value
 
 ok $factory = Grinder->new(
-   -genome_file     => catfile(qw{t data shotgun_database.fa}),
-   -read_dist       => 48                                     ,
-   -length_bias     => 0                                      ,
-   -num_libraries   => 2                                      ,
-   -shared_perc     => 100                                    ,
-   -abundance_model => ('exponential')                        ,
-   -total_reads     => 1000                                   ,
+   -genome_file     => data('shotgun_database.fa'),
+   -read_dist       => 48                         ,
+   -length_bias     => 0                          ,
+   -num_libraries   => 2                          ,
+   -shared_perc     => 100                        ,
+   -abundance_model => ('exponential')            ,
+   -total_reads     => 1000                       ,
 ), 'Communities with random structure parameter value';
 
 $struct = $factory->next_lib;
