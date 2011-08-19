@@ -42,6 +42,7 @@ t/18-amplicon-multiple.t
 t/19-gene-copy-bias.t
 t/20-community-structure.t
 t/21-errors.t
+t/22-homopolymers.t
 t/23-chimeras.t
 t/data/abundances.txt
 t/data/abundances2.txt
@@ -50,6 +51,7 @@ t/data/amplicon_database.fa
 t/data/dirty_database.fa
 t/data/forward_primer.fa
 t/data/forward_reverse_primers.fa
+t/data/homopolymer_database.fa
 t/data/mids.fa
 t/data/multiple_amplicon_database.fa
 t/data/profile.txt
