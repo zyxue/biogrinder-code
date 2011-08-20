@@ -109,11 +109,17 @@ sub test_normal_dist {
    # 30-100 values for the statistical test to work!
    my ($values, $want_mean, $want_sd) = @_;
    my ($mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest) = fit_normal($values, $want_mean, $want_sd);
-   #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n"; 
-   ok $want_mean > $mean - $mean_sd;
-   ok $want_mean < $mean + $mean_sd;
-   ok $want_sd > $sd - $sd_sd;
-   ok $want_sd < $sd + $sd_sd;
+
+   ####
+   print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
+   ####
+
+   # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
+   # the normal distribution, i.e. the 95% confidence interval
+   ok $want_mean > $mean - 1.96 * $mean_sd; 
+   ok $want_mean < $mean + 1.96 * $mean_sd;
+   ok $want_sd   >   $sd - 1.96 * $sd_sd;
+   ok $want_sd   <   $sd + 1.96 * $sd_sd;
    is $cvmtest, 'not rejected';
    is $adtest , 'not rejected';
    return 1;
