@@ -13,6 +13,8 @@ BEGIN {
    @EXPORT  = qw{
       PI
       data
+      stats
+      corr_coeff
       can_rfit
       test_normal_dist
       test_uniform_dist
@@ -34,6 +36,44 @@ sub data {
 }
 
 
+sub stats {
+   # Calculates min, max, mean, stddev
+   my ($vals) = @_;
+   my ($min, $max, $mean, $sum, $sqsum, $stddev) = (1E99, 0, 0, 0, 0, 0);
+   my $num = scalar @$vals;
+   for my $val (@$vals) {
+      $min = $val if $val < $min;
+      $max = $val if $val > $max;
+      $sum += $val;
+      $sqsum += $val**2
+   }
+   $mean = $sum / $num;
+   $stddev = sqrt( $sqsum / $num - $mean**2 );
+   return $min, $max, $mean, $stddev;
+}
+
+
+sub corr_coeff {
+   # The correlation coefficient R2 is
+   #    R2 = 1 - ( SSerr / SStot )
+   # where
+   #    SSerr = sum( (y - f)**2 )
+   # and
+   #    SStot = sum( (y - mean)**2 )
+   my ($y, $f, $mean) = @_;
+   my $SSerr = 0;
+   my $SStot = 0;
+   for my $i ( 0 .. scalar @$y - 1 ) {
+      #print "   ".($i+1)."  ".$$y[$i]."  ".$$f[$i]."\n";
+      #print "".($i+1)." ".$$y[$i]." ".$$f[$i]."\n";
+      $SSerr += ($$y[$i] - $$f[$i])**2;
+      $SStot += ($$y[$i] - $mean)**2;
+   }
+   my $R2 = 1 - ($SSerr / $SStot);
+   return $R2;
+}
+
+
 sub can_rfit {
    # Test if a system can run the fitdistrplus R module through the Statistics::R
    # Perl interface. Return 1 if it can, 0 otherwise.
@@ -49,9 +89,9 @@ sub can_rfit {
    };
    if ($@) {
       $can_run = 0;
-      my $msg = "Skipping these tests because one of the following is not installed:\n".
-                "   Statistics::R module for Perl, R (R-Project) or fitdistrplus module for R\n";
-      warn $msg;
+      #my $msg = "Skipping these tests because one of the following is not installed:\n".
+      #          "   Statistics::R module for Perl, R (R-Project) or fitdistrplus module for R\n";
+      #warn $msg;
    }
    return $can_run;
 }

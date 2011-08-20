@@ -177,23 +177,6 @@ ok $param1 != $param2;
 
 
 
-sub stats {
-   # Calculates min, max, mean, stddev
-   my ($vals) = @_;
-   my ($min, $max, $mean, $sum, $sqsum, $stddev) = (1E99, 0, 0, 0, 0, 0);
-   my $num = scalar @$vals;
-   for my $val (@$vals) {
-      $min = $val if $val < $min;
-      $max = $val if $val > $max;
-      $sum += $val;
-      $sqsum += $val**2
-   }
-   $mean = $sum / $num;
-   $stddev = sqrt( $sqsum / $num - $mean**2 );
-   return $min, $max, $mean, $stddev;
-}
-
-
 sub uniform {
    # Evaluate the uniform function in the given integer range
    my ($x_max, $max, $num) = @_;
@@ -297,20 +280,3 @@ sub rank_abundance {
 }
 
 
-sub corr_coeff {
-   # The correlation coefficient R2 is
-   #    R2 = 1 - ( SSerr / SStot )
-   # where
-   #    SSerr = sum( (y - f)**2 )
-   # and
-   #    SStot = sum( (y - mean)**2 )
-   my ($y, $f, $mean) = @_;
-   my $SSerr = 0;
-   my $SStot = 0;
-   for my $i ( 0 .. scalar @$y - 1 ) {
-      $SSerr += ($$y[$i] - $$f[$i])**2;
-      $SStot += ($$y[$i] - $mean)**2;
-   }
-   my $R2 = 1 - ($SSerr / $SStot);
-   return $R2;
-}
