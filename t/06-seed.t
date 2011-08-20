@@ -6,10 +6,10 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 6;
+plan tests => 19;
 
 
-my ($factory, $seed);
+my ($factory, $seed1, $seed2, $seed3, @dataset1, @dataset2);
 
 
 # Seed the pseudo-random number generator
@@ -19,14 +19,37 @@ ok $factory = Grinder->new(
    -random_seed    => 1233567890                 ,
    -total_reads    => 10                         ,
 ), 'Set the seed';
-ok $seed = $factory->get_random_seed();
-is $seed, 1233567890;
+ok $seed1 = $factory->get_random_seed();
+is $seed1, 1233567890;
+
+
+# Get a seed automatically
 
 ok $factory = Grinder->new(
    -genome_file    => data('shotgun_database.fa'),
    -total_reads    => 10                         ,
 ), 'Get a seed automatically';
-ok $seed = $factory->get_random_seed();
-is( ($seed > 0), 1);
+ok $seed2 = $factory->get_random_seed();
+is( ($seed2 > 0), 1);
+while (my $read = $factory->next_read) {
+   push @dataset1, $read;
+}
 
+
+# Specify the same seed
+
+ok $factory = Grinder->new(
+   -genome_file    => data('shotgun_database.fa'),
+   -total_reads    => 10                         ,
+   -random_seed    => $seed2                     ,
+), 'Specify the same seed';
+ok $seed3 = $factory->get_random_seed();
+is $seed3, $seed2;
+while (my $read = $factory->next_read) {
+   push @dataset2, $read;
+}
+
+for my $i (1 .. 10) {
+  is $dataset1[$i-1]->seq, $dataset2[$i-1]->seq;
+}
 

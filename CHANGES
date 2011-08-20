@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.3.x   
+        More comprehensive tests for seeding and random number generation
         Added tests for chimeras
 	The Grinder script is now called 'grinder' (lowercase)
         Moved README build process in the Makefile.PL
