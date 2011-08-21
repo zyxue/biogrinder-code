@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 25;
+plan tests => 30;
 
 
 my ($factory, $nof_reads, $mate1, $mate2, @inserts, $min, $max, $mean, $stddev,
@@ -66,19 +66,13 @@ $ehist = uniform(50, 250, 120, 180, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 ok ($coeff > 0.99);
 
-########
-print "TEST 1\n";
-#if (1) {
 if ( can_rfit() ) {
-   print "TEST 2\n";
    test_uniform_dist(\@inserts, 120, 180);
 } else {
    SKIP: {
-      skip "Cannot use the fitdistrplus R module on this system", 6;
+      skip "Cannot use the fitdistrplus R module on this system", 5;
    }
 }
-print "TEST 3\n";
-########
 
 @inserts = ();
 
@@ -91,10 +85,6 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -insert_dist    => (150, 'normal', 10)           ,
 ), 'Normal distribution';
-
-####
-print "TEST 4\n";
-####
 
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
@@ -114,15 +104,13 @@ $ehist = normal(50, 250, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 ok ($coeff > 0.99);
 
-###
-#if ( can_rfit() ) {
-#   test_normal_dist(\@inserts, 150, 10);
-#} else {
-#   SKIP: {
-#      skip "Cannot use the fitdistrplus R module on this system", 6;
-#   }
-#}
-###
+if ( can_rfit() ) {
+   test_normal_dist(\@inserts, 150, 10);
+} else {
+   SKIP: {
+      skip "Cannot use the fitdistrplus R module on this system", 6;
+   }
+}
 
 @inserts = ();
 

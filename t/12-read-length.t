@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 24;
+plan tests => 29;
 
 
 my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
@@ -53,6 +53,14 @@ $hist = hist(\@reads, 1, 100);
 $ehist = uniform(1, 100, 40, 60, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 ok ($coeff > 0.99);
+
+if ( can_rfit() ) {
+   test_uniform_dist(\@reads, 40, 60);
+} else {
+   SKIP: {
+      skip "Cannot use the fitdistrplus R module on this system", 5;
+   }
+}
 
 @reads = ();
 
