@@ -17,14 +17,15 @@ BEGIN {
       corr_coeff
       can_rfit
       test_normal_dist
-      test_uniform_dist
-
-      
+      test_uniform_dist      
    };
 }
 
+our $can_rfit;
+
 
 #------------------------------------------------------------------------------#
+
 
 # The Pi mathematical constant
 use constant PI => 4 * atan2(1, 1);
@@ -64,8 +65,7 @@ sub corr_coeff {
    my $SSerr = 0;
    my $SStot = 0;
    for my $i ( 0 .. scalar @$y - 1 ) {
-      #print "   ".($i+1)."  ".$$y[$i]."  ".$$f[$i]."\n";
-      #print "".($i+1)." ".$$y[$i]." ".$$f[$i]."\n";
+      #print "  ".($i+1)."  ".$$y[$i]."  ".$$f[$i]."\n";
       $SSerr += ($$y[$i] - $$f[$i])**2;
       $SStot += ($$y[$i] - $mean)**2;
    }
@@ -77,23 +77,25 @@ sub corr_coeff {
 sub can_rfit {
    # Test if a system can run the fitdistrplus R module through the Statistics::R
    # Perl interface. Return 1 if it can, 0 otherwise.
-   my $can_run = 1;
-   eval {
-      require Statistics::R;
-      my $R = Statistics::R->new();
-      $R->startR;
-      $R->send(q`library(fitdistrplus)`);
-      my $ret = $R->read;
-      die "$ret\n" if $ret;
-      $R->stopR();
-   };
-   if ($@) {
-      $can_run = 0;
-      #my $msg = "Skipping these tests because one of the following is not installed:\n".
-      #          "   Statistics::R module for Perl, R (R-Project) or fitdistrplus module for R\n";
-      #warn $msg;
+   if (not defined $can_rfit) {
+      eval {
+         require Statistics::R;
+         my $R = Statistics::R->new();
+         $R->startR();
+         my $ret = $R->run(q`library(ftdistrplus)`);
+         $R->stopR();
+      };
+      if ($@) {
+         $can_rfit = 0;
+         my $msg = "Warning: The Statistics::R module for Perl, R (R-Project) ".
+            "or the fitdistrplus module for R could not be found on this system.".
+            " Some tests will be skipped...\n";
+         warn $msg;
+      } else {
+         $can_rfit = 1;
+      }
    }
-   return $can_run;
+   return $can_rfit;
 }
 
 
@@ -151,7 +153,7 @@ sub test_normal_dist {
    my ($mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest) = fit_normal($values, $want_mean, $want_sd);
 
    ####
-   print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
+   #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
    ####
 
    # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
@@ -223,7 +225,7 @@ sub fit_beta {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR;
+   $R->startR();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
@@ -239,6 +241,7 @@ sub fit_beta {
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
    my $chisqpvalue = $R->value('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
+   $R->stopR();
    return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
 }
 
@@ -264,7 +267,7 @@ sub fit_uniform {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR;
+   $R->startR();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
@@ -303,7 +306,7 @@ sub fit_normal {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR;
+   $R->startR();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
@@ -320,6 +323,7 @@ sub fit_normal {
    my $adtest = $R->value('adtest');
    $R->run(q`cvmtest <- g$cvmtest`);
    my $cvmtest = $R->value('cvmtest');
+   $R->stopR();
    return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
 }
 
@@ -330,6 +334,7 @@ package Statistics::R;
 
 
 sub run {
+   # Run a command in R and return its output, or die if there was an error
    my ($self, $cmd) = @_;
    # Execute command
    $self->send($cmd);
@@ -349,8 +354,7 @@ sub run {
 sub value {
    # Get the value of a variable through a Statistics::R object
    my ($self, $varname) = @_;
-   $self->send(qq`print($varname)`);
-   my $string = $self->read;
+   my $string = $self->run(qq`print($varname)`);
    my $value;
    if ($string eq 'NULL') {
       $value = undef;
