@@ -15,6 +15,7 @@ BEGIN {
       data
       stats
       corr_coeff
+      write_data
       can_rfit
       test_normal_dist
       test_uniform_dist      
@@ -71,6 +72,20 @@ sub corr_coeff {
    }
    my $R2 = 1 - ($SSerr / $SStot);
    return $R2;
+}
+
+
+sub write_data {
+   # Write a data series (array reference) to a file with the specified name, or
+   # 'data.txt' by default
+   my ($data, $filename) = @_;
+   $filename = 'data.txt' if not defined $filename;
+   open my $out, '>', $filename or die "Error: Could not write file $filename\n$!\n";
+   for my $datum (@$data) {
+      print $out "$datum\n";
+   }
+   close $out;
+   return $filename;
 }
 
 
@@ -140,7 +155,7 @@ sub test_uniform_dist {
    ok $want_min < $min + $min_sd;
    ok $want_max > $max - $max_sd;
    ok $want_max < $max + $max_sd;
-   is $chisqtest, 'not rejected';
+   is $chisqtest, 'not rejected', 'Chi square';
    return 1;
 }
 
@@ -158,8 +173,10 @@ sub test_normal_dist {
    ok $want_mean < $mean + 1.96 * $mean_sd;
    ok $want_sd   >   $sd - 1.96 * $sd_sd;
    ok $want_sd   <   $sd + 1.96 * $sd_sd;
-   is $cvmtest, 'not rejected';
-   is $adtest , 'not rejected';
+   # Cramer-von Mises test
+   is $cvmtest, 'not rejected', 'Cramer-von Mises';
+   # Anderson-Darling test (emphasizes the tails of a distribution)
+   is $adtest , 'not rejected', 'Anderson-Darling';
    return 1;
 }
 
@@ -235,8 +252,7 @@ sub fit_beta {
    $R->run(q`shape2_sd <- f$sd[2]`);
    my $shape2_sd = $R->value('shape2_sd');
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqpvalue = $R->value('chisqpvalue');
-   my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
+   my $chisqtest = test_result( $R->value('chisqpvalue') );
    $R->stop();
    return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
 }
@@ -321,6 +337,14 @@ sub fit_normal {
    my $cvmtest = $R->value('cvmtest');
    $R->stop();
    return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
+}
+
+
+sub test_result {
+   # Reject a statistical test if the p value is less than 0.05
+   my ($p_value) = @_;
+   my $test_result = $p_value < 0.05 ? 'rejected' : 'not rejected';
+   return $test_result;
 }
 
 

@@ -52,6 +52,7 @@ while ( $mate1 = $factory->next_read ) {
    my $insert_length = abs($mate2->end - $mate1->start + 1);
    push @inserts, $insert_length;
 };
+write_data(\@inserts, 'insert_uniform.txt');
 
 ($min, $max, $mean, $stddev) = stats(\@inserts);
 ok $min >= 120;
@@ -92,6 +93,7 @@ while ( $mate1 = $factory->next_read ) {
    my $insert_length = abs($mate2->end - $mate1->start + 1);
    push @inserts, $insert_length;
 };
+write_data(\@inserts, 'insert_normal.txt');
 
 ($min, $max, $mean, $stddev) = stats(\@inserts);
 ok $mean < 151; # should be 150
