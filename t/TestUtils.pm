@@ -81,9 +81,9 @@ sub can_rfit {
       eval {
          require Statistics::R;
          my $R = Statistics::R->new();
-         $R->startR();
-         my $ret = $R->run(q`library(ftdistrplus)`);
-         $R->stopR();
+         $R->start();
+         my $ret = $R->run(q`library(fitdistrplus)`);
+         $R->stop();
       };
       if ($@) {
          $can_rfit = 0;
@@ -151,11 +151,7 @@ sub test_normal_dist {
    # 30-100 values for the statistical test to work!
    my ($values, $want_mean, $want_sd) = @_;
    my ($mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest) = fit_normal($values, $want_mean, $want_sd);
-
-   ####
    #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
-   ####
-
    # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
    # the normal distribution, i.e. the 95% confidence interval
    ok $want_mean > $mean - 1.96 * $mean_sd; 
@@ -225,7 +221,7 @@ sub fit_beta {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR();
+   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
@@ -241,7 +237,7 @@ sub fit_beta {
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
    my $chisqpvalue = $R->value('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
-   $R->stopR();
+   $R->stop();
    return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
 }
 
@@ -267,7 +263,7 @@ sub fit_uniform {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR();
+   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
@@ -279,7 +275,7 @@ sub fit_uniform {
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
    my $chisqpvalue = $R->value('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
-   $R->stopR();
+   $R->stop();
    return $min, $max, $chisqtest;
 }
 
@@ -306,7 +302,7 @@ sub fit_normal {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->startR();
+   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
@@ -323,14 +319,48 @@ sub fit_normal {
    my $adtest = $R->value('adtest');
    $R->run(q`cvmtest <- g$cvmtest`);
    my $cvmtest = $R->value('cvmtest');
-   $R->stopR();
+   $R->stop();
    return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
 }
 
 
 #------------------------------------------------------------------------------#
 
+
 package Statistics::R;
+
+
+use Cwd;
+our $working_dir;
+
+
+sub start {
+   # Use the start() instead of startR() method to allow saving current directory
+   my ($self, @args) = @_;
+   # Save working dir before Statistics::R changes it
+   $working_dir = cwd;
+   # Start R (which changes the directory)
+   return $self->startR(@args);
+}
+
+
+sub stop {
+   # Use the stop() instead of stopR() method to allow restoring previous directory
+   my ($self, @args) = @_;
+   # Stop R (which does not restore the directory)
+   my $return = $self->stopR(@args);
+   # Restore original dir
+   $self->restore_working_dir();
+   return $return;
+}
+
+
+sub restore_working_dir {
+   # Restore directory that we were in before starting R
+   my $self = shift;
+   chdir $working_dir or die "Error: Could not change directory to $working_dir\n$!\n";
+   return 1;
+}
 
 
 sub run {
@@ -342,10 +372,12 @@ sub run {
    my $output = $self->read;
    # Check for errors
    if ($output =~ m/^<.*>$/) {
-      die "Error: There was a problem running the R command\n".
-          "   $cmd\n".
-          "Because\n".
-          "   $output\n";
+      $self->restore_working_dir();
+      my $msg = "Error: There was a problem running the R command\n".
+                "   $cmd\n".
+                "Reason\n".
+                "   $output\n";
+      die $msg;
    }
    return $output;
 }
