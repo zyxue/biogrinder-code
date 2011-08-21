@@ -17,7 +17,7 @@ my $delta_perc = 0.05;
 # Balzer homopolymer distribution
 
 ok $factory = Grinder->new(
-   -genome_file      => data('homopolymer_database.fa'),
+   -reference_file   => data('homopolymer_database.fa'),
    -unidirectional   => 1                              ,
    -read_dist        => 220                            ,
    -total_reads      => 1000                           ,
@@ -70,7 +70,7 @@ $hpols = {};
 # Richter homopolymer distribution
 
 #ok $factory = Grinder->new(
-#   -genome_file      => data('homopolymer_database.fa'),
+#   -reference_file   => data('homopolymer_database.fa'),
 #   -unidirectional   => 1                              ,
 #   -read_dist        => 220                            ,
 #   -total_reads      => 1000                           ,
@@ -118,7 +118,7 @@ $hpols = {};
 # Margulies homopolymer distribution
 
 #ok $factory = Grinder->new(
-#   -genome_file      => data('homopolymer_database.fa'),
+#   -reference_file   => data('homopolymer_database.fa'),
 #   -unidirectional   => 1                              ,
 #   -read_dist        => 220                            ,
 #   -total_reads      => 1000                           ,

@@ -15,10 +15,10 @@ my ($factory, $lib, $nof_libs, $nof_reads, $read);
 # Multiple shotgun libraries
 
 ok $factory = Grinder->new(
-   -genome_file   => data('shotgun_database.fa'),
-   -read_dist     => 48                         ,
-   -num_libraries => 4                          ,
-   -total_reads   => 99                         ,
+   -reference_file => data('shotgun_database.fa'),
+   -read_dist      => 48                         ,
+   -num_libraries  => 4                          ,
+   -total_reads    => 99                         ,
 ), 'Multiple shotgun libraries';
 
 $nof_libs = 0;
@@ -37,11 +37,11 @@ is $nof_libs, 4;
 # Multiple mate pair libraries
 
 ok $factory = Grinder->new(
-   -genome_file => data('shotgun_database.fa'),
-   -total_reads => 99                         ,
-   -read_dist   => 48                         ,
-   -num_libraries => 4                        ,
-   -insert_dist => 250                        ,
+   -reference_file => data('shotgun_database.fa'),
+   -total_reads    => 99                         ,
+   -read_dist      => 48                         ,
+   -num_libraries  => 4                          ,
+   -insert_dist    => 250                        ,
 ), 'Multiple mate pair libraries';
 
 $nof_libs = 0;

@@ -16,7 +16,7 @@ my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean,
 # Uniform community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -abundance_model => ('uniform', 0)             ,
@@ -39,7 +39,7 @@ ok ($coeff > 0.97);
 # Linear community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -abundance_model => ('linear', 0)              ,
@@ -62,7 +62,7 @@ ok ($coeff > 0.97);
 # Power law community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -abundance_model => ('powerlaw', 0.5)          ,
@@ -85,7 +85,7 @@ ok ($coeff > 0.97);
 # Logarithmic community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -abundance_model => ('logarithmic', 0.5)       ,
@@ -108,7 +108,7 @@ ok ($coeff > 0.97);
 # Exponential community structure
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -abundance_model => ('exponential', 0.5)       ,
@@ -132,7 +132,7 @@ is $struct->{param}, 0.5;
 # Communities with random structure parameter value
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -read_dist       => 48                         ,
    -length_bias     => 0                          ,
    -num_libraries   => 2                          ,

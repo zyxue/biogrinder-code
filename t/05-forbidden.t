@@ -15,7 +15,7 @@ my ($factory, $read);
 # Exclude forbidden characters
 
 ok $factory = Grinder->new(
-   -genome_file    => data('dirty_database.fa'),
+   -reference_file => data('dirty_database.fa'),
    -read_dist      => 80                       ,
    -random_seed    => 1233567890               ,
    -total_reads    => 10                       ,
@@ -26,7 +26,7 @@ ok $read->seq =~ m/[N-]/i;
 
 
 ok $factory = Grinder->new(
-   -genome_file    => data('dirty_database.fa'),
+   -reference_file => data('dirty_database.fa'),
    -exclude_chars  => 'n-'                     , # case independent
    -read_dist      => 30                       ,
    -random_seed    => 1233567890               ,
@@ -39,7 +39,7 @@ while ( $read = $factory->next_read ) {
 
 
 ok $factory = Grinder->new(
-   -genome_file    => data('dirty_database.fa'),
+   -reference_file => data('dirty_database.fa'),
    -exclude_chars  => 'N-'                     ,
    -read_dist      => 71                       ,
    -random_seed    => 1233567890               ,
@@ -53,7 +53,7 @@ ok $@ =~ m/error/i;
 # Remove forbidden characters
 
 ok $factory = Grinder->new(
-   -genome_file    => data('dirty_database.fa'),
+   -reference_file => data('dirty_database.fa'),
    -delete_chars   => 'N-'                     ,
    -read_dist      => 70                       ,
    -random_seed    => 1233567890               ,

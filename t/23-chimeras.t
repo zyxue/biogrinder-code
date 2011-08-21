@@ -15,7 +15,7 @@ my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);
 # No Chimeras
 
 ok $factory = Grinder->new(
-   -genome_file     => data('amplicon_database.fa')      ,
+   -reference_file  => data('amplicon_database.fa')      ,
    -forward_reverse => data('forward_reverse_primers.fa'),
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,
@@ -36,7 +36,7 @@ while ( $read = $factory->next_read ) {
 # 50% chimeras
 
 ok $factory = Grinder->new(
-   -genome_file     => data('amplicon_database.fa')      ,
+   -reference_file  => data('amplicon_database.fa')      ,
    -forward_reverse => data('forward_reverse_primers.fa'),
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,
@@ -56,7 +56,7 @@ ok $nof_chimeras / $nof_regulars < 1.1;
 # 100% chimeras
 
 ok $factory = Grinder->new(
-   -genome_file     => data('amplicon_database.fa')      ,
+   -reference_file  => data('amplicon_database.fa')      ,
    -forward_reverse => data('forward_reverse_primers.fa'),
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,

@@ -14,7 +14,7 @@ my ($factory, $read, $nof_reads);
 # Template with several matching amplicons and forward and reverse primers
 
 ok $factory = Grinder->new(
-   -genome_file     => data('multiple_amplicon_database.fa'),
+   -reference_file  => data('multiple_amplicon_database.fa'),
    -forward_reverse => data('forward_reverse_primers.fa')   ,
    -length_bias     => 0                                    ,
    -unidirectional  => 1                                    ,
@@ -33,7 +33,7 @@ is $nof_reads, 100;
 # Template with several matching amplicons and forward primer
 
 ok $factory = Grinder->new(
-   -genome_file     => data('multiple_amplicon_database.fa'),
+   -reference_file  => data('multiple_amplicon_database.fa'),
    -forward_reverse => data('forward_primer.fa')            ,
    -length_bias     => 0                                    ,
    -unidirectional  => 1                                    ,

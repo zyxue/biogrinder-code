@@ -15,7 +15,7 @@ my ($factory, $seed1, $seed2, $seed3, @dataset1, @dataset2);
 # Seed the pseudo-random number generator
 
 ok $factory = Grinder->new(
-   -genome_file    => data('shotgun_database.fa'),
+   -reference_file => data('shotgun_database.fa'),
    -random_seed    => 1233567890                 ,
    -total_reads    => 10                         ,
 ), 'Set the seed';
@@ -26,7 +26,7 @@ is $seed1, 1233567890;
 # Get a seed automatically
 
 ok $factory = Grinder->new(
-   -genome_file    => data('shotgun_database.fa'),
+   -reference_file => data('shotgun_database.fa'),
    -total_reads    => 10                         ,
 ), 'Get a seed automatically';
 ok $seed2 = $factory->get_random_seed();
@@ -39,7 +39,7 @@ while (my $read = $factory->next_read) {
 # Specify the same seed
 
 ok $factory = Grinder->new(
-   -genome_file    => data('shotgun_database.fa'),
+   -reference_file => data('shotgun_database.fa'),
    -total_reads    => 10                         ,
    -random_seed    => $seed2                     ,
 ), 'Specify the same seed';

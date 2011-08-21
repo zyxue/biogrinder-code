@@ -15,7 +15,7 @@ my ($factory, $nof_reads, $read, $lib_num, $ranks1, $ranks2, $ranks3, $rank1_per
 # No species permuted
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 1233567890                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,
@@ -46,7 +46,7 @@ compare_ranks( $ranks1, $ranks2, $rank1_perm );
 # it will be (2,1)
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 2183567890                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,
@@ -70,7 +70,7 @@ compare_ranks( $ranks1, $ranks2, $rank1_perm );
 # 60% species permuted
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 1095230708                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,
@@ -94,7 +94,7 @@ compare_ranks( $ranks1, $ranks2, $rank1_perm );
 # 80% species permuted
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 1095230708                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,
@@ -118,7 +118,7 @@ compare_ranks( $ranks1, $ranks2, $rank1_perm );
 # All species permuted
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 1933067890                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,
@@ -142,7 +142,7 @@ compare_ranks( $ranks1, $ranks2, $rank1_perm );
 # Inequal richness
 
 ok $factory = Grinder->new(
-   -genome_file     => data('shotgun_database.fa'),
+   -reference_file  => data('shotgun_database.fa'),
    -random_seed     => 1243567820                 ,
    -abundance_model => ('powerlaw', 1.8)          ,
    -total_reads     => 1000                       ,

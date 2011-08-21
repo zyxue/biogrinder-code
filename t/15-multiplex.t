@@ -15,11 +15,11 @@ my ($factory, $nof_reads, $read);
 # Prepend a single multiplex identifier (MID): ACGT
 
 ok $factory = Grinder->new(
-   -genome_file   => data('shotgun_database.fa'),
-   -multiplex_ids => data('mids.fa')            ,
-   -num_libraries => 2                          ,
-   -read_dist     => 52                         ,
-   -total_reads   => 9                          ,
+   -reference_file => data('shotgun_database.fa'),
+   -multiplex_ids  => data('mids.fa')            ,
+   -num_libraries  => 2                          ,
+   -read_dist      => 52                         ,
+   -total_reads    => 9                          ,
 ), 'Single MID';
 
 while ( $read = $factory->next_read ) {
@@ -31,11 +31,11 @@ while ( $read = $factory->next_read ) {
 # Prepend two multiplex identifier: ACGT and AAAATTTT
 
 ok $factory = Grinder->new(
-   -genome_file   => data('shotgun_database.fa'),
-   -multiplex_ids => data('mids.fa')            ,
-   -num_libraries => 2                          ,
-   -read_dist     => 52                         ,
-   -total_reads   => 10                         ,
+   -reference_file => data('shotgun_database.fa'),
+   -multiplex_ids  => data('mids.fa')            ,
+   -num_libraries  => 2                          ,
+   -read_dist      => 52                         ,
+   -total_reads    => 10                         ,
 ), 'Two MIDs';
 
 while ( $read = $factory->next_read ) {

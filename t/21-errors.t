@@ -16,7 +16,7 @@ my ($factory, $nof_reads, $read, $errors, $min, $max, $mean, $stddev, $prof,
 # No errors by default
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
@@ -31,7 +31,7 @@ while ( $read = $factory->next_read ) {
 # Substitutions
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
@@ -54,7 +54,7 @@ while ( $read = $factory->next_read ) {
 # Indels
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
@@ -77,7 +77,7 @@ while ( $read = $factory->next_read ) {
 # Indels and substitutions
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
@@ -103,7 +103,7 @@ ok $nof_substs / $nof_indels < 1.08;
 # Uniform distribution
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
@@ -133,7 +133,7 @@ $errors = {};
 # Linear distribution
 
 ok $factory = Grinder->new(
-   -genome_file    => data('single_seq_database.fa'),
+   -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,

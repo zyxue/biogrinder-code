@@ -12,10 +12,10 @@ plan tests => 403;
 my ($factory, $read, $nof_reads);
 
 ok $factory = Grinder->new(
-   -genome_file => data('shotgun_database.fa'),
-   -total_reads => 100                        ,
-   -read_dist   => 48                         ,
-   -insert_dist => 250                        ,
+   -reference_file => data('shotgun_database.fa'),
+   -total_reads    => 100                        ,
+   -read_dist      => 48                         ,
+   -insert_dist    => 250                        ,
 ), 'Mate pairs';
 
 ok $factory->next_lib;

@@ -15,7 +15,7 @@ my ($factory, $nof_reads, $read, %sources);
 # Specified genome abundance for a single library
 
 ok $factory = Grinder->new(
-   -genome_file    => data('shotgun_database.fa'),
+   -reference_file => data('shotgun_database.fa'),
    -abundance_file => data('abundances.txt')     ,
    -length_bias    => 1                          ,
    -random_seed    => 1910567890                 ,

@@ -16,7 +16,7 @@ my ($factory, $nof_reads, $read, %sources);
 
 ok $factory = Grinder->new(
    -abundance_file  => data('abundances2.txt')              ,
-   -genome_file     => data('multiple_amplicon_database.fa'),
+   -reference_file  => data('multiple_amplicon_database.fa'),
    -forward_reverse => data('forward_reverse_primers.fa')   ,
    -copy_bias       => 1                                    ,
    -unidirectional  => 1                                    ,

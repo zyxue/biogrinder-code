@@ -16,10 +16,9 @@ my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
 # All sequences the same length
 
 ok $factory = Grinder->new(
-   -genome_file => data('shotgun_database.fa'),
-   -read_dist   => 50                         ,
-   #-random_seed => 1910567890                ,
-   -total_reads => 1000                       ,
+   -reference_file => data('shotgun_database.fa'),
+   -read_dist      => 50                         ,
+   -total_reads    => 1000                       ,
 ), 'Same length reads';
 
 while ( $read = $factory->next_read ) {
@@ -35,10 +34,9 @@ is $stddev, 0;
 
 # Uniform distribution
 ok $factory = Grinder->new(
-   -genome_file => data('shotgun_database.fa'),
-   -read_dist   => (50, 'uniform', 10)        ,
-   #-random_seed => 1910567890                ,
-   -total_reads => 1000                       ,
+   -reference_file => data('shotgun_database.fa'),
+   -read_dist      => (50, 'uniform', 10)        ,
+   -total_reads    => 1000                       ,
 ), 'Uniform distribution';
 
 while ( $read = $factory->next_read ) {
@@ -61,10 +59,9 @@ ok ($coeff > 0.99);
 
 # Normal distribution
 ok $factory = Grinder->new(
-   -genome_file => data('shotgun_database.fa'),
-   -read_dist   => (50, 'normal', 10)         ,
-   #-random_seed => 191057890                 ,
-   -total_reads => 1000                       ,
+   -reference_file => data('shotgun_database.fa'),
+   -read_dist      => (50, 'normal', 10)         ,
+   -total_reads    => 1000                       ,
 ), 'Normal distribution';
 
 while ( $read = $factory->next_read ) {
@@ -81,7 +78,6 @@ $ehist = normal(1, 100, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 ok ($coeff > 0.99);
 
-####
 if ( can_rfit() ) {
    test_normal_dist(\@reads, 50, 10);
 } else {
@@ -89,9 +85,9 @@ if ( can_rfit() ) {
       skip "Cannot use the fitdistrplus R module on this system", 6;
    }
 }
-####
 
 @reads = ();
+
 
 
 
