@@ -42,7 +42,7 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    push @reads, $read->length;
 };
-write_data(\@read, 'read_uniform.txt');
+write_data(\@reads, 'read_uniform.txt');
 ($min, $max, $mean, $stddev) = stats(\@reads);
 is $min, 40;
 is $max, 60;
@@ -76,7 +76,7 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    push @reads, $read->length;
 };
-write_data(\@read, 'read_normal.txt');
+write_data(\@reads, 'read_normal.txt');
 ($min, $max, $mean, $stddev) = stats(\@reads);
 ok $mean > 49; # should be 50.0
 ok $mean < 51;

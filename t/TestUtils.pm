@@ -96,7 +96,6 @@ sub can_rfit {
       eval {
          require Statistics::R;
          my $R = Statistics::R->new();
-         $R->start();
          my $ret = $R->run(q`library(fitdistrplus)`);
          $R->stop();
       };
@@ -238,7 +237,6 @@ sub fit_beta {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
@@ -279,7 +277,6 @@ sub fit_uniform {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
@@ -318,7 +315,6 @@ sub fit_normal {
    my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
-   $R->start();
    $R->run(q`library(fitdistrplus)`);
    $R->run(qq`x <- c($x)`);
    $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
@@ -356,55 +352,6 @@ package Statistics::R;
 
 use Cwd;
 our $working_dir;
-
-
-sub start {
-   # Use the start() instead of startR() method to allow saving current directory
-   my ($self, @args) = @_;
-   # Save working dir before Statistics::R changes it
-   $working_dir = cwd;
-   # Start R (which changes the directory)
-   return $self->startR(@args);
-}
-
-
-sub stop {
-   # Use the stop() instead of stopR() method to allow restoring previous directory
-   my ($self, @args) = @_;
-   # Stop R (which does not restore the directory)
-   my $return = $self->stopR(@args);
-   # Restore original dir
-   $self->restore_working_dir();
-   return $return;
-}
-
-
-sub restore_working_dir {
-   # Restore directory that we were in before starting R
-   my $self = shift;
-   chdir $working_dir or die "Error: Could not change directory to $working_dir\n$!\n";
-   return 1;
-}
-
-
-sub run {
-   # Run a command in R and return its output, or die if there was an error
-   my ($self, $cmd) = @_;
-   # Execute command
-   $self->send($cmd);
-   # Read command output
-   my $output = $self->read;
-   # Check for errors
-   if ($output =~ m/^<.*>$/) {
-      $self->restore_working_dir();
-      my $msg = "Error: There was a problem running the R command\n".
-                "   $cmd\n".
-                "Reason\n".
-                "   $output\n";
-      die $msg;
-   }
-   return $output;
-}
 
 
 sub value {

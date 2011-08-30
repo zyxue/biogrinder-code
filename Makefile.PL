@@ -1,5 +1,4 @@
 use inc::Module::Install;
-use File::Spec::Functions;
 
 
 # Package information
@@ -18,10 +17,12 @@ resources
 build_requires 'Test::More';
 
 # Regular Perl module dependencies for Grinder
-requires 'Getopt::Euclid'          => '0.2.4';
-requires 'Math::Random::MT::Perl'  => '1.06';
-requires 'Bio::SeqIO'              =>  0;
-#required 'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
+requires   'Getopt::Euclid'          => '0.2.4';
+requires   'Math::Random::MT::Perl'  => '1.06';
+requires   'Bio::SeqIO'              =>  0;
+#requires  'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
+
+recommends 'Statistics::R'           => '0.10';
 
 auto_install; # process dependencies
 
@@ -49,7 +50,7 @@ generate_readme();
 
 sub generate_readme {
    print "*** Building README files...\n";
-   my $source = catfile('lib','Grinder.pm');
+   my $source = 'lib/Grinder.pm';
    generate_readme_text( $source, 'README'     );
    generate_readme_html( $source, 'README.htm' );
    return 1;

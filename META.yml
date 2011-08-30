@@ -18,6 +18,8 @@ no_index:
   directory:
     - inc
     - t
+recommends:
+  Statistics::R: 0.09
 requires:
   Bio::SeqIO: 0
   Getopt::Euclid: 0.2.4

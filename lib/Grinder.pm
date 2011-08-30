@@ -2,6 +2,7 @@ package Grinder;
 
 use 5.006;
 use strict;
+use warnings;
 use File::Spec;
 use Bio::SeqIO;
 use Bio::Seq::SimulatedRead;
@@ -190,7 +191,7 @@ lower diversity of this database compared to the previous two makes it more
 appropriate for producing artificial microbial metagenomes. Individual genomes
 from this database are also very suitable for the simulation of single or
 double-barreled shotgun libraries. Similarly, the RefSeq database contains
-over 3,100 curated viral sequences (<ftp://ftp.ncbi.nih.gov/refseq/release/viral/>)
+over 3,100 curated viral sequences (L<ftp://ftp.ncbi.nih.gov/refseq/release/viral/>)
 which can be used to produce artificial viral metagenomes.
 
 Quite a few eukaryotic organisms have been sequenced and their genome and the
