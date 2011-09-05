@@ -55,12 +55,9 @@ $ehist = uniform(1, 100, 40, 60, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
-if ( can_rfit() ) {
+SKIP: {
+   skip "Cannot use the fitdistrplus R module on this system", 5 if not can_rfit();
    test_uniform_dist(\@reads, 40, 60);
-} else {
-   SKIP: {
-      skip "Cannot use the fitdistrplus R module on this system", 5;
-   }
 }
 
 @reads = ();
@@ -88,12 +85,9 @@ $ehist = normal(1, 100, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
-if ( can_rfit() ) {
+SKIP: {
+   skip "Cannot use the fitdistrplus R module on this system", 6 if not can_rfit();
    test_normal_dist(\@reads, 50, 10);
-} else {
-   SKIP: {
-      skip "Cannot use the fitdistrplus R module on this system", 6;
-   }
 }
 
 @reads = ();

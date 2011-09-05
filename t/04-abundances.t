@@ -32,11 +32,11 @@ while ( $read = $factory->next_read ) {
 };
 
 
-ok exists $sources{'seq1'};
-ok exists $sources{'seq2'};
+ok     exists $sources{'seq1'};
+ok     exists $sources{'seq2'};
 ok not exists $sources{'seq3'};
-ok exists $sources{'seq4'};
-ok exists $sources{'seq5'};
+ok     exists $sources{'seq4'};
+ok     exists $sources{'seq5'};
 
 # These tests are quite sensitive to the seed used. Ideal average answer should
 # be 250 here
@@ -125,7 +125,7 @@ while ( $read = $factory->next_read ) {
 
 ok not exists $sources{'seq1'};
 ok not exists $sources{'seq2'};
-ok exists $sources{'seq3'};
+ok     exists $sources{'seq3'};
 ok not exists $sources{'seq4'};
 ok not exists $sources{'seq5'};
 
