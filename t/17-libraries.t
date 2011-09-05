@@ -61,7 +61,7 @@ is $nof_libs, 4;
 
 sub ok_read {
    my ($read, $req_strand, $nof_reads, $nof_libs) = @_;
-   is ref($read), 'Bio::Seq::SimulatedRead';
+   isa_ok $read, 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
    my $strand = $read->strand;
    if (not defined $req_strand) {
@@ -92,7 +92,7 @@ sub ok_read {
 
 sub ok_mate {
    my ($read, $req_strand, $nof_reads, $nof_libs) = @_;
-   is ref($read), 'Bio::Seq::SimulatedRead';
+   isa_ok $read, 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
    my $strand = $read->strand;
    if (not defined $req_strand) {

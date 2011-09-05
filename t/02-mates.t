@@ -31,7 +31,7 @@ is $nof_reads, 100;
 
 sub ok_mate {
    my ($read, $req_strand, $nof_reads) = @_;
-   is ref($read), 'Bio::Seq::SimulatedRead';
+   isa_ok $read, 'Bio::Seq::SimulatedRead';
    my $source = $read->reference->id;
    my $strand = $read->strand;
    if (not defined $req_strand) {
