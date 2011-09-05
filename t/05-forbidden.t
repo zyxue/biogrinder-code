@@ -34,7 +34,7 @@ ok $factory = Grinder->new(
 ), 'Exclude chars';
 
 while ( $read = $factory->next_read ) {
-  ok $read->seq !~ m/[N-]/i;
+  unlike $read->seq, qr/[N-]/i;
 }
 
 
@@ -61,6 +61,6 @@ ok $factory = Grinder->new(
 ), 'Delete chars';
 
 while ( $read = $factory->next_read ) {
-  ok $read->seq !~ m/[N-]/i;
+  unlike $read->seq, qr/[N-]/i;
 }
 

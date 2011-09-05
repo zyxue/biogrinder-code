@@ -195,7 +195,7 @@ sub compare_ranks {
    for my $perm_id ( @perm_ids ) {
       my $rank1 = $refs1{$perm_id};
       my $rank2 = $refs2{$perm_id};
-      ok $rank1 != $rank2;
+      isnt $rank1, $rank2;
       delete $refs1{$perm_id};
       delete $refs2{$perm_id};
    }

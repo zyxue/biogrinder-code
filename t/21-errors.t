@@ -24,7 +24,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    is $read->seq, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-   ok $read->desc !~ /errors/;
+   unlike $read->desc, qr/errors/;
 }
 
 
