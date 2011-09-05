@@ -122,7 +122,7 @@ sub ok_read {
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
-   ok $read->seq =~ m/[$letters]+/;
+   like $read->seq, qr/[$letters]+/;
    is $read->id, $nof_reads;
    is $read->length, 48;
 }

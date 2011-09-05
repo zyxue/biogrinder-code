@@ -28,8 +28,8 @@ while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
    $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
 #   if ($error_str) {
-#      ok $error_str !~ m/%/g;
-#      ok $error_str =~ m/[+-]/g;
+#      unlike $error_str, qr/%/;
+#      like   $error_str, qr/[+-]/;
 #   } else {
 #      ok 1;
 #      ok 1;
@@ -80,8 +80,8 @@ $hpols = {};
 #while ( $read = $factory->next_read ) {
 #   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
 #   if ($error_str) {
-#      ok $error_str !~ m/%/g;
-#      ok $error_str =~ m/[+-]/g;
+#      unlike $error_str, qr/%/;
+#      like   $error_str, qr/[+-]/;
 #   } else {
 #      ok 1;
 #      ok 1;
@@ -131,8 +131,8 @@ $hpols = {};
 #   print "$error_str\n";
 #
 #   if ($error_str) {
-#      ok $error_str !~ m/%/g;
-#      ok $error_str =~ m/[+-]/g;
+#      unlike $error_str, qr/%/;
+#      like   $error_str, qr/[+-]/;
 #   } else {
 #      ok 1;
 #      ok 1;

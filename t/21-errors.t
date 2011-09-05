@@ -42,8 +42,8 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
    if ($error_str) {
-      ok $error_str =~ m/%/g;
-      ok $error_str !~ m/[-+]/g;
+      like   $error_str, qr/%/;
+      unlike $error_str, qr/[-+]/;
    } else {
       ok 1;
       ok 1;
@@ -65,8 +65,8 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
    if ($error_str) {
-      ok $error_str !~ m/%/g;
-      ok $error_str =~ m/[-+]/g;
+      unlike $error_str, qr/%/;
+      like   $error_str, qr/[-+]/;
    } else {
       ok 1;
       ok 1;
@@ -88,7 +88,7 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
    if ($error_str) {
-      ok $error_str =~ m/[-+%]/g;
+      like $error_str, qr/[-+%]/;
       $nof_indels += ($error_str =~ tr/-+//);
       $nof_substs += ($error_str =~ tr/%//);
    } else {

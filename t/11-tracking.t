@@ -21,7 +21,7 @@ ok $factory = Grinder->new(
 ), 'Shotgun tracking';
 
 ok $read = $factory->next_read;
-is ( $read->desc =~ m/reference=.*position=.*strand=.*/, 1);
+like $read->desc, qr/reference=.*position=.*strand=.*/;
 
 
 ok $factory = Grinder->new(
@@ -34,7 +34,7 @@ ok $factory = Grinder->new(
 ), 'Amplicon tracking';
 
 ok $read = $factory->next_read;
-is ( $read->desc =~ m/reference=\S+.*amplicon=\d+-\d+.*position=.*strand=.*/, 1);
+like $read->desc, qr/reference=\S+.*amplicon=\d+-\d+.*position=.*strand=.*/;
 
 ok $factory = Grinder->new(
    -reference_file  => data('amplicon_database.fa'),
@@ -47,7 +47,7 @@ ok $factory = Grinder->new(
 ), 'Chimeric amplicon tracking';
 
 ok $read = $factory->next_read;
-is ( $read->desc =~ m/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*strand=.*/, 1);
+like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*strand=.*/;
 
 
 ok $factory = Grinder->new(
@@ -66,5 +66,5 @@ ok $factory = Grinder->new(
 ), 'Tracking default';
 
 ok $read = $factory->next_read;
-is ( $read->desc =~ m/reference=.*position=.*strand=.*/, 1);
+like $read->desc, qr/reference=.*position=.*strand=.*/;
 

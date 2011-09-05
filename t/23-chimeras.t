@@ -29,7 +29,7 @@ while ( $read = $factory->next_read ) {
    my $seq = $read->seq;
    $seq = remove_primers($seq, 'AAACT.AAA.GAATTG.CGG', 'G.ACACACCGCCCGT');
    # Now the amplicon is simply long homopolymeric sequences
-   ok ($seq =~ m/^(a+|c+|g+|t+)+$/);
+   like $seq, qr/^(a+|c+|g+|t+)+$/;
 }
 
 

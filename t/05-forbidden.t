@@ -22,7 +22,7 @@ ok $factory = Grinder->new(
 ), 'With dubious chars';
 
 ok $read = $factory->next_read;
-ok $read->seq =~ m/[N-]/i;
+like $read->seq, qr/[N-]/i;
 
 
 ok $factory = Grinder->new(
@@ -47,7 +47,7 @@ ok $factory = Grinder->new(
 ), 'Cannot generate read';
 
 eval { $read = $factory->next_read };
-ok $@ =~ m/error/i;
+like $@, qr/error/i;
 
 
 # Remove forbidden characters

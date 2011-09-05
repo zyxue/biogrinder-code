@@ -84,7 +84,7 @@ sub ok_read {
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    }
-   ok $read->seq =~ m/[$letters]+/;
+   like $read->seq, qr/[$letters]+/;
    is $read->id, $nof_libs.'_'.$nof_reads;
    is $read->length, 48;
 }
@@ -115,7 +115,7 @@ sub ok_mate {
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
-   ok $read->seq =~ m/[$letters]+/;
+   like $read->seq, qr/[$letters]+/;
    my $id = $nof_libs.'_'.int($nof_reads/2+0.5).'/'.($nof_reads%2?1:2);
    is $read->id, $id;
    is $read->length, 48;

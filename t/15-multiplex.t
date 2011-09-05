@@ -40,14 +40,14 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    is $read->length, 52;
-   ok $read->id =~ /^1_/;
+   like $read->id, qr/^1_/;
    is substr($read->seq, 0, 4), 'ACGT';
 };
 
 $factory->next_lib;
 
 while ( $read = $factory->next_read ) {
-   ok $read->id =~ /^2_/;
+   like $read->id, qr/^2_/;
    is $read->length, 52;
    is substr($read->seq, 0, 8), 'AAAATTTT';
 };

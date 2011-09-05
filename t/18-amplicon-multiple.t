@@ -52,8 +52,7 @@ is $nof_reads, 100;
 sub ok_read_forward_reverse {
    my ($read, $req_strand, $nof_reads) = @_;
    isa_ok $read, 'Bio::Seq::SimulatedRead';
-   my $source = $read->reference->id;
-   ok ($source =~ m/^seq\d+$/);
+   like $read->reference->id, qr/^seq\d+$/;
    my $strand = $read->strand;
    if (not defined $req_strand) {
       $req_strand = $strand;
@@ -70,8 +69,7 @@ sub ok_read_forward_reverse {
 sub ok_read_forward_only {
    my ($read, $req_strand, $nof_reads) = @_;
    isa_ok $read, 'Bio::Seq::SimulatedRead';
-   my $source = $read->reference->id;
-   ok ($source =~ m/^seq\d+$/);
+   like $read->reference->id, qr/^seq\d+$/;
    my $strand = $read->strand;
    if (not defined $req_strand) {
       $req_strand = $strand;
