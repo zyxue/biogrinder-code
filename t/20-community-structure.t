@@ -31,7 +31,7 @@ $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = uniform(10, 5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
 @reads = ();
 
@@ -54,7 +54,7 @@ $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = linear(10, 5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
 @reads = ();
 
@@ -77,7 +77,7 @@ $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = powerlaw(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
 @reads = ();
 
@@ -100,7 +100,7 @@ $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = logarithmic(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
 @reads = ();
 
@@ -124,7 +124,7 @@ $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $era = exponential(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 is $struct->{param}, 0.5;
 @reads = ();
 
@@ -149,11 +149,11 @@ while ( $read = $factory->next_read ) {
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $param1 = $struct->{param};
-ok $param1 > 0;
-ok $param1 < 1000;
+cmp_ok $param1, '>', 0;
+cmp_ok $param1, '<', 1000;
 $era = exponential(10, 5, $param1, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
 @reads = ();
 
@@ -165,13 +165,13 @@ while ( $read = $factory->next_read ) {
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $param2 = $struct->{param};
-ok $param2 > 0;
-ok $param2 < 1000;
+cmp_ok $param2, '>', 0;
+cmp_ok $param2, '<', 1000;
 $era = exponential(10, 5, $param2, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
-ok ($coeff > 0.97);
+cmp_ok $coeff, '>', 0.97;
 
-ok $param1 != $param2;
+isnt $param1, $param2;
 
 @reads = ();
 

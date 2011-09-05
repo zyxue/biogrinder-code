@@ -47,13 +47,13 @@ write_data(\@reads, 'read_uniform.txt');
 is $min, 40;
 is $max, 60;
 is int($mean+0.5), 50;
-ok $stddev < 6.3; # should be 5.79
-ok $stddev > 5.3;
+cmp_ok $stddev, '<', 6.3; # should be 5.79
+cmp_ok $stddev, '>', 5.3;
 
 $hist = hist(\@reads, 1, 100);
 $ehist = uniform(1, 100, 40, 60, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
-ok ($coeff > 0.99);
+cmp_ok $coeff, '>', 0.99;
 
 if ( can_rfit() ) {
    test_uniform_dist(\@reads, 40, 60);
@@ -78,15 +78,15 @@ while ( $read = $factory->next_read ) {
 };
 write_data(\@reads, 'read_normal.txt');
 ($min, $max, $mean, $stddev) = stats(\@reads);
-ok $mean > 49; # should be 50.0
-ok $mean < 51;
-ok $stddev < 11; # should be 10.0
-ok $stddev > 9;
+cmp_ok $mean, '>', 49; # should be 50.0
+cmp_ok $mean, '<', 51;
+cmp_ok $stddev, '<', 11; # should be 10.0
+cmp_ok $stddev, '>', 9;
 
 $hist = hist(\@reads, 1, 100);
 $ehist = normal(1, 100, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
-ok ($coeff > 0.99);
+cmp_ok $coeff, '>', 0.99;
 
 if ( can_rfit() ) {
    test_normal_dist(\@reads, 50, 10);

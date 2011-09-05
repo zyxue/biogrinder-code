@@ -124,12 +124,12 @@ sub can_rfit {
 #   my $slope_sd = 0.05 * $slope;
 #
 #   # Test
-#   ok $want_min > $min - $min_sd;
-#   ok $want_min < $min + $min_sd;
-#   ok $want_max > $max - $max_sd;
-#   ok $want_max < $max + $max_sd;
-#   ok $want_slope > $slope - $slope_sd;
-#   ok $want_slope < $slope + $slope_sd;
+#   cmp_ok $want_min  , '>', $min   - $min_sd  ;
+#   cmp_ok $want_min  , '<', $min   + $min_sd  ;
+#   cmp_ok $want_max  , '>', $max   - $max_sd  ;
+#   cmp_ok $want_max  , '<', $max   + $max_sd  ;
+#   cmp_ok $want_slope, '>', $slope - $slope_sd;
+#   cmp_ok $want_slope, '<', $slope + $slope_sd;
 #   is $chisqtest, 'not rejected';
 #
 #   # a beta distribution with shape1=1 & shape2=2 is linearly decreasing
@@ -150,10 +150,10 @@ sub test_uniform_dist {
    my $max_sd = $min_sd;
    # Test now
    #print "min = $min +- $min_sd, max = $max +- $max_sd\n"; 
-   ok $want_min > $min - $min_sd, 'fitdist() uniform';
-   ok $want_min < $min + $min_sd;
-   ok $want_max > $max - $max_sd;
-   ok $want_max < $max + $max_sd;
+   cmp_ok $want_min, '>', $min - $min_sd, 'fitdist() uniform';
+   cmp_ok $want_min, '<', $min + $min_sd;
+   cmp_ok $want_max, '>', $max - $max_sd;
+   cmp_ok $want_max, '<', $max + $max_sd;
    is $chisqtest, 'not rejected', 'Chi square';
    return 1;
 }
@@ -168,10 +168,10 @@ sub test_normal_dist {
    #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
    # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
    # the normal distribution, i.e. the 95% confidence interval
-   ok $want_mean > $mean - 1.96 * $mean_sd, 'fitdist() normal';
-   ok $want_mean < $mean + 1.96 * $mean_sd;
-   ok $want_sd   >   $sd - 1.96 * $sd_sd;
-   ok $want_sd   <   $sd + 1.96 * $sd_sd;
+   cmp_ok $want_mean, '>', $mean - 1.96 * $mean_sd, 'fitdist() normal';
+   cmp_ok $want_mean, '<', $mean + 1.96 * $mean_sd;
+   cmp_ok $want_sd  , '>',   $sd - 1.96 * $sd_sd  ;
+   cmp_ok $want_sd  , '<',   $sd + 1.96 * $sd_sd  ;
    # Cramer-von Mises test
    is $cvmtest, 'not rejected', 'Cramer-von Mises';
    # Anderson-Darling test (emphasizes the tails of a distribution)

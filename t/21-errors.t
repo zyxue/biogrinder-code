@@ -96,8 +96,8 @@ while ( $read = $factory->next_read ) {
    }
 }
 
-ok $nof_substs / $nof_indels > 0.92; # should be 1
-ok $nof_substs / $nof_indels < 1.08;
+cmp_ok $nof_substs / $nof_indels, '>', 0.92; # should be 1
+cmp_ok $nof_substs / $nof_indels, '<', 1.08;
 
 
 # Uniform distribution
@@ -118,15 +118,15 @@ while ( $read = $factory->next_read ) {
 $prof = error_profile($errors, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
 #print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-ok $min >= 65;
-ok $max <= 135;
-ok $mean <= 103; # 100
-ok $mean >= 97;
-ok $stddev < 12;
+cmp_ok $min, '>=', 65;
+cmp_ok $max, '<=', 135;
+cmp_ok $mean, '<=', 103; # 100
+cmp_ok $mean, '>=', 97;
+cmp_ok $stddev, '<', 12;
 #$eprof = uniform(50, 10, 1000); # 1000 reads * 50 bp * 10% error
 #$coeff = corr_coeff($prof, $eprof, $mean);
 #print "coeff = $coeff\n";
-#ok ($coeff > 0.99);
+#cmp_ok $coeff, '>', 0.99;
 $errors = {};
 
 
@@ -148,17 +148,17 @@ while ( $read = $factory->next_read ) {
 $prof = error_profile($errors, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
 #print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-ok $mean <= 103; # should be 100
-ok $mean >= 97;
-ok $min  >= 30;  # should be 50
-ok $min  <= 70;
-ok $max  >= 125; # should be 150
-ok $max  <= 175;
+cmp_ok $mean, '<=', 103; # should be 100
+cmp_ok $mean, '>=', 97;
+cmp_ok $min,  '>=', 30;  # should be 50
+cmp_ok $min,  '<=', 70;
+cmp_ok $max,  '>=', 125; # should be 150
+cmp_ok $max,  '<=', 175;
 $eprof = linear(50, 10, 15, 1000);
 $coeff = corr_coeff($prof, $eprof, $mean);
 #print "coeff= $coeff\n";
-ok ($coeff > 0.80);
-#ok ($coeff > 0.99);
+cmp_ok $coeff, '>', 0.80;
+#cmp_ok $coeff, '>', 0.99;
 $errors = {};
 
 

@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 8;
+plan tests => 11;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -43,9 +43,12 @@ ok exists $sources{'seq3'};
 
 # These tests are quite sensitive to the seed used. Ideal average answer should
 # be 180.45, 812.03 and 7.5188
-ok ( ($sources{'seq1'} > 160) && ($sources{'seq1'} < 200) );
-ok ( ($sources{'seq2'} > 792) && ($sources{'seq2'} < 832) );
-ok ( ($sources{'seq3'} >   0) && ($sources{'seq3'} < 20 ) );
+cmp_ok $sources{'seq1'}, '>', 160;
+cmp_ok $sources{'seq1'}, '<', 200;
+cmp_ok $sources{'seq2'}, '>', 792;
+cmp_ok $sources{'seq2'}, '<', 832;
+cmp_ok $sources{'seq3'}, '>', 0;
+cmp_ok $sources{'seq3'}, '<', 20;
 
 is $factory->next_lib, undef;
 %sources = ();

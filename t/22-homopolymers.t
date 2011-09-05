@@ -50,16 +50,16 @@ for my $homo_len ( 10 ) {
    ($expected_mean, $expected_stddev) = balzer($homo_len);
    print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
 
-#   ok $mean > (1-$delta_perc)*$expected_mean;
-#   ok $mean < (1+$delta_perc)*$expected_mean;
-#   ok $stddev > (1-$delta_perc)*$expected_stddev;
-#   ok $stddev < (1+$delta_perc)*$expected_stddev; 
+#   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+#   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+#   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+#   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
 #   $hist = hist($$hpols{$homo_len}, 1, 20);
 #   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
 #   $coeff = corr_coeff($hist, $ehist, $mean);
 #   print "   coeff = $coeff\n";
-#   ok ($coeff > 0.80);
-#   #ok ($coeff > 0.99);
+#   cmp_ok $coeff, '>', 0.80;
+#   #cmp_ok $coeff, '>', 0.99;
 
     test_normal_dist($values, $expected_mean, $expected_stddev);
 
@@ -98,16 +98,16 @@ $hpols = {};
 #   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
 #   ($expected_mean, $expected_stddev) = richter($homo_len);
 #   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-##   ok $mean > (1-$delta_perc)*$expected_mean;
-##   ok $mean < (1+$delta_perc)*$expected_mean;
-##   ok $stddev > (1-$delta_perc)*$expected_stddev;
-##   ok $stddev < (1+$delta_perc)*$expected_stddev; 
+##   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+##   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+##   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+##   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
 #   $hist = hist($$hpols{$homo_len}, 1, 20);
 #   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
 #   $coeff = corr_coeff($hist, $ehist, $mean);
 #   print "   coeff = $coeff\n";
-#   ok ($coeff > 0.80);
-#   #ok ($coeff > 0.99);
+#   cmp_ok $coeff, '>', 0.80;
+#   #cmp_ok $coeff, '>', 0.99;
 #}
 #$hpols = {};
 
@@ -151,10 +151,10 @@ $hpols = {};
 #   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
 #   ($expected_mean, $expected_stddev) = margulies($homo_len);
 #   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-#   ok $mean > (1-$delta_perc)*$expected_mean;
-#   ok $mean < (1+$delta_perc)*$expected_mean;
-#   ok $stddev > (1-$delta_perc)*$expected_stddev;
-#   ok $stddev < (1+$delta_perc)*$expected_stddev; 
+#   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+#   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+#   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+#   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
 #   $hist = hist($$hpols{$homo_len}, 1, 20);
 #
 #   use Data::Dumper; print Dumper($hist);
@@ -162,8 +162,8 @@ $hpols = {};
 #   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
 #   $coeff = corr_coeff($hist, $ehist, $mean);
 #   print "   coeff = $coeff\n";
-#   ok ($coeff > 0.80);
-#   #ok ($coeff > 0.99);
+#   cmp_ok $coeff, '>', 0.80;
+#   #cmp_ok $coeff, '>', 0.99;
 #}
 #$hpols = {};
 

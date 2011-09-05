@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 10;
+plan tests => 14;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -39,8 +39,12 @@ ok exists $sources{'seq5'};
 
 
 # These tests are quite sensitive to the seed used
-ok ( ($sources{'seq1'} > 67 ) && ($sources{'seq1'} < 127) ); # avg = 97
-ok ( ($sources{'seq2'} > 99 ) && ($sources{'seq2'} < 159) ); # avg = 129
-ok ( ($sources{'seq4'} > 357) && ($sources{'seq4'} < 417) ); # avg = 387
-ok ( ($sources{'seq5'} > 357) && ($sources{'seq5'} < 417) ); # avg = 387
+cmp_ok $sources{'seq1'}, '>', 67;
+cmp_ok $sources{'seq1'}, '<', 127; # avg = 97
+cmp_ok $sources{'seq2'}, '>', 99;
+cmp_ok $sources{'seq2'}, '<', 159; # avg = 129
+cmp_ok $sources{'seq4'}, '>', 357;
+cmp_ok $sources{'seq4'}, '<', 417; # avg = 387
+cmp_ok $sources{'seq5'}, '>', 357;
+cmp_ok $sources{'seq5'}, '<', 417; # avg = 387
 

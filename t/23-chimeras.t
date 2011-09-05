@@ -49,8 +49,8 @@ while ( $read = $factory->next_read ) {
    $nof_chimeras += nof_references($read->desc);
    $nof_regulars += nof_references($read->desc);
 }
-ok $nof_chimeras / $nof_regulars > 0.9;
-ok $nof_chimeras / $nof_regulars < 1.1;
+cmp_ok $nof_chimeras / $nof_regulars, '>', 0.9;
+cmp_ok $nof_chimeras / $nof_regulars, '<', 1.1;
 
 
 # 100% chimeras

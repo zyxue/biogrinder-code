@@ -30,7 +30,7 @@ ok $factory = Grinder->new(
    -total_reads    => 10                         ,
 ), 'Get a seed automatically';
 ok $seed2 = $factory->get_random_seed();
-is( ($seed2 > 0), 1);
+cmp_ok $seed2, '>', 0;
 while (my $read = $factory->next_read) {
    push @dataset1, $read;
 }
