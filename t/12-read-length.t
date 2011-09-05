@@ -42,7 +42,6 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    push @reads, $read->length;
 };
-write_data(\@reads, 'read_uniform.txt');
 ($min, $max, $mean, $stddev) = stats(\@reads);
 is $min, 40;
 is $max, 60;
@@ -57,7 +56,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 5 if not can_rfit();
-   test_uniform_dist(\@reads, 40, 60);
+   test_uniform_dist(\@reads, 40, 60, 'reads_uniform.txt');
 }
 
 @reads = ();
@@ -73,7 +72,7 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    push @reads, $read->length;
 };
-write_data(\@reads, 'read_normal.txt');
+write_data(\@reads, 'reads_normal.txt');
 ($min, $max, $mean, $stddev) = stats(\@reads);
 cmp_ok $mean, '>', 49; # should be 50.0
 cmp_ok $mean, '<', 51;
@@ -87,7 +86,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 6 if not can_rfit();
-   test_normal_dist(\@reads, 50, 10);
+   test_normal_dist(\@reads, 50, 10, 'reads_uniform.txt');
 }
 
 @reads = ();

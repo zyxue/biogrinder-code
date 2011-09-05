@@ -52,7 +52,6 @@ while ( $mate1 = $factory->next_read ) {
    my $insert_length = abs($mate2->end - $mate1->start + 1);
    push @inserts, $insert_length;
 };
-write_data(\@inserts, 'insert_uniform.txt');
 
 ($min, $max, $mean, $stddev) = stats(\@inserts);
 cmp_ok $min, '>=', 120;
@@ -69,7 +68,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 5 if not can_rfit();
-   test_uniform_dist(\@inserts, 120, 180);
+   test_uniform_dist(\@inserts, 120, 180, 'inserts_uniform.txt');
 }
 
 @inserts = ();
@@ -90,7 +89,6 @@ while ( $mate1 = $factory->next_read ) {
    my $insert_length = abs($mate2->end - $mate1->start + 1);
    push @inserts, $insert_length;
 };
-write_data(\@inserts, 'insert_normal.txt');
 
 ($min, $max, $mean, $stddev) = stats(\@inserts);
 cmp_ok $mean, '<', 151; # should be 150
@@ -105,7 +103,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 6 if not can_rfit();
-   test_normal_dist(\@inserts, 150, 10);
+   test_normal_dist(\@inserts, 150, 10, 'inserts_normal.txt');
 }
 
 @inserts = ();

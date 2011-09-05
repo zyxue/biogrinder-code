@@ -143,7 +143,7 @@ sub test_uniform_dist {
    # Test that the datapoints provided follow a uniform distribution with the 
    # specified minimum and maximum. Note that you probably need over 30-100
    # values for the statistical test to work!
-   my ($values, $want_min, $want_max) = @_;
+   my ($values, $want_min, $want_max, $filename) = @_;
    my ($min, $max, $chisqtest) = fit_uniform($values, $want_min, $want_max);
    # Assume a standard deviation that is 5% of the min - max interval
    my $min_sd = 0.05 * ($max - $min);
@@ -154,7 +154,7 @@ sub test_uniform_dist {
    cmp_ok $want_min, '<', $min + $min_sd;
    cmp_ok $want_max, '>', $max - $max_sd;
    cmp_ok $want_max, '<', $max + $max_sd;
-   is $chisqtest, 'not rejected', 'Chi square';
+   is $chisqtest, 'not rejected', 'Chi square' || write_data($values, $filename);
    return 1;
 }
 
@@ -163,7 +163,7 @@ sub test_normal_dist {
    # Test that the datapoints provided follow a normal distribution with the 
    # specified mean and standard deviation. Note that you probably need over
    # 30-100 values for the statistical test to work!
-   my ($values, $want_mean, $want_sd) = @_;
+   my ($values, $want_mean, $want_sd, $filename) = @_;
    my ($mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest) = fit_normal($values, $want_mean, $want_sd);
    #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
    # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
@@ -173,9 +173,9 @@ sub test_normal_dist {
    cmp_ok $want_sd  , '>',   $sd - 1.96 * $sd_sd  ;
    cmp_ok $want_sd  , '<',   $sd + 1.96 * $sd_sd  ;
    # Cramer-von Mises test
-   is $cvmtest, 'not rejected', 'Cramer-von Mises';
+   is $cvmtest, 'not rejected', 'Cramer-von Mises' || write_data($values, $filename);
    # Anderson-Darling test (emphasizes the tails of a distribution)
-   is $adtest , 'not rejected', 'Anderson-Darling';
+   is $adtest , 'not rejected', 'Anderson-Darling' || write_data($values, $filename);
    return 1;
 }
 
