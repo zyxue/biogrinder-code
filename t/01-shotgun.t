@@ -20,7 +20,6 @@ ok $factory = Grinder->new(
 
 ok $factory->next_read;
 
-
 # Long argument
 
 ok $factory = Grinder->new(
@@ -37,7 +36,6 @@ while ( $read = $factory->next_read ) {
    ok_read($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
-
 
 
 sub ok_read {

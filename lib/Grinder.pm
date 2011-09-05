@@ -8,6 +8,7 @@ use Bio::SeqIO;
 use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl qw(srand rand);
+
 our $VERSION = '0.3.6';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
@@ -294,7 +295,7 @@ Reading reference sequences from the standard input, which allows you to decompr
 
 =head1 OPTIONS
 
-=head2 Basic parameters
+Basic parameters
 
 =over
 
@@ -330,7 +331,7 @@ this if you specify the coverage.
 
 =back
 
-=head2 Advanced shotgun and amplicon parameters
+Advanced shotgun and amplicon parameters
 
 =over
 
@@ -442,7 +443,7 @@ Default: copy_bias.default
 
 =back
 
-=head2 Aberrations and sequencing errors
+Aberrations and sequencing errors
 
 =over
 
@@ -506,7 +507,7 @@ typical value is 10%. Default: chimera_perc.default %
 
 =back
 
-=head2 Community structure and diversity
+Community structure and diversity
 
 =over
 
@@ -594,7 +595,7 @@ Default: permuted_perc.default %
 
 =back
 
-=head2 Miscellaneous
+Miscellaneous
 
 =over
 
