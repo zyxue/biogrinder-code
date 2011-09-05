@@ -76,7 +76,8 @@ If you use Grinder in your research, please cite:
    Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
    GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
    Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
-   L<http://dx.doi.org/10.1371/journal.pcbi.1000593>
+   
+Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 

@@ -22,7 +22,7 @@ requires   'Math::Random::MT::Perl'  => '1.06';
 requires   'Bio::SeqIO'              =>  0;
 #requires  'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 
-recommends 'Statistics::R'           => '0.10';
+recommends 'Statistics::R'           => '0.21';
 
 auto_install; # process dependencies
 
