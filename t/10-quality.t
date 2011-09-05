@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 6;
+plan tests => 7;
 
 
 my ($factory, $nof_reads, $read);
@@ -21,7 +21,7 @@ ok $factory = Grinder->new(
 ), 'No quality scores';
 
 ok $read = $factory->next_read;
-is join(' ',@{$read->qual}), '';
+is_deeply $read->qual, [];
 
 
 ok $factory = Grinder->new(
@@ -33,3 +33,4 @@ ok $factory = Grinder->new(
 
 ok $read = $factory->next_read;
 is scalar @{$read->qual}, 52;
+is_deeply $read->qual, [(30) x 52 ]
