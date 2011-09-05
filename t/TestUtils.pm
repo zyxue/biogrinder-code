@@ -234,23 +234,22 @@ sub fit_beta {
       $start_params =~ s/, $//;
       $start_params .= ')';
    }
-   my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
    $R->run(q`library(fitdistrplus)`);
-   $R->run(qq`x <- c($x)`);
+   $R->set('x', $values);
    $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
    $R->run(q`g <- gofstat(f)`);
    $R->run(q`shape1 <- f$estimate[1]`);
-   my $shape1 = $R->value('shape1');
+   my $shape1 = $R->get('shape1');
    $R->run(q`shape2 <- f$estimate[2]`);
-   my $shape2 = $R->value('shape2');
+   my $shape2 = $R->get('shape2');
    $R->run(q`shape1_sd <- f$sd[1]`);
-   my $shape1_sd = $R->value('shape1_sd');
+   my $shape1_sd = $R->get('shape1_sd');
    $R->run(q`shape2_sd <- f$sd[2]`);
-   my $shape2_sd = $R->value('shape2_sd');
+   my $shape2_sd = $R->get('shape2_sd');
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqtest = test_result( $R->value('chisqpvalue') );
+   my $chisqtest = test_result( $R->get('chisqpvalue') );
    $R->stop();
    return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
 }
@@ -274,19 +273,18 @@ sub fit_uniform {
       $start_params =~ s/, $//;
       $start_params .= ')';
    }
-   my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
    $R->run(q`library(fitdistrplus)`);
-   $R->run(qq`x <- c($x)`);
+   $R->set('x', $values);
    $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
    $R->run(q`g <- gofstat(f)`);
    $R->run(q`min <- f$estimate[1]`);
-   my $min = $R->value('min');
+   my $min = $R->get('min');
    $R->run(q`max <- f$estimate[2]`);
-   my $max = $R->value('max');
+   my $max = $R->get('max');
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqpvalue = $R->value('chisqpvalue');
+   my $chisqpvalue = $R->get('chisqpvalue');
    my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
    $R->stop();
    return $min, $max, $chisqtest;
@@ -312,25 +310,24 @@ sub fit_normal {
       $start_params =~ s/, $//;
       $start_params .= ')';
    }
-   my $x = join ', ', @$values;
    my $out = '';
    my $R = Statistics::R->new();
    $R->run(q`library(fitdistrplus)`);
-   $R->run(qq`x <- c($x)`);
+   $R->set('x', $values);
    $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
    $R->run(q`g <- gofstat(f)`);
    $R->run(q`mean <- f$estimate[1]`);
-   my $mean = $R->value('mean');
+   my $mean = $R->get('mean');
    $R->run(q`sd <- f$estimate[2]`);
-   my $sd = $R->value('sd');
+   my $sd = $R->get('sd');
    $R->run(q`mean_sd <- f$sd[1]`);
-   my $mean_sd = $R->value('mean_sd');
+   my $mean_sd = $R->get('mean_sd');
    $R->run(q`sd_sd <- f$sd[2]`);
-   my $sd_sd = $R->value('sd_sd');
+   my $sd_sd = $R->get('sd_sd');
    $R->run(q`adtest <- g$adtest`);
-   my $adtest = $R->value('adtest');
+   my $adtest = $R->get('adtest');
    $R->run(q`cvmtest <- g$cvmtest`);
-   my $cvmtest = $R->value('cvmtest');
+   my $cvmtest = $R->get('cvmtest');
    $R->stop();
    return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
 }
@@ -341,49 +338,6 @@ sub test_result {
    my ($p_value) = @_;
    my $test_result = $p_value < 0.05 ? 'rejected' : 'not rejected';
    return $test_result;
-}
-
-
-#------------------------------------------------------------------------------#
-
-
-package Statistics::R;
-
-
-use Cwd;
-our $working_dir;
-
-
-sub value {
-   # Get the value of a variable through a Statistics::R object
-   my ($self, $varname) = @_;
-   my $string = $self->run(qq`print($varname)`);
-   my $value;
-   if ($string eq 'NULL') {
-      $value = undef;
-   } elsif ($string =~ m/^\s*\[\d+\]/) {
-      # String look like: ' [1]  6.4 13.3  4.1  1.3 14.1 10.6  9.9  9.6 15.3
-      # [16]  5.2 10.9 14.4'
-      my @lines = split /\n/, $string;
-      for (my $i = 0; $i < scalar @lines; $i++) {
-         $lines[$i] =~ s/^\s*\[\d+\] //;
-      }
-      $value = join ' ', @lines;
-      # may need to split array and remove quotes
-      $value =~ s/^"(.*)"$/$1/;
-   } else {
-      my @lines = split /\n/, $string;
-      if (scalar @lines == 2) {
-         # String looks like: '    mean 
-         # 10.41111 '
-         # Extract value from second line
-         $value = $lines[1];
-         $value =~ s/^\s*(\S+)\s*$/$1/;
-      } else {
-         die "Error: Don't know how to handle this R output\n$string\n";
-      }
-   }
-   return $value;
 }
 
 
