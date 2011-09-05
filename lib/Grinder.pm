@@ -61,7 +61,7 @@ profile mechanism to store preferred options
 
 =item *
 
-API to automate the creation of a large number of simulated dataset
+API to automate the creation of a large number of simulated datasets
 
 =back
 
