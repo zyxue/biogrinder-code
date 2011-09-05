@@ -7,7 +7,8 @@ use File::Spec;
 use Bio::SeqIO;
 use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
-use Math::Random::MT::Perl qw(srand rand);
+use Math::Random::MT::Perl;
+use Math::Random::MT qw(srand rand);
 
 our $VERSION = '0.3.6';
 
@@ -117,6 +118,10 @@ Bio::Seq::SimulatedRead (from Bioperl but included here because it is so recent)
 =item *
 
 Getopt::Euclid
+
+=item *
+
+Math::Random::MT
 
 =item *
 
@@ -1096,8 +1101,11 @@ sub initialize {
   # Parameter processing: homopolymer model
   $self->{homopolymer_dist} = lc $self->{homopolymer_dist};
 
-  # Seed the random number generator (manually or automatically)
-  $self->{random_seed} = srand( $self->{random_seed} );
+  # Seed the random number generator (manually or by generating a random seed)
+  if (not defined $self->{random_seed}) {
+    $self->{random_seed} = Math::Random::MT::Perl::_rand_seed();
+  }
+  srand $self->{random_seed};
 
   # Sequence length check
   my $max_read_length = $self->{read_length} + $self->{read_delta}; # approximation
