@@ -71,8 +71,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    push @reads, $read->length;
-};
-write_data(\@reads, 'reads_normal.txt');
+}
 ($min, $max, $mean, $stddev) = stats(\@reads);
 cmp_ok $mean, '>', 49; # should be 50.0
 cmp_ok $mean, '<', 51;
