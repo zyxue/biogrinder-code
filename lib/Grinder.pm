@@ -2045,7 +2045,6 @@ sub rand_nuc {
 }
 
 
-
 sub rand_seq_length {
   # Choose the sequence length following a given probability distribution
   my($avg, $model, $stddev) = @_;
@@ -2055,9 +2054,9 @@ sub rand_seq_length {
     $length = $avg;
   } else {
     if ($model eq 'uniform') {
-      # Uniform distribution: decimal number uniformly distributed in [min, max)
+      # Uniform distribution: integers uniformly distributed in [min, max]
       my ($min, $max) = ($avg - $stddev, $avg + $stddev);
-      $length = $min + int( ($max - $min + 1) * rand() );
+      $length = $min + int( rand( $max - $min + 1 ) );
     } elsif ($model eq 'normal') {
       # Gaussian distribution: decimal number normally distribution in N(avg,stddev)
       $length = $avg + $stddev * randn();

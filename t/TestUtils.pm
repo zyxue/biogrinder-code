@@ -6,6 +6,7 @@ use warnings;
 use Test::More;
 use Statistics::R;
 use File::Spec::Functions;
+ use List::Util qw( max  min );
 
 use vars qw{@ISA @EXPORT};
 BEGIN {
@@ -14,6 +15,7 @@ BEGIN {
       PI
       data
       stats
+      hist
       corr_coeff
       write_data
       can_rfit
@@ -52,6 +54,30 @@ sub stats {
    $mean = $sum / $num;
    $stddev = sqrt( $sqsum / $num - $mean**2 );
    return $min, $max, $mean, $stddev;
+}
+
+
+sub hist {
+   # Count the number of occurence of each integer:
+   # E.g. given the arrayref:
+   #    [ 1, 3, 1, 4, 3, 1 ]
+   # Return the hashref:
+   #    { 1 => 3, 3 => 2, 4 => 1 }
+   # The min and the max of the range to consider can be given as an option
+   my ($data, $min, $max) = @_;
+   my %hash;
+   for my $val (@$data) {
+      $hash{$val}++;
+   }
+   $min = min @$data if not defined $min;
+   $max = max @$data if not defined $max;
+   my @x_data = ($min .. $max);
+   my @y_data;
+   for my $x (@x_data) {
+      my $y = $hash{$x} || 0;
+      push @y_data, $y;
+   }
+   return \@y_data;
 }
 
 
@@ -154,7 +180,7 @@ sub test_uniform_dist {
    cmp_ok $want_min, '<', $min + $min_sd;
    cmp_ok $want_max, '>', $max - $max_sd;
    cmp_ok $want_max, '<', $max + $max_sd;
-   is $chisqtest, 'not rejected', 'Chi square' || write_data($values, $filename);
+   is( $chisqtest, 'not rejected', 'Chi square') or write_data($values, $filename);
    return 1;
 }
 
@@ -173,9 +199,9 @@ sub test_normal_dist {
    cmp_ok $want_sd  , '>',   $sd - 1.96 * $sd_sd  ;
    cmp_ok $want_sd  , '<',   $sd + 1.96 * $sd_sd  ;
    # Cramer-von Mises test
-   is $cvmtest, 'not rejected', 'Cramer-von Mises' || write_data($values, $filename);
+   is( $cvmtest, 'not rejected', 'Cramer-von Mises' ) or write_data($values, $filename);
    # Anderson-Darling test (emphasizes the tails of a distribution)
-   is $adtest , 'not rejected', 'Anderson-Darling' || write_data($values, $filename);
+   is( $adtest , 'not rejected', 'Anderson-Darling' ) or write_data($values, $filename);
    return 1;
 }
 

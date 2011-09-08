@@ -92,24 +92,6 @@ SKIP: {
 
 
 
-
-sub hist {
-   my ($data, $min, $max) = @_;
-   # Put a data series into bins
-   my %hash;
-   for my $val (@$data) {
-      $hash{$val}++;
-   }
-   my @x_data = ($min .. $max);
-   my @y_data;
-   for my $x (@x_data) {
-      my $y = $hash{$x} || 0;
-      push @y_data, $y;
-   }
-   return \@y_data;
-}
-
-
 sub normal {
    # Evaluate the normal function in the given integer range
    my ($x_min, $x_max, $mean, $variance, $num) = @_;
