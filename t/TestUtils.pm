@@ -6,7 +6,7 @@ use warnings;
 use Test::More;
 use Statistics::R;
 use File::Spec::Functions;
- use List::Util qw( max  min );
+use List::Util qw( min max );
 
 use vars qw{@ISA @EXPORT};
 BEGIN {
@@ -60,22 +60,23 @@ sub stats {
 sub hist {
    # Count the number of occurence of each integer:
    # E.g. given the arrayref:
-   #    [ 1, 3, 1, 4, 3, 1 ]
-   # Return the hashref:
-   #    { 1 => 3, 3 => 2, 4 => 1 }
+   #    [ 1, 1, 1, 3, 3, 4 ]
+   # Return the arrayref:
+   #    [ 3, 0, 2, 4 ]
    # The min and the max of the range to consider can be given as an option
    my ($data, $min, $max) = @_;
+   if (not defined $data) {
+      die "Error: no data provided to hist()\n";
+   }
    my %hash;
    for my $val (@$data) {
       $hash{$val}++;
    }
-   $min = min @$data if not defined $min;
-   $max = max @$data if not defined $max;
-   my @x_data = ($min .. $max);
+   $min = min(@$data) if not defined $min;
+   $max = max(@$data) if not defined $max;
    my @y_data;
-   for my $x (@x_data) {
-      my $y = $hash{$x} || 0;
-      push @y_data, $y;
+   for my $x ($min .. $max) {
+      push @y_data, $hash{$x} || 0;
    }
    return \@y_data;
 }
@@ -287,31 +288,25 @@ sub fit_uniform {
    # the Chi square statistics. Optional optimization starting values for the
    # mean and standard deviation can be specified.
    my ($values, $start_min, $start_max) = @_;
-   my $start_params = '';
-   if ( (defined $start_min) or (defined $start_max) ) {
-      $start_params .= ', start=list(';
-      if (defined $start_min) {
-         $start_params .= "min=$start_min, ";
-      }
-      if (defined $start_max) {
-         $start_params .= "max=$start_max, ";
-      }
-      $start_params =~ s/, $//;
-      $start_params .= ')';
+   my $start_p = '';
+   my $breaks_p = '';
+   if ( (defined $start_min) and (defined $start_max) ) {
+      $start_p  .= ", start=list(min=$start_min, max=$start_max)";
+      $breaks_p .= ', chisqbreaks=seq('.($start_min-0.5).', '.($start_max+0.5).')';
    }
    my $out = '';
    my $R = Statistics::R->new();
    $R->run(q`library(fitdistrplus)`);
    $R->set('x', $values);
-   $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_params)`);
-   $R->run(q`g <- gofstat(f)`);
+   $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_p)`);
+   $R->run(qq`g <- gofstat(f$breaks_p)`);
    $R->run(q`min <- f$estimate[1]`);
    my $min = $R->get('min');
    $R->run(q`max <- f$estimate[2]`);
    my $max = $R->get('max');
    $R->run(q`chisqpvalue <- g$chisqpvalue`);
    my $chisqpvalue = $R->get('chisqpvalue');
-   my $chisqtest = $chisqpvalue < 0.05 ? 'rejected' : 'not rejected';
+   my $chisqtest = test_result($chisqpvalue);
    $R->stop();
    return $min, $max, $chisqtest;
 }
@@ -362,7 +357,18 @@ sub fit_normal {
 sub test_result {
    # Reject a statistical test if the p value is less than 0.05
    my ($p_value) = @_;
-   my $test_result = $p_value < 0.05 ? 'rejected' : 'not rejected';
+   my $test_result;
+   if ($p_value eq 'Nan') {
+      $p_value = 1; # probably a very large p value
+   }
+   my $thresh = 0.05;
+   if ($p_value <= $thresh) {
+      $test_result = 'rejected';
+   } elsif ($p_value > $thresh) {
+      $test_result = 'not rejected';
+   } else {
+      die "Error: '$p_value' is not a supported p value\n";
+   }
    return $test_result;
 }
 
