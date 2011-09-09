@@ -225,15 +225,21 @@ sub test_uniform_dist {
    # specified minimum and maximum. Note that you probably need over 30-100
    # values for the statistical test to work!
    my ($values, $want_min, $want_max, $filename) = @_;
+
    my ($min_lo, $min_hi, $max_lo, $max_hi, $chisqpvalue, $chisqtest) =
       fit_uniform($values, $want_min, $want_max);
-   # Test now
-   cmp_ok $want_min, '>', $min_lo, 'fitdist() uniform';
-   cmp_ok $want_min, '<', $min_hi;
-   cmp_ok $want_max, '>', $max_lo;
-   cmp_ok $want_max, '<', $max_hi;
-   # Chi square test
-   is( $chisqtest, 'not rejected', 'Chi square test') or write_data($values, $filename);
+
+   cmp_ok( $want_min, '>', $min_lo, 'fitdist() uniform' ) and
+      cmp_ok( $want_min, '<', $min_hi ) or
+      diag("Interval of confidence was: $min_lo < min < $min_hi");
+
+   cmp_ok( $want_max, '>', $max_lo ) and
+      cmp_ok( $want_max, '<', $max_hi ) or
+      diag("Interval of confidence was: $max_lo < max < $max_hi");
+
+   is( $chisqtest, 'not rejected', 'Chi square test') or
+      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+
    return 1;
 }
 
@@ -243,14 +249,21 @@ sub test_normal_dist {
    # specified mean and standard deviation. Note that you probably need over
    # 30-100 values for the statistical test to work!
    my ($values, $want_mean, $want_sd, $filename) = @_;
+
    my ($mean_lo, $mean_hi, $sd_lo, $sd_hi, $chisqpvalue, $chisqtest) =
       fit_normal($values, $want_mean, $want_sd);
-   cmp_ok $want_mean, '>', $mean_lo, 'fitdist() normal';
-   cmp_ok $want_mean, '<', $mean_hi;
-   cmp_ok $want_sd  , '>', $sd_lo  ;
-   cmp_ok $want_sd  , '<', $sd_hi  ;
-   # Chi square test
-   is( $chisqtest, 'not rejected', 'Chi square test') or write_data($values, $filename);
+
+   cmp_ok( $want_mean, '>', $mean_lo, 'fitdist() normal' ) and
+      cmp_ok( $want_mean, '<', $mean_hi ) or
+      diag("Interval of confidence was: $mean_lo < mean < $mean_hi");
+
+   cmp_ok( $want_sd  , '>', $sd_lo ) and
+      cmp_ok( $want_sd  , '<', $sd_hi ) or
+      diag("Interval of confidence was: $sd_lo < sd < $sd_hi");
+
+   is( $chisqtest, 'not rejected', 'Chi square test') or
+      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+
    return 1;
 }
 

@@ -29,7 +29,7 @@ while ( $read = $factory->next_read ) {
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
-$era = uniform(10, 5, 1000);
+$era = uniform_cstruct(10, 5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -52,7 +52,7 @@ while ( $read = $factory->next_read ) {
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
-$era = linear(10, 5, 1000);
+$era = linear_cstruct(10, 5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -75,7 +75,7 @@ while ( $read = $factory->next_read ) {
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
-$era = powerlaw(10, 5, 0.5, 1000);
+$era = powerlaw_cstruct(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -98,7 +98,7 @@ while ( $read = $factory->next_read ) {
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
-$era = logarithmic(10, 5, 0.5, 1000);
+$era = logarithmic_cstruct(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -122,7 +122,7 @@ while ( $read = $factory->next_read ) {
 
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
-$era = exponential(10, 5, 0.5, 1000);
+$era = exponential_cstruct(10, 5, 0.5, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 is $struct->{param}, 0.5;
@@ -151,7 +151,7 @@ $ra = rank_abundance(\@reads, 10);
 $param1 = $struct->{param};
 cmp_ok $param1, '>', 0;
 cmp_ok $param1, '<', 1000;
-$era = exponential(10, 5, $param1, 1000);
+$era = exponential_cstruct(10, 5, $param1, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -167,7 +167,7 @@ $ra = rank_abundance(\@reads, 10);
 $param2 = $struct->{param};
 cmp_ok $param2, '>', 0;
 cmp_ok $param2, '<', 1000;
-$era = exponential(10, 5, $param2, 1000);
+$era = exponential_cstruct(10, 5, $param2, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
 
@@ -177,7 +177,7 @@ isnt $param1, $param2;
 
 
 
-sub uniform {
+sub uniform_cstruct {
    # Evaluate the uniform function in the given integer range
    my ($x_max, $max, $num) = @_;
    my @ys;
@@ -195,7 +195,7 @@ sub uniform {
 }
 
 
-sub linear {
+sub linear_cstruct {
    # Evaluate the linear function in the given integer range
    my ($x_max, $max, $num) = @_;
    my @ys;
@@ -213,7 +213,7 @@ sub linear {
 }
 
 
-sub powerlaw {
+sub powerlaw_cstruct {
    # Evaluate the power function in the given integer range
    my ($x_max, $max, $param, $num) = @_;
    my @ys;
@@ -231,7 +231,7 @@ sub powerlaw {
 }
 
 
-sub logarithmic {
+sub logarithmic_cstruct {
    # Evaluate the logarithmic function in the given integer range
    my ($x_max, $max, $param, $num) = @_;
    my @ys;
@@ -249,7 +249,7 @@ sub logarithmic {
 }
 
 
-sub exponential {
+sub exponential_cstruct {
    # Evaluate the exponential function in the given integer range
    my ($x_max, $max, $param, $num) = @_;
    my @ys;
