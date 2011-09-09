@@ -9,7 +9,7 @@ use Grinder;
 plan tests => 28;
 
 
-my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
+my ($factory, $nof_reads, $read, @rlengths, $min, $max, $mean, $stddev, $hist,
     $ehist, $coeff);
 
 
@@ -22,14 +22,14 @@ ok $factory = Grinder->new(
 ), 'Same length reads';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read->length;
+   push @rlengths, $read->length;
 };
-($min, $max, $mean, $stddev) = stats(\@reads);
+($min, $max, $mean, $stddev) = stats(\@rlengths);
 is $min, 50;
 is $max, 50;
 is $mean, 50;
 is $stddev, 0;
-@reads = ();
+@rlengths = ();
 
 
 # Uniform distribution
@@ -40,26 +40,26 @@ ok $factory = Grinder->new(
 ), 'Uniform distribution';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read->length;
+   push @rlengths, $read->length;
 };
-($min, $max, $mean, $stddev) = stats(\@reads);
+($min, $max, $mean, $stddev) = stats(\@rlengths);
 is $min, 40;
 is $max, 60;
 is int($mean+0.5), 50;
 cmp_ok $stddev, '<', 6.3; # should be 5.79
 cmp_ok $stddev, '>', 5.3;
 
-$hist = hist(\@reads, 1, 100);
+$hist = hist(\@rlengths, 1, 100);
 $ehist = uniform(1, 100, 40, 60, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
-   skip "Cannot use the fitdistrplus R module on this system", 5 if not can_rfit();
-   test_uniform_dist(\@reads, 40, 60, 'reads_uniform.txt');
+   skip rfit_msg(), 5 if not can_rfit();
+   test_uniform_dist(\@rlengths, 40, 60, 'reads_uniform.txt');
 }
 
-@reads = ();
+@rlengths = ();
 
 
 # Normal distribution
@@ -70,55 +70,23 @@ ok $factory = Grinder->new(
 ), 'Normal distribution';
 
 while ( $read = $factory->next_read ) {
-   push @reads, $read->length;
+   push @rlengths, $read->length;
 }
-($min, $max, $mean, $stddev) = stats(\@reads);
+($min, $max, $mean, $stddev) = stats(\@rlengths);
 cmp_ok $mean, '>', 49; # should be 50.0
 cmp_ok $mean, '<', 51;
 cmp_ok $stddev, '<', 5.5; # should be 5.0
 cmp_ok $stddev, '>', 4.5;
 
-$hist = hist(\@reads, 1, 100);
+$hist = hist(\@rlengths, 1, 100);
 $ehist = normal(1, 100, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
-   skip "Cannot use the fitdistrplus R module on this system", 6 if not can_rfit();
-   test_normal_dist(\@reads, 50, 5, 'reads_uniform.txt');
+   skip rfit_msg(), 6 if not can_rfit();
+   test_normal_dist(\@rlengths, 50, 5, 'reads_uniform.txt');
 }
 
-@reads = ();
-
-
-
-sub normal {
-   # Evaluate the normal function in the given integer range
-   my ($x_min, $x_max, $mean, $variance, $num) = @_;
-   my @ys;
-   for my $x ($x_min .. $x_max) {
-      my $proba = 1 / sqrt(2 * PI * $variance) * exp( - ($x - $mean)**2 / (2 * $variance));
-      my $y = $proba * $num;
-      push @ys, $y;
-   }
-   return \@ys;
-}
-
-
-sub uniform {
-   # Evaluate the uniform function in the given integer range
-   my ($x_min, $x_max, $min, $max, $num) = @_;
-   my @ys;
-   my $width = $max - $min + 1;
-   for my $x ($x_min .. $x_max) {
-      my $y;
-      if ( ($x >= $min) and ($x <= $max) ) {
-         $y = $num / $width;
-      } else {
-         $y = 0;
-      }
-      push @ys, $y;
-   }
-   return \@ys;
-}
+@rlengths = ();
 

@@ -16,9 +16,12 @@ BEGIN {
       data
       stats
       hist
+      uniform
+      normal
       corr_coeff
       write_data
       can_rfit
+      rfit_msg
       test_normal_dist
       test_uniform_dist      
    };
@@ -82,6 +85,37 @@ sub hist {
 }
 
 
+sub normal {
+   # Evaluate the normal function in the given integer range
+   my ($x_min, $x_max, $mean, $variance, $num) = @_;
+   my @ys;
+   for my $x ($x_min .. $x_max) {
+      my $proba = 1 / sqrt(2 * PI * $variance) * exp( - ($x - $mean)**2 / (2 * $variance));
+      my $y = $proba * $num;
+      push @ys, $y;
+   }
+   return \@ys;
+}
+
+
+sub uniform {
+   # Evaluate the uniform function in the given integer range
+   my ($x_min, $x_max, $min, $max, $num) = @_;
+   my @ys;
+   my $width = $max - $min + 1;
+   for my $x ($x_min .. $x_max) {
+      my $y;
+      if ( ($x >= $min) and ($x <= $max) ) {
+         $y = $num / $width;
+      } else {
+         $y = 0;
+      }
+      push @ys, $y;
+   }
+   return \@ys;
+}
+
+
 sub corr_coeff {
    # The correlation coefficient R2 is
    #    R2 = 1 - ( SSerr / SStot )
@@ -137,6 +171,11 @@ sub can_rfit {
       }
    }
    return $can_rfit;
+}
+
+
+sub rfit_msg {
+   return "Cannot use the fitdistrplus R module on this system";
 }
 
 
