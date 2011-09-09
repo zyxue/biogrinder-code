@@ -283,10 +283,11 @@ sub fit_beta {
 
 
 sub fit_uniform {
-   # Try to fit a uniform distribution to a series of data points using a maximum
+   # Try to fit a uniform distribution to a series of integers using a maximum
    # goodness of fit method. Return the minimum, maximum and the results of
    # the Chi square statistics. Optional optimization starting values for the
-   # mean and standard deviation can be specified.
+   # mean and standard deviation can be specified. If used, these starting values
+   # also defined the breaks to use for the Chi square test.
    my ($values, $start_min, $start_max) = @_;
    my $start_p = '';
    my $breaks_p = '';
@@ -296,17 +297,14 @@ sub fit_uniform {
    }
    my $out = '';
    my $R = Statistics::R->new();
-   $R->run(q`library(fitdistrplus)`);
    $R->set('x', $values);
+   $R->run(qq`library(fitdistrplus)`);
    $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_p)`);
    $R->run(qq`g <- gofstat(f$breaks_p)`);
-   $R->run(q`min <- f$estimate[1]`);
-   my $min = $R->get('min');
-   $R->run(q`max <- f$estimate[2]`);
-   my $max = $R->get('max');
-   $R->run(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqpvalue = $R->get('chisqpvalue');
-   my $chisqtest = test_result($chisqpvalue);
+   my $min         = $R->get('f$estimate[1]');
+   my $max         = $R->get('f$estimate[2]');
+   my $chisqpvalue = $R->get('g$chisqpvalue');
+   my $chisqtest   = test_result($chisqpvalue);
    $R->stop();
    return $min, $max, $chisqtest;
 }
@@ -358,7 +356,7 @@ sub test_result {
    # Reject a statistical test if the p value is less than 0.05
    my ($p_value) = @_;
    my $test_result;
-   if ($p_value eq 'Nan') {
+   if ( lc $p_value eq 'nan' ) {
       $p_value = 1; # probably a very large p value
    }
    my $thresh = 0.05;
