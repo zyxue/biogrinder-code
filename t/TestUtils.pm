@@ -255,7 +255,6 @@ sub fit_beta {
       $start_params =~ s/, $//;
       $start_params .= ')';
    }
-   my $out = '';
    my $R = Statistics::R->new();
    $R->run(q`library(fitdistrplus)`);
    $R->set('x', $values);
@@ -347,7 +346,7 @@ sub test_result {
    } elsif ($p_value > $thresh) {
       $test_result = 'not rejected';
    } else {
-      die "Error: '$p_value' is not a supported p value\n";
+      die "Error: '$p_value' is not a supported p-value\n";
    }
    return $test_result;
 }

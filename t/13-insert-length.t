@@ -43,7 +43,7 @@ ok $factory = Grinder->new(
    -reference_file => data('single_seq_database.fa'),
    -total_reads    => 1000                          ,
    -read_dist      => 50                            ,
-   -insert_dist    => (150, 'uniform', 30)          ,
+   -insert_dist    => (150, 'uniform', 15)          ,
 ), 'Uniform distribution';
 
 while ( $mate1 = $factory->next_read ) {
@@ -54,21 +54,21 @@ while ( $mate1 = $factory->next_read ) {
 };
 
 ($min, $max, $mean, $stddev) = stats(\@inserts);
-cmp_ok $min, '>=', 120;
-cmp_ok $max, '<=', 180;
+cmp_ok $min, '>=', 135;
+cmp_ok $max, '<=', 165;
 cmp_ok $mean, '<', 152;
 cmp_ok $mean, '>', 148;
-cmp_ok $stddev, '<', 19;
-cmp_ok $stddev, '>', 15;
+cmp_ok $stddev, '<', 10;
+cmp_ok $stddev, '>', 7;
 
 $hist = hist(\@inserts, 50, 250);
-$ehist = uniform(50, 250, 120, 180, 1000);
+$ehist = uniform(50, 250, 135, 165, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 5 if not can_rfit();
-   test_uniform_dist(\@inserts, 120, 180, 'inserts_uniform.txt');
+   test_uniform_dist(\@inserts, 135, 165, 'inserts_uniform.txt');
 }
 
 @inserts = ();
