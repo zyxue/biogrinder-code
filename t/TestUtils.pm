@@ -167,7 +167,7 @@ sub can_rfit {
 
 
 sub test_uniform_dist {
-   # Test that the datapoints provided follow a uniform distribution with the 
+   # Test that the integer series provided follow a uniform distribution with the 
    # specified minimum and maximum. Note that you probably need over 30-100
    # values for the statistical test to work!
    my ($values, $want_min, $want_max, $filename) = @_;
@@ -181,17 +181,18 @@ sub test_uniform_dist {
    cmp_ok $want_min, '<', $min + $min_sd;
    cmp_ok $want_max, '>', $max - $max_sd;
    cmp_ok $want_max, '<', $max + $max_sd;
-   is( $chisqtest, 'not rejected', 'Chi square') or write_data($values, $filename);
+   # Chi square test
+   is( $chisqtest, 'not rejected', 'Chi square test') or write_data($values, $filename);
    return 1;
 }
 
 
 sub test_normal_dist {
-   # Test that the datapoints provided follow a normal distribution with the 
+   # Test that the integer series provided follow a normal distribution with the 
    # specified mean and standard deviation. Note that you probably need over
    # 30-100 values for the statistical test to work!
    my ($values, $want_mean, $want_sd, $filename) = @_;
-   my ($mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest) = fit_normal($values, $want_mean, $want_sd);
+   my ($mean, $mean_sd, $sd, $sd_sd, $chisqtest) = fit_normal($values, $want_mean, $want_sd);
    #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
    # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
    # the normal distribution, i.e. the 95% confidence interval
@@ -199,10 +200,8 @@ sub test_normal_dist {
    cmp_ok $want_mean, '<', $mean + 1.96 * $mean_sd;
    cmp_ok $want_sd  , '>',   $sd - 1.96 * $sd_sd  ;
    cmp_ok $want_sd  , '<',   $sd + 1.96 * $sd_sd  ;
-   # Cramer-von Mises test
-   is( $cvmtest, 'not rejected', 'Cramer-von Mises' ) or write_data($values, $filename);
-   # Anderson-Darling test (emphasizes the tails of a distribution)
-   is( $adtest , 'not rejected', 'Anderson-Darling' ) or write_data($values, $filename);
+   # Chi square test
+   is( $chisqtest, 'not rejected', 'Chi square') or write_data($values, $filename);
    return 1;
 }
 
@@ -288,19 +287,18 @@ sub fit_uniform {
    # the Chi square statistics. Optional optimization starting values for the
    # mean and standard deviation can be specified. If used, these starting values
    # also defined the breaks to use for the Chi square test.
-   my ($values, $start_min, $start_max) = @_;
-   my $start_p = '';
-   my $breaks_p = '';
-   if ( (defined $start_min) and (defined $start_max) ) {
-      $start_p  .= ", start=list(min=$start_min, max=$start_max)";
-      $breaks_p .= ', chisqbreaks=seq('.($start_min-0.5).', '.($start_max+0.5).')';
-   }
-   my $out = '';
+   my ($values, $want_min, $want_max) = @_;
+   my $range_min = min(@$values) - 0.5;
+   my $range_max = max(@$values) + 0.5;
+   my $start_p   = "start=list(min=$want_min, max=$want_max)";
+   my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
+   my $fit_cmd   = "f <- fitdist(x, distr='unif', method='mge', gof='CvM', $start_p)";
+   my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
    $R->set('x', $values);
-   $R->run(qq`library(fitdistrplus)`);
-   $R->run(qq`f <- fitdist(x, distr="unif", method="mge", gof="CvM"$start_p)`);
-   $R->run(qq`g <- gofstat(f$breaks_p)`);
+   $R->run('library(fitdistrplus)');
+   $R->run($fit_cmd);
+   $R->run($gof_cmd);
    my $min         = $R->get('f$estimate[1]');
    my $max         = $R->get('f$estimate[2]');
    my $chisqpvalue = $R->get('g$chisqpvalue');
@@ -311,44 +309,30 @@ sub fit_uniform {
 
 
 sub fit_normal {
-   # Try to fit a normal distribution to a series of data points using a maximum
+   # Try to fit a normal distribution to a series of integers using a maximum
    # likelihood method. Return the mean and its standard deviation, the standard
-   # deviation and its standard deviation, and the results of Cramer-von Mises
-   # and Anderson-Darling statistics. Optional optimization starting values for
-   # the mean and standard deviation can be specified.
-   my ($values, $start_mean, $start_sd) = @_;
-   my $start_params = '';
-   if ( (defined $start_mean) or (defined $start_sd) ) {
-      $start_params .= ', start=list(';
-      if (defined $start_mean) {
-         $start_params .= "mean=$start_mean, ";
-      }
-      if (defined $start_sd) {
-         $start_params .= "sd=$start_sd, ";
-      }
-      $start_params =~ s/, $//;
-      $start_params .= ')';
-   }
-   my $out = '';
+   # deviation and its standard deviation, and the results of the Chi square 
+   # statistics.
+   my ($values, $want_mean, $want_sd) = @_;
+   my $range_min = min(@$values) - 0.5;
+   my $range_max = max(@$values) + 0.5;
+   my $start_p   = "start=list(mean=$want_mean, sd=$want_sd)";
+   my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
+   my $fit_cmd   = "f <- fitdist(x, distr='norm', method='mle', $start_p)";
+   my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
-   $R->run(q`library(fitdistrplus)`);
    $R->set('x', $values);
-   $R->run(qq`f <- fitdist(x, distr="norm", method="mle"$start_params)`);
-   $R->run(q`g <- gofstat(f)`);
-   $R->run(q`mean <- f$estimate[1]`);
-   my $mean = $R->get('mean');
-   $R->run(q`sd <- f$estimate[2]`);
-   my $sd = $R->get('sd');
-   $R->run(q`mean_sd <- f$sd[1]`);
-   my $mean_sd = $R->get('mean_sd');
-   $R->run(q`sd_sd <- f$sd[2]`);
-   my $sd_sd = $R->get('sd_sd');
-   $R->run(q`adtest <- g$adtest`);
-   my $adtest = $R->get('adtest');
-   $R->run(q`cvmtest <- g$cvmtest`);
-   my $cvmtest = $R->get('cvmtest');
+   $R->run('library(fitdistrplus)');
+   $R->run($fit_cmd);
+   $R->run($gof_cmd);
+   my $mean        = $R->get('f$estimate[1]');
+   my $sd          = $R->get('f$estimate[2]');
+   my $mean_sd     = $R->get('f$sd[1]');
+   my $sd_sd       = $R->get('f$sd[2]');
+   my $chisqpvalue = $R->get('g$chisqpvalue');
+   my $chisqtest   = test_result($chisqpvalue);
    $R->stop();
-   return $mean, $mean_sd, $sd, $sd_sd, $cvmtest, $adtest;
+   return $mean, $mean_sd, $sd, $sd_sd, $chisqtest;
 }
 
 

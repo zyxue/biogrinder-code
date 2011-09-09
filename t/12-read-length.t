@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 29;
+plan tests => 28;
 
 
 my ($factory, $nof_reads, $read, @reads, $min, $max, $mean, $stddev, $hist,
@@ -65,7 +65,7 @@ SKIP: {
 # Normal distribution
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
-   -read_dist      => (50, 'normal', 10)         ,
+   -read_dist      => (50, 'normal', 5)          ,
    -total_reads    => 1000                       ,
 ), 'Normal distribution';
 
@@ -75,8 +75,8 @@ while ( $read = $factory->next_read ) {
 ($min, $max, $mean, $stddev) = stats(\@reads);
 cmp_ok $mean, '>', 49; # should be 50.0
 cmp_ok $mean, '<', 51;
-cmp_ok $stddev, '<', 11; # should be 10.0
-cmp_ok $stddev, '>', 9;
+cmp_ok $stddev, '<', 5.5; # should be 5.0
+cmp_ok $stddev, '>', 4.5;
 
 $hist = hist(\@reads, 1, 100);
 $ehist = normal(1, 100, $mean, $stddev**2, 1000);
@@ -85,7 +85,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip "Cannot use the fitdistrplus R module on this system", 6 if not can_rfit();
-   test_normal_dist(\@reads, 50, 10, 'reads_uniform.txt');
+   test_normal_dist(\@reads, 50, 5, 'reads_uniform.txt');
 }
 
 @reads = ();
