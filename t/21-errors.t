@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7018;
+plan tests => 7024;
 
 
 my ($factory, $nof_reads, $read, @epositions, $min, $max, $mean, $stddev, $prof,
@@ -124,10 +124,6 @@ cmp_ok $mean, '<=', 103; # 100
 cmp_ok $mean, '>=', 97;
 cmp_ok $stddev, '<', 12;
 
-#$eprof = uniform(1, 50, 1, 50, 5000); # 1000 reads * 50 bp * 10% error
-#$coeff = corr_coeff($prof, $eprof, $mean);
-#cmp_ok $coeff, '>', 0.99;
-
 SKIP: {
    skip rfit_msg(), 5 if not can_rfit();
    test_uniform_dist(\@epositions, 1, 50, 'errors_uniform.txt');
@@ -147,63 +143,24 @@ ok $factory = Grinder->new(
    -mutation_dist  => (10, 'linear', 15)            ,
 ), 'Linear';
 
-#while ( $read = $factory->next_read ) {
-#   my @positions = error_positions($read);
-#   push @epositions, @positions if scalar @positions > 0;
-#}
-#
-#use Data::Dumper;
-#print Dumper($epositions);
-#
-#$prof = error_profile($epositions, 50);
-#($min, $max, $mean, $stddev) = stats($prof);
-##print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-#cmp_ok $mean, '<=', 103; # should be 100
-#cmp_ok $mean, '>=', 97;
-#cmp_ok $min,  '>=', 30;  # should be 50
-#cmp_ok $min,  '<=', 70;
-#cmp_ok $max,  '>=', 125; # should be 150
-#cmp_ok $max,  '<=', 175;
-#$eprof = linear(50, 10, 15, 1000);
-#$coeff = corr_coeff($prof, $eprof, $mean);
-##print "coeff= $coeff\n";
-#cmp_ok $coeff, '>', 0.80;
-##cmp_ok $coeff, '>', 0.99;
-#@epositions = ();
-
-
-
-
-sub error_positions {
-   my ($read) = @_;
-   my ($err_str) = ($read->desc =~ /errors=(\S+)/);
-   my @error_positions;
-   if (defined $err_str) {
-      for my $error (split ',', $err_str) {
-         my ($pos, $type, $res) = ($error =~ m/(\d+)([%+-])([a-z]*)/i);
-         push @error_positions, $pos;
-      }
-   }
-   return @error_positions;
+while ( $read = $factory->next_read ) {
+   my @positions = error_positions($read);
+   push @epositions, @positions if scalar @positions > 0;
 }
 
+$prof = hist(\@epositions, 1, 50);
+($min, $max, $mean, $stddev) = stats($prof);
+cmp_ok $$prof[0] , '>=', 30;  # mean number of errors at 1st position of reads should be 50
+cmp_ok $$prof[0] , '<=', 70;
+cmp_ok $$prof[-1], '>=', 125; # mean number of errors at last position of read shoul be 150
+cmp_ok $$prof[-1], '<=', 175;
+cmp_ok $mean     , '<=', 103; # mean number of errors at each position should be 100
+cmp_ok $mean     , '>=', 97;
 
-sub linear {
-   # Evaluate the linear function in the given integer range
-   my ($x_max, $mean, $right, $num) = @_;
-   my $height = ($right - $mean) * 2;
-   my $width  = $x_max - 1;
-   my $slope = $height / $width;   
-   my $left = $mean - ($right - $mean);
-   my @ys;
-   for my $x (1 .. $x_max) {
-      my $y = $left + ($x-1) * $slope;
-      push @ys, $y;
-   }
-   for (my $x = 0; $x < $x_max; $x++) {
-      $ys[$x] *= $num / 100;
-   }
-   return \@ys;
+SKIP: {
+   skip rfit_msg(), 6 if not can_rfit();
+####   test_linear_dist(\@epositions, 150, 10, 'errors_linear.txt');
 }
 
+@epositions = ();
 

@@ -22,6 +22,7 @@ BEGIN {
       write_data
       can_rfit
       rfit_msg
+      error_positions
       test_normal_dist
       test_uniform_dist      
    };
@@ -176,6 +177,20 @@ sub can_rfit {
 
 sub rfit_msg {
    return "Cannot use the fitdistrplus R module on this system";
+}
+
+
+sub error_positions {
+   my ($read) = @_;
+   my ($err_str) = ($read->desc =~ /errors=(\S+)/);
+   my @error_positions;
+   if (defined $err_str) {
+      for my $error (split ',', $err_str) {
+         my ($pos, $type, $res) = ($error =~ m/(\d+)([%+-])([a-z]*)/i);
+         push @error_positions, $pos;
+      }
+   }
+   return @error_positions;
 }
 
 
