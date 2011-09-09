@@ -6,10 +6,10 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7020;
+plan tests => 7018;
 
 
-my ($factory, $nof_reads, $read, $errors, $min, $max, $mean, $stddev, $prof,
+my ($factory, $nof_reads, $read, @epositions, $min, $max, $mean, $stddev, $prof,
     $eprof, $coeff, $nof_indels, $nof_substs);
 
 
@@ -112,22 +112,28 @@ ok $factory = Grinder->new(
 ), 'Uniform';
 
 while ( $read = $factory->next_read ) {
-   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
-   $errors = add_error_position($error_str, $errors);
+   my @positions = error_positions($read);
+   push @epositions, @positions if scalar @positions > 0;
 }
-$prof = error_profile($errors, 50);
+
+$prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-#print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
 cmp_ok $min, '>=', 65;
 cmp_ok $max, '<=', 135;
 cmp_ok $mean, '<=', 103; # 100
 cmp_ok $mean, '>=', 97;
 cmp_ok $stddev, '<', 12;
-#$eprof = uniform(50, 10, 1000); # 1000 reads * 50 bp * 10% error
+
+#$eprof = uniform(1, 50, 1, 50, 5000); # 1000 reads * 50 bp * 10% error
 #$coeff = corr_coeff($prof, $eprof, $mean);
-#print "coeff = $coeff\n";
 #cmp_ok $coeff, '>', 0.99;
-$errors = {};
+
+SKIP: {
+   skip rfit_msg(), 5 if not can_rfit();
+   test_uniform_dist(\@epositions, 1, 50, 'errors_uniform.txt');
+}
+
+@epositions = ();
 
 
 # Linear distribution
@@ -141,60 +147,44 @@ ok $factory = Grinder->new(
    -mutation_dist  => (10, 'linear', 15)            ,
 ), 'Linear';
 
-while ( $read = $factory->next_read ) {
-   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
-   $errors = add_error_position($error_str, $errors);
-}
-$prof = error_profile($errors, 50);
-($min, $max, $mean, $stddev) = stats($prof);
-#print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-cmp_ok $mean, '<=', 103; # should be 100
-cmp_ok $mean, '>=', 97;
-cmp_ok $min,  '>=', 30;  # should be 50
-cmp_ok $min,  '<=', 70;
-cmp_ok $max,  '>=', 125; # should be 150
-cmp_ok $max,  '<=', 175;
-$eprof = linear(50, 10, 15, 1000);
-$coeff = corr_coeff($prof, $eprof, $mean);
-#print "coeff= $coeff\n";
-cmp_ok $coeff, '>', 0.80;
-#cmp_ok $coeff, '>', 0.99;
-$errors = {};
+#while ( $read = $factory->next_read ) {
+#   my @positions = error_positions($read);
+#   push @epositions, @positions if scalar @positions > 0;
+#}
+#
+#use Data::Dumper;
+#print Dumper($epositions);
+#
+#$prof = error_profile($epositions, 50);
+#($min, $max, $mean, $stddev) = stats($prof);
+##print "min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+#cmp_ok $mean, '<=', 103; # should be 100
+#cmp_ok $mean, '>=', 97;
+#cmp_ok $min,  '>=', 30;  # should be 50
+#cmp_ok $min,  '<=', 70;
+#cmp_ok $max,  '>=', 125; # should be 150
+#cmp_ok $max,  '<=', 175;
+#$eprof = linear(50, 10, 15, 1000);
+#$coeff = corr_coeff($prof, $eprof, $mean);
+##print "coeff= $coeff\n";
+#cmp_ok $coeff, '>', 0.80;
+##cmp_ok $coeff, '>', 0.99;
+#@epositions = ();
 
 
 
-sub error_profile {
-  my ($errors, $max) = @_;
-  my @profile;
-  for my $position ( 1 .. $max ) {
-    push @profile, $$errors{$position} || 0;
-  }
-  return \@profile;
-}
 
-
-sub add_error_position {
-   my ($err_str, $err_h) = @_;
+sub error_positions {
+   my ($read) = @_;
+   my ($err_str) = ($read->desc =~ /errors=(\S+)/);
+   my @error_positions;
    if (defined $err_str) {
-      my @errors = split ',', $err_str;
-      for my $error (@errors) {
+      for my $error (split ',', $err_str) {
          my ($pos, $type, $res) = ($error =~ m/(\d+)([%+-])([a-z]*)/i);
-         $$err_h{$pos}++
+         push @error_positions, $pos;
       }
    }
-   return $err_h;
-}
-
-
-sub uniform {
-   # Evaluate the uniform function in the given integer range
-   my ($x_max, $mean, $num) = @_;
-   my @ys;
-   for my $x (1 .. $x_max) {
-      my $y = $num * $mean / 100;
-      push @ys, $y;
-   }
-   return \@ys;
+   return @error_positions;
 }
 
 
