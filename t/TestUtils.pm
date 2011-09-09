@@ -171,16 +171,13 @@ sub test_uniform_dist {
    # specified minimum and maximum. Note that you probably need over 30-100
    # values for the statistical test to work!
    my ($values, $want_min, $want_max, $filename) = @_;
-   my ($min, $max, $chisqtest) = fit_uniform($values, $want_min, $want_max);
-   # Assume a standard deviation that is 5% of the min - max interval
-   my $min_sd = 0.05 * ($max - $min);
-   my $max_sd = $min_sd;
+   my ($min_lo, $min_hi, $max_lo, $max_hi, $chisqpvalue, $chisqtest) =
+      fit_uniform($values, $want_min, $want_max);
    # Test now
-   #print "min = $min +- $min_sd, max = $max +- $max_sd\n"; 
-   cmp_ok $want_min, '>', $min - $min_sd, 'fitdist() uniform';
-   cmp_ok $want_min, '<', $min + $min_sd;
-   cmp_ok $want_max, '>', $max - $max_sd;
-   cmp_ok $want_max, '<', $max + $max_sd;
+   cmp_ok $want_min, '>', $min_lo, 'fitdist() uniform';
+   cmp_ok $want_min, '<', $min_hi;
+   cmp_ok $want_max, '>', $max_lo;
+   cmp_ok $want_max, '<', $max_hi;
    # Chi square test
    is( $chisqtest, 'not rejected', 'Chi square test') or write_data($values, $filename);
    return 1;
@@ -192,16 +189,14 @@ sub test_normal_dist {
    # specified mean and standard deviation. Note that you probably need over
    # 30-100 values for the statistical test to work!
    my ($values, $want_mean, $want_sd, $filename) = @_;
-   my ($mean, $mean_sd, $sd, $sd_sd, $chisqtest) = fit_normal($values, $want_mean, $want_sd);
-   #print "mean = $mean +- $mean_sd, sd = $sd +- $sd_sd\n";
-   # A interval of mean+-1.96*sd corresponds to the 2.5 and 97.5 percentiles of 
-   # the normal distribution, i.e. the 95% confidence interval
-   cmp_ok $want_mean, '>', $mean - 1.96 * $mean_sd, 'fitdist() normal';
-   cmp_ok $want_mean, '<', $mean + 1.96 * $mean_sd;
-   cmp_ok $want_sd  , '>',   $sd - 1.96 * $sd_sd  ;
-   cmp_ok $want_sd  , '<',   $sd + 1.96 * $sd_sd  ;
+   my ($mean_lo, $mean_hi, $sd_lo, $sd_hi, $chisqpvalue, $chisqtest) =
+      fit_normal($values, $want_mean, $want_sd);
+   cmp_ok $want_mean, '>', $mean_lo, 'fitdist() normal';
+   cmp_ok $want_mean, '<', $mean_hi;
+   cmp_ok $want_sd  , '>', $sd_lo  ;
+   cmp_ok $want_sd  , '<', $sd_hi  ;
    # Chi square test
-   is( $chisqtest, 'not rejected', 'Chi square') or write_data($values, $filename);
+   is( $chisqtest, 'not rejected', 'Chi square test') or write_data($values, $filename);
    return 1;
 }
 
@@ -283,56 +278,59 @@ sub fit_beta {
 
 sub fit_uniform {
    # Try to fit a uniform distribution to a series of integers using a maximum
-   # goodness of fit method. Return the minimum, maximum and the results of
-   # the Chi square statistics. Optional optimization starting values for the
-   # mean and standard deviation can be specified. If used, these starting values
-   # also defined the breaks to use for the Chi square test.
+   # goodness of fit method. Return the 95% confidence interval for the mean,
+   # the standard deviation and the results of the Chi square statistics.
    my ($values, $want_min, $want_max) = @_;
    my $range_min = min(@$values) - 0.5;
    my $range_max = max(@$values) + 0.5;
    my $start_p   = "start=list(min=$want_min, max=$want_max)";
    my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
    my $fit_cmd   = "f <- fitdist(x, distr='unif', method='mge', gof='CvM', $start_p)";
+   my $boot_cmd  = "fb <- bootdist(f, niter=200)";
    my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
    $R->set('x', $values);
    $R->run('library(fitdistrplus)');
    $R->run($fit_cmd);
+   $R->run($boot_cmd);
    $R->run($gof_cmd);
-   my $min         = $R->get('f$estimate[1]');
-   my $max         = $R->get('f$estimate[2]');
+   my $min_lo      = $R->get('fb$CI[1,2]');
+   my $min_hi      = $R->get('fb$CI[1,3]');
+   my $max_lo      = $R->get('fb$CI[2,2]');
+   my $max_hi      = $R->get('fb$CI[2,3]');
    my $chisqpvalue = $R->get('g$chisqpvalue');
    my $chisqtest   = test_result($chisqpvalue);
    $R->stop();
-   return $min, $max, $chisqtest;
+   return $min_lo, $min_hi, $max_lo, $max_hi, $chisqpvalue, $chisqtest;
 }
 
 
 sub fit_normal {
    # Try to fit a normal distribution to a series of integers using a maximum
-   # likelihood method. Return the mean and its standard deviation, the standard
-   # deviation and its standard deviation, and the results of the Chi square 
-   # statistics.
+   # likelihood method. Return the 95% confidence interval for the mean, the
+   # standard deviation and the results of the Chi square statistics.
    my ($values, $want_mean, $want_sd) = @_;
    my $range_min = min(@$values) - 0.5;
    my $range_max = max(@$values) + 0.5;
    my $start_p   = "start=list(mean=$want_mean, sd=$want_sd)";
    my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
    my $fit_cmd   = "f <- fitdist(x, distr='norm', method='mle', $start_p)";
+   my $boot_cmd  = "fb <- bootdist(f, niter=200)";
    my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
    $R->set('x', $values);
    $R->run('library(fitdistrplus)');
    $R->run($fit_cmd);
+   $R->run($boot_cmd);
    $R->run($gof_cmd);
-   my $mean        = $R->get('f$estimate[1]');
-   my $sd          = $R->get('f$estimate[2]');
-   my $mean_sd     = $R->get('f$sd[1]');
-   my $sd_sd       = $R->get('f$sd[2]');
+   my $mean_lo     = $R->get('fb$CI[1,2]');
+   my $mean_hi     = $R->get('fb$CI[1,3]');
+   my $sd_lo       = $R->get('fb$CI[2,2]');
+   my $sd_hi       = $R->get('fb$CI[2,3]');
    my $chisqpvalue = $R->get('g$chisqpvalue');
    my $chisqtest   = test_result($chisqpvalue);
    $R->stop();
-   return $mean, $mean_sd, $sd, $sd_sd, $chisqtest;
+   return $mean_lo, $mean_hi, $sd_lo, $sd_hi, $chisqpvalue, $chisqtest;
 }
 
 
