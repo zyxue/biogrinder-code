@@ -158,8 +158,8 @@ cmp_ok $mean     , '<=', 103; # mean number of errors at each position should be
 cmp_ok $mean     , '>=', 97;
 
 SKIP: {
-   skip rfit_msg(), 6 if not can_rfit();
-####   test_linear_dist(\@epositions, 150, 10, 'errors_linear.txt');
+   skip rfit_msg(), 7 if not can_rfit();
+   test_linear_dist(\@epositions, 1, 50, 0.0000000001, 'errors_linear.txt');
 }
 
 @epositions = ();

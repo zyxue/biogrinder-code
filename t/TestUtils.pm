@@ -24,6 +24,7 @@ BEGIN {
       rfit_msg
       error_positions
       test_normal_dist
+      test_linear_dist
       test_uniform_dist      
    };
 }
@@ -194,30 +195,31 @@ sub error_positions {
 }
 
 
-#sub test_linear_dist {
-#   # Test that the datapoints provided follow a linear distribution
-#   my ($values, $want_min, $want_max, $want_slope) = @_;
-#   my ($min, $max, $slope, $chisqtest) = fit_linear($values);
-#
-#   # Assume a 5% standard deviation 
-#   my $min_sd   = 0.05 * ($max - $min);
-#   my $max_sd   = $min_sd;
-#   my $slope_sd = 0.05 * $slope;
-#
-#   # Test
-#   cmp_ok $want_min  , '>', $min   - $min_sd  ;
-#   cmp_ok $want_min  , '<', $min   + $min_sd  ;
-#   cmp_ok $want_max  , '>', $max   - $max_sd  ;
-#   cmp_ok $want_max  , '<', $max   + $max_sd  ;
-#   cmp_ok $want_slope, '>', $slope - $slope_sd;
-#   cmp_ok $want_slope, '<', $slope + $slope_sd;
-#   is $chisqtest, 'not rejected';
-#
-#   # a beta distribution with shape1=1 & shape2=2 is linearly decreasing
-#   # a beta distribution with shape1=2 & shape2=1 is linearly increasing
-#
-#   return 1;
-#}
+sub test_linear_dist {
+   # Test that the datapoints provided follow a linear distribution
+   my ($values, $want_min, $want_max, $want_slope, $filename) = @_;
+
+   my ($min, $max, $ratio_lo, $ratio_hi, $slope, $chisqpvalue, $chisqtest) =
+      fit_linear($values);
+
+   is $want_min, $min, 'fitdist() linear';
+   is $want_max, $max;
+
+   cmp_ok( $ratio_lo, '<', 2 ) and
+      cmp_ok( $ratio_hi, '>', 2 ) or
+      diag("Permitted range was: $ratio_lo < ratio < $ratio_hi");
+ 
+   my $slope_lo = (1 - 0.05) * $want_slope; # Allow a 5% standard deviation
+   my $slope_hi = (1 + 0.05) * $want_slope;
+   cmp_ok( $slope, '>', $slope_lo ) and 
+      cmp_ok $slope, '<', $slope_hi or
+      diag("Permitted range was: $slope_lo < slope < $slope_hi");
+
+   is( $chisqtest, 'not rejected', 'Chi square test') or
+      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+
+   return 1;
+}
 
 
 sub test_uniform_dist {
@@ -271,74 +273,85 @@ sub test_normal_dist {
 #------------------------------------------------------------------------------#
 
 
-#sub fit_linear {
-#   my ($values, $ascending) = @_;
-#
-#   # Find min and max of series
-#   my ($min, $max) = (1E100, 0);
-#   for my $value (@$values) {
-#      $min = $value if $value < $min;
-#      $max = $value if $value > $max;
-#   }
-#
-#   # Rescale values between in 0 and 1 instead of min and max
-#   my $rescaled_values;
-#   if ( ($min == 0) and ($max == 1) ) {
-#      $rescaled_values = $values;
-#   } else {
-#      for my $value (@$values) {
-#         push @$rescaled_values, ($value - $min) / $max;
-#      }
-#   }
-#
-#   # Now we can run fit_beta()
-#   my ($shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest) = fit_beta($values);
-#
-#   ###
-#   print "xmin = $min, xmax = $max, shape1 = $shape1 +- $shape1_sd, shape2 = $shape2 +- $shape2_sd\n";
-#   ###
-#
-#   ### what is the slope??
-#   return $min, $max;
-#}
+my $niter = 30; # number of iterations to fit the distributions
+
+
+sub fit_linear {
+   my ($values) = @_;
+
+   # Fit a linear distribution. Since R does not have a linear distribution, use
+   # the beta distribution:
+   #    when beta shape1=1 & shape2=2, distribution is linearly decreasing (slope=-2)
+   #    when beta shape1=2 & shape2=1, distribution is linearly increasing (slope=2)
+
+   # Find min and max of series
+   my $min = min(@$values);
+   my $max = max(@$values);
+
+   # Rescale values between in 0 and 1 instead of min and max
+   my $rescaled_values;
+   if ( ($min == 0) and ($max == 1) ) {
+      $rescaled_values = $values;
+   } else {
+      for my $value (@$values) {
+         push @$rescaled_values, ($value - $min) / ($max - $min);
+      }
+   }
+
+   # Now we can run fit_beta()
+   my ($shape1_lo, $shape1_hi, $shape2_lo, $shape2_hi, $chisqpvalue, $chisqtest)
+      = fit_beta($values, 2, 1, $min, $max);
+
+   my $ratio_hi = $shape1_hi / $shape2_lo;
+   my $ratio_lo = $shape2_hi / $shape1_lo;
+
+   ####
+   # Calculate the slope
+   my $slope = 2 / ($max - $min);
+   ####
+
+   ####
+   print "xmin = $min, xmax = $max\n";
+   print "$shape1_lo < shape1 < $shape1_hi\n";
+   print "$shape2_lo < shape2 < $shape2_hi\n";
+   print "$ratio_lo < ratio < $ratio_hi\n";
+   print "slope = $slope\n";
+   print "p-value = $chisqpvalue  ->  $chisqtest\n";
+   ####
+
+   return $min, $max, $ratio_lo, $ratio_hi, $slope, $chisqpvalue, $chisqtest;
+}
 
 
 sub fit_beta {
    # Try to fit a beta distribution to a series of data points using a maximum
-   # goodness of fit method. Return the shape1 parameter, its standard error,
-   # the shape2 parameter, its standard error, and the results of Chi square
-   # statistics. Optional optimization starting values for shape1 and shape2 can
-   # be specified.
-   my ($values, $start_shape1, $start_shape2) = @_;
-   my $start_params = '';
-   if ( (defined $start_shape1) or (defined $start_shape2) ) {
-      $start_params .= ', start=list(';
-      if (defined $start_shape1) {
-         $start_params .= "shape1=$start_shape1, ";
-      }
-      if (defined $start_shape2) {
-         $start_params .= "shape2=$start_shape2, ";
-      }
-      $start_params =~ s/, $//;
-      $start_params .= ')';
-   }
+   # goodness of fit method. Return the 95% confidence interval for the shape1
+   # parameter, the shape2 parameter and the results of Chi square statistics.
+   my ($values, $want_shape1, $want_shape2, $want_min, $want_max) = @_;
+   my $break_num   = $want_max - $want_min;
+   my $break_size  = 1 / $break_num;
+   my $break_start = 0 - $break_size / 2;
+   my $break_end   = 1 + $break_size / 2;
+   my $start_p   = "start=list(shape1=$want_shape1, shape2=$want_shape2)";
+   my $breaks_p  = "chisqbreaks=seq($break_start, $break_end, $break_size)";
+   #my $fit_cmd   = "f  <- fitdist(x, distr='beta', method='mle', $start_p)";
+   my $fit_cmd   = "f  <- fitdist(x, distr='beta', method='mge', gof='CvM', $start_p)";
+   my $boot_cmd  = "fb <- bootdist(f, niter=$niter)";
+   my $gof_cmd   = "g  <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
-   $R->run(q`library(fitdistrplus)`);
    $R->set('x', $values);
-   $R->run(qq`f <- fitdist(x, distr="beta", method="mle"$start_params)`);
-   $R->run(q`g <- gofstat(f)`);
-   $R->run(q`shape1 <- f$estimate[1]`);
-   my $shape1 = $R->get('shape1');
-   $R->run(q`shape2 <- f$estimate[2]`);
-   my $shape2 = $R->get('shape2');
-   $R->run(q`shape1_sd <- f$sd[1]`);
-   my $shape1_sd = $R->get('shape1_sd');
-   $R->run(q`shape2_sd <- f$sd[2]`);
-   my $shape2_sd = $R->get('shape2_sd');
-   $R->run(q`chisqpvalue <- g$chisqpvalue`);
-   my $chisqtest = test_result( $R->get('chisqpvalue') );
+   $R->run('library(fitdistrplus)');
+   $R->run($fit_cmd);
+   $R->run($boot_cmd);
+   $R->run($gof_cmd);
+   my $shape1_lo   = $R->get('fb$CI[1,2]');
+   my $shape1_hi   = $R->get('fb$CI[1,3]');
+   my $shape2_lo   = $R->get('fb$CI[2,2]');
+   my $shape2_hi   = $R->get('fb$CI[2,3]');
+   my $chisqpvalue = $R->get('g$chisqpvalue');
+   my $chisqtest   = test_result($chisqpvalue);
    $R->stop();
-   return $shape1, $shape1_sd, $shape2, $shape2_sd, $chisqtest;
+   return $shape1_lo, $shape1_hi, $shape2_lo, $shape2_hi, $chisqpvalue, $chisqtest;
 }
 
 
@@ -349,11 +362,11 @@ sub fit_uniform {
    my ($values, $want_min, $want_max) = @_;
    my $range_min = min(@$values) - 0.5;
    my $range_max = max(@$values) + 0.5;
-   my $start_p   = "start=list(min=$want_min, max=$want_max)";
    my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
-   my $fit_cmd   = "f <- fitdist(x, distr='unif', method='mge', gof='CvM', $start_p)";
-   my $boot_cmd  = "fb <- bootdist(f, niter=200)";
-   my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
+   my $start_p   = "start=list(min=$want_min, max=$want_max)";
+   my $fit_cmd   = "f  <- fitdist(x, distr='unif', method='mge', gof='CvM', $start_p)";
+   my $boot_cmd  = "fb <- bootdist(f, niter=$niter)";
+   my $gof_cmd   = "g  <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
    $R->set('x', $values);
    $R->run('library(fitdistrplus)');
@@ -378,11 +391,11 @@ sub fit_normal {
    my ($values, $want_mean, $want_sd) = @_;
    my $range_min = min(@$values) - 0.5;
    my $range_max = max(@$values) + 0.5;
-   my $start_p   = "start=list(mean=$want_mean, sd=$want_sd)";
    my $breaks_p  = "chisqbreaks=seq($range_min, $range_max)";
-   my $fit_cmd   = "f <- fitdist(x, distr='norm', method='mle', $start_p)";
-   my $boot_cmd  = "fb <- bootdist(f, niter=200)";
-   my $gof_cmd   = "g <- gofstat(f, $breaks_p)";
+   my $start_p   = "start=list(mean=$want_mean, sd=$want_sd)";
+   my $fit_cmd   = "f  <- fitdist(x, distr='norm', method='mle', $start_p)";
+   my $boot_cmd  = "fb <- bootdist(f, niter=$niter)";
+   my $gof_cmd   = "g  <- gofstat(f, $breaks_p)";
    my $R = Statistics::R->new();
    $R->set('x', $values);
    $R->run('library(fitdistrplus)');
