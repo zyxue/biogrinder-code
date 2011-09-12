@@ -311,12 +311,12 @@ sub fit_linear {
    ####
 
    ####
-   print "xmin = $min, xmax = $max\n";
-   print "$shape1_lo < shape1 < $shape1_hi\n";
-   print "$shape2_lo < shape2 < $shape2_hi\n";
-   print "$ratio_lo < ratio < $ratio_hi\n";
-   print "slope = $slope\n";
-   print "p-value = $chisqpvalue  ->  $chisqtest\n";
+   #print "xmin = $min, xmax = $max\n";
+   #print "$shape1_lo < shape1 < $shape1_hi\n";
+   #print "$shape2_lo < shape2 < $shape2_hi\n";
+   #print "$ratio_lo < ratio < $ratio_hi\n";
+   #print "slope = $slope\n";
+   #print "p-value = $chisqpvalue  ->  $chisqtest\n";
    ####
 
    return $min, $max, $ratio_lo, $ratio_hi, $slope, $chisqpvalue, $chisqtest;

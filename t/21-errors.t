@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7024;
+plan tests => 7030;
 
 
 my ($factory, $nof_reads, $read, @epositions, $min, $max, $mean, $stddev, $prof,
@@ -159,7 +159,13 @@ cmp_ok $mean     , '>=', 97;
 
 SKIP: {
    skip rfit_msg(), 7 if not can_rfit();
-   test_linear_dist(\@epositions, 1, 50, 0.0000000001, 'errors_linear.txt');
+
+   ####
+   TODO: {
+      $TODO = "Need to implement a linear density distribution in R";
+      test_linear_dist(\@epositions, 1, 50, 0.0000000001, 'errors_linear.txt');
+   }
+   ####
 }
 
 @epositions = ();
