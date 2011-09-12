@@ -40,14 +40,11 @@ ok     exists $sources{'seq5'};
 
 # These tests are quite sensitive to the seed used. Ideal average answer should
 # be 250 here
-cmp_ok $sources{'seq1'}, '>', 230;
-cmp_ok $sources{'seq1'}, '<', 280;
-cmp_ok $sources{'seq2'}, '>', 230;
-cmp_ok $sources{'seq2'}, '<', 280;
-cmp_ok $sources{'seq4'}, '>', 230;
-cmp_ok $sources{'seq4'}, '<', 280;
-cmp_ok $sources{'seq5'}, '>', 230;
-cmp_ok $sources{'seq5'}, '<', 280;
+
+between_ok( $sources{'seq1'}, 230, 280 );
+between_ok( $sources{'seq2'}, 230, 280 );
+between_ok( $sources{'seq4'}, 230, 280 );
+between_ok( $sources{'seq5'}, 230, 280 );
 
 is $factory->next_lib, undef;
 %sources = ();
@@ -83,12 +80,10 @@ ok exists $sources{'seq3'};
 
 # These tests are quite sensitive to the seed used. Ideal average answer should
 # be 600, 300 and 100 here
-cmp_ok $sources{'seq1'}, '>', 570;
-cmp_ok $sources{'seq1'}, '<', 630;
-cmp_ok $sources{'seq2'}, '>', 270;
-cmp_ok $sources{'seq2'}, '<', 330;
-cmp_ok $sources{'seq3'}, '>', 70 ;
-cmp_ok $sources{'seq3'}, '<', 130;
+
+between_ok( $sources{'seq1'}, 570, 630 );
+between_ok( $sources{'seq2'}, 270, 330 );
+between_ok( $sources{'seq3'}, 70 , 130 );
 
 is $factory->next_lib, undef;
 %sources = ();

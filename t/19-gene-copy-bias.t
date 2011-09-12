@@ -43,12 +43,9 @@ ok exists $sources{'seq3'};
 
 # These tests are quite sensitive to the seed used. Ideal average answer should
 # be 180.45, 812.03 and 7.5188
-cmp_ok $sources{'seq1'}, '>', 160;
-cmp_ok $sources{'seq1'}, '<', 200;
-cmp_ok $sources{'seq2'}, '>', 792;
-cmp_ok $sources{'seq2'}, '<', 832;
-cmp_ok $sources{'seq3'}, '>', 0;
-cmp_ok $sources{'seq3'}, '<', 20;
+between_ok( $sources{'seq1'}, 160, 200 );
+between_ok( $sources{'seq2'}, 792, 832 );
+between_ok( $sources{'seq3'},   0,  20 );
 
 is $factory->next_lib, undef;
 %sources = ();

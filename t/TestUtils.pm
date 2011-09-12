@@ -44,7 +44,7 @@ sub between_ok {
    my ($value, $min, $max) = @_;
    cmp_ok( $value, '>=', $min ) and
       cmp_ok( $value, '<=', $max ) or
-      diag("Got $value but allowed range was [$min, $max]");
+      diag("Got $value but the allowed range was [$min, $max]");
 }
 
 
@@ -206,7 +206,7 @@ sub error_positions {
 
 sub test_linear_dist {
    # Test that the datapoints provided follow a linear distribution
-   my ($values, $want_min, $want_max, $want_slope, $filename) = @_;
+   my ($values, $want_min, $want_max, $want_slope) = @_;
 
    my ($min, $max, $ratio_lo, $ratio_hi, $slope, $chisqpvalue, $chisqtest) =
       fit_linear($values);
@@ -214,18 +214,12 @@ sub test_linear_dist {
    is $want_min, $min, 'fitdist() linear';
    is $want_max, $max;
 
-   cmp_ok( $ratio_lo, '<', 2 ) and
-      cmp_ok( $ratio_hi, '>', 2 ) or
-      diag("Allowed range was: $ratio_lo < ratio < $ratio_hi");
+   between_ok( 2, $ratio_lo, $ratio_hi );
  
-   my $slope_lo = (1 - 0.05) * $want_slope; # Allow a 5% standard deviation
-   my $slope_hi = (1 + 0.05) * $want_slope;
-   cmp_ok( $slope, '>', $slope_lo ) and 
-      cmp_ok $slope, '<', $slope_hi or
-      diag("Allowed range was: $slope_lo < slope < $slope_hi");
+   between_ok( $slope, (1 - 0.05) * $want_slope, (1 + 0.05) * $want_slope ); # Allow a 5% standard deviation
 
    is( $chisqtest, 'not rejected', 'Chi square test') or
-      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+      diag("p-value was: $chisqpvalue");
 
    return 1;
 }
@@ -235,21 +229,16 @@ sub test_uniform_dist {
    # Test that the integer series provided follow a uniform distribution with the 
    # specified minimum and maximum. Note that you probably need over 30-100
    # values for the statistical test to work!
-   my ($values, $want_min, $want_max, $filename) = @_;
+   my ($values, $want_min, $want_max) = @_;
 
    my ($min_lo, $min_hi, $max_lo, $max_hi, $chisqpvalue, $chisqtest) =
       fit_uniform($values, $want_min, $want_max);
 
-   cmp_ok( $want_min, '>', $min_lo, 'fitdist() uniform' ) and
-      cmp_ok( $want_min, '<', $min_hi ) or
-      diag("Interval of confidence was: $min_lo < min < $min_hi");
-
-   cmp_ok( $want_max, '>', $max_lo ) and
-      cmp_ok( $want_max, '<', $max_hi ) or
-      diag("Interval of confidence was: $max_lo < max < $max_hi");
+   between_ok( $want_min, $min_lo, $min_hi );
+   between_ok( $want_max, $max_lo, $max_hi );
 
    is( $chisqtest, 'not rejected', 'Chi square test') or
-      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+      diag("p-value was: $chisqpvalue");
 
    return 1;
 }
@@ -264,16 +253,11 @@ sub test_normal_dist {
    my ($mean_lo, $mean_hi, $sd_lo, $sd_hi, $chisqpvalue, $chisqtest) =
       fit_normal($values, $want_mean, $want_sd);
 
-   cmp_ok( $want_mean, '>', $mean_lo, 'fitdist() normal' ) and
-      cmp_ok( $want_mean, '<', $mean_hi ) or
-      diag("Interval of confidence was: $mean_lo < mean < $mean_hi");
+   between_ok( $want_mean, $mean_lo, $mean_hi );
+   between_ok( $want_sd, $sd_lo, $sd_hi );
 
-   cmp_ok( $want_sd  , '>', $sd_lo ) and
-      cmp_ok( $want_sd  , '<', $sd_hi ) or
-      diag("Interval of confidence was: $sd_lo < sd < $sd_hi");
-
-   is( $chisqtest, 'not rejected', 'Chi square test') or
-      diag("p-value was: $chisqpvalue") and write_data($values, $filename);
+   is( $chisqtest, 'not rejected', 'Chi square test') or 
+      diag("p-value was: $chisqpvalue");
 
    return 1;
 }

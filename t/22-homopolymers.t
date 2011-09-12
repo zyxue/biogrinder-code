@@ -54,7 +54,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    #### TODO: Better test of normality
    #SKIP: {
    #   skip rfit_msg(), 6 if not can_rfit();
-   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #   test_normal_dist($values, $mean, $stddev);
    #}
 }
 $hpols = {};
@@ -100,7 +100,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    #### TODO: Better test of normality
    #SKIP: {
    #   skip rfit_msg(), 6 if not can_rfit();
-   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #   test_normal_dist($values, $mean, $stddev);
    #}
 }
 $hpols = {};
@@ -146,7 +146,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    #### TODO: Better test of normality
    #SKIP: {
    #   skip rfit_msg(), 6 if not can_rfit();
-   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #   test_normal_dist($values, $mean, $stddev);
    #}
 }
 $hpols = {};

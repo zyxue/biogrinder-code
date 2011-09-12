@@ -56,11 +56,8 @@ while ( $mate1 = $factory->next_read ) {
 ($min, $max, $mean, $stddev) = stats(\@ilengths);
 cmp_ok $min, '>=', 135;
 cmp_ok $max, '<=', 165;
-cmp_ok $mean, '<', 152;
-cmp_ok $mean, '>', 148;
-cmp_ok $stddev, '<', 10;
-cmp_ok $stddev, '>', 7;
-
+between_ok( $mean, 148, 152 );
+between_ok( $stddev, 7, 10 );
 $hist = hist(\@ilengths, 50, 250);
 $ehist = uniform(50, 250, 135, 165, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
@@ -68,7 +65,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip rfit_msg(), 5 if not can_rfit();
-   test_uniform_dist(\@ilengths, 135, 165, 'inserts_uniform.txt');
+   test_uniform_dist(\@ilengths, 135, 165);
 }
 
 @ilengths = ();
@@ -91,11 +88,8 @@ while ( $mate1 = $factory->next_read ) {
 };
 
 ($min, $max, $mean, $stddev) = stats(\@ilengths);
-cmp_ok $mean, '<', 151; # should be 150
-cmp_ok $mean, '>', 149;
-cmp_ok $stddev, '<', 11; # should be 10
-cmp_ok $stddev, '>', 9;
-
+between_ok( $mean, 149, 151 ); # should be 150
+between_ok( $stddev,   9, 11  );
 $hist = hist(\@ilengths, 50, 250);
 $ehist = normal(50, 250, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
@@ -103,7 +97,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip rfit_msg(), 6 if not can_rfit();
-   test_normal_dist(\@ilengths, 150, 10, 'inserts_normal.txt');
+   test_normal_dist(\@ilengths, 150, 10);
 }
 
 @ilengths = ();

@@ -149,8 +149,7 @@ while ( $read = $factory->next_read ) {
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $param1 = $struct->{param};
-cmp_ok $param1, '>', 0;
-cmp_ok $param1, '<', 1000;
+between_ok( $param1, 0, 1000 );
 $era = exponential_cstruct(10, 5, $param1, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;
@@ -165,8 +164,7 @@ while ( $read = $factory->next_read ) {
 $ra = rank_abundance(\@reads, 10);
 ($min, $max, $mean, $stddev) = stats($ra);
 $param2 = $struct->{param};
-cmp_ok $param2, '>', 0;
-cmp_ok $param2, '<', 1000;
+between_ok( $param2, 0, 1000 );
 $era = exponential_cstruct(10, 5, $param2, 1000);
 $coeff = corr_coeff($ra, $era, $mean);
 cmp_ok $coeff, '>', 0.97;

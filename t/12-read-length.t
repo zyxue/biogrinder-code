@@ -46,9 +46,7 @@ while ( $read = $factory->next_read ) {
 is $min, 40;
 is $max, 60;
 is int($mean+0.5), 50;
-cmp_ok $stddev, '<', 6.3; # should be 5.79
-cmp_ok $stddev, '>', 5.3;
-
+between_ok( $stddev, 5.3, 6.3 ); # should be 5.79
 $hist = hist(\@rlengths, 1, 100);
 $ehist = uniform(1, 100, 40, 60, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
@@ -56,7 +54,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip rfit_msg(), 5 if not can_rfit();
-   test_uniform_dist(\@rlengths, 40, 60, 'reads_uniform.txt');
+   test_uniform_dist(\@rlengths, 40, 60);
 }
 
 @rlengths = ();
@@ -73,11 +71,8 @@ while ( $read = $factory->next_read ) {
    push @rlengths, $read->length;
 }
 ($min, $max, $mean, $stddev) = stats(\@rlengths);
-cmp_ok $mean, '>', 49; # should be 50.0
-cmp_ok $mean, '<', 51;
-cmp_ok $stddev, '<', 5.5; # should be 5.0
-cmp_ok $stddev, '>', 4.5;
-
+between_ok( $mean, 49, 51 ); # should be 50.0
+between_ok( $stddev, 4.5, 5.5 ); # should be 5.0
 $hist = hist(\@rlengths, 1, 100);
 $ehist = normal(1, 100, $mean, $stddev**2, 1000);
 $coeff = corr_coeff($hist, $ehist, $mean);
@@ -85,7 +80,7 @@ cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
    skip rfit_msg(), 6 if not can_rfit();
-   test_normal_dist(\@rlengths, 50, 5, 'reads_uniform.txt');
+   test_normal_dist(\@rlengths, 50, 5);
 }
 
 @rlengths = ();

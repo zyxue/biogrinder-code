@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7030;
+plan tests => 7024;
 
 
 my ($factory, $nof_reads, $read, @epositions, $min, $max, $mean, $stddev, $prof,
@@ -95,9 +95,7 @@ while ( $read = $factory->next_read ) {
       ok 1;
    }
 }
-
-cmp_ok $nof_substs / $nof_indels, '>', 0.92; # should be 1
-cmp_ok $nof_substs / $nof_indels, '<', 1.08;
+between_ok( $nof_substs / $nof_indels, 0.92, 1.08 ); # should be 1
 
 
 # Uniform distribution
@@ -120,13 +118,12 @@ $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
 cmp_ok $min, '>=', 65;
 cmp_ok $max, '<=', 135;
-cmp_ok $mean, '<=', 103; # 100
-cmp_ok $mean, '>=', 97;
+between_ok( $mean, 97, 103 ); # should be 100
 cmp_ok $stddev, '<', 12;
 
 SKIP: {
    skip rfit_msg(), 5 if not can_rfit();
-   test_uniform_dist(\@epositions, 1, 50, 'errors_uniform.txt');
+   test_uniform_dist(\@epositions, 1, 50);
 }
 
 @epositions = ();
@@ -150,21 +147,18 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-cmp_ok $$prof[0] , '>=', 30;  # mean number of errors at 1st position of reads should be 50
-cmp_ok $$prof[0] , '<=', 70;
-cmp_ok $$prof[-1], '>=', 125; # mean number of errors at last position of read shoul be 150
-cmp_ok $$prof[-1], '<=', 175;
-cmp_ok $mean     , '<=', 103; # mean number of errors at each position should be 100
-cmp_ok $mean     , '>=', 97;
+between_ok( $$prof[0] ,  30,  70 ); # mean number of errors at 1st position of reads should be 50
+between_ok( $$prof[-1], 125, 175 ); # mean number of errors at last position of read should be 150
+between_ok( $mean     ,  97, 103 ); # mean number of errors at each position should be 100
 
 SKIP: {
    skip rfit_msg(), 7 if not can_rfit();
 
-   ####
-   TODO: {
-      $TODO = "Need to implement a linear density distribution in R";
-      test_linear_dist(\@epositions, 1, 50, 0.0000000001, 'errors_linear.txt');
-   }
+   #### TODO
+   #TODO: {
+   #   $TODO = "Need to implement a linear density distribution in R";
+   #   test_linear_dist(\@epositions, 1, 50, 0.0000000001);
+   #}
    ####
 }
 
