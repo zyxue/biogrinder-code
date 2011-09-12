@@ -7,13 +7,15 @@ use t::TestUtils;
 use Grinder;
 
 ###plan tests => 6648;
-plan test => 4392;
+plan tests => 4392;
 
 
 my ($factory, $nof_reads, $read, $hpols, $min, $max, $mean, $stddev,
     $expected_mean, $expected_stddev, $hist, $ehist, $coeff);
-my $delta_perc = 0.05;
 
+###
+my $delta_perc = 0.05;
+###
 
 # Balzer homopolymer distribution
 
@@ -28,21 +30,18 @@ ok $factory = Grinder->new(
 while ( $read = $factory->next_read ) {
    my ($error_str) = ($read->desc =~ /errors=(\S+)/);
    $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
-#   if ($error_str) {
-#      unlike $error_str, qr/%/;
-#      like   $error_str, qr/[+-]/;
-#   } else {
-#      ok 1;
-#      ok 1;
-#   }
+   if ($error_str) {
+      unlike $error_str, qr/%/;
+      like   $error_str, qr/[+-]/;
+   } else {
+      ok 1;
+      ok 1;
+   }
 }
 
+for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
 
-for my $homo_len ( 10 ) {
-#for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-   ### make tests work for < 4 !
-#   next if $homo_len < 4; 
-   ###
+   last if $homo_len <= 4;
 
    my $values = $$hpols{$homo_len};
    print "Homopolymer length: $homo_len\n";
@@ -51,18 +50,22 @@ for my $homo_len ( 10 ) {
    ($expected_mean, $expected_stddev) = balzer($homo_len);
    print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
 
-#   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-#   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-#   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-#   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
-#   $hist = hist($$hpols{$homo_len}, 1, 20);
-#   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
-#   $coeff = corr_coeff($hist, $ehist, $mean);
-#   print "   coeff = $coeff\n";
-#   cmp_ok $coeff, '>', 0.80;
-#   #cmp_ok $coeff, '>', 0.99;
+   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
 
-    test_normal_dist($values, $expected_mean, $expected_stddev);
+   $hist = hist($$hpols{$homo_len}, 1, 30);
+   $ehist = normal(1, 30, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   $coeff = corr_coeff($hist, $ehist, $mean);
+   print "   coeff = $coeff\n";
+   cmp_ok $coeff, '>', 0.95;
+
+   #### TODO: Better test of normality
+   #SKIP: {
+   #   skip rfit_msg(), 6 if not can_rfit();
+   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #}
 
 }
 $hpols = {};
@@ -70,47 +73,53 @@ $hpols = {};
 
 # Richter homopolymer distribution
 
-#ok $factory = Grinder->new(
-#   -reference_file   => data('homopolymer_database.fa'),
-#   -unidirectional   => 1                              ,
-#   -read_dist        => 220                            ,
-#   -total_reads      => 1000                           ,
-#   -homopolymer_dist => 'richter'                      ,
-#), 'Richter';
+ok $factory = Grinder->new(
+   -reference_file   => data('homopolymer_database.fa'),
+   -unidirectional   => 1                              ,
+   -read_dist        => 220                            ,
+   -total_reads      => 1000                           ,
+   -homopolymer_dist => 'richter'                      ,
+), 'Richter';
 
-#while ( $read = $factory->next_read ) {
-#   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
-#   if ($error_str) {
-#      unlike $error_str, qr/%/;
-#      like   $error_str, qr/[+-]/;
-#   } else {
-#      ok 1;
-#      ok 1;
-#   }
-#   $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
-#}
+while ( $read = $factory->next_read ) {
+   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
+   $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
+   if ($error_str) {
+      unlike $error_str, qr/%/;
+      like   $error_str, qr/[+-]/;
+   } else {
+      ok 1;
+      ok 1;
+   }
+}
 
-#for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-#   ### make tests work for < 4 !
-#   next if $homo_len < 4; 
-#   ###
-#   print "Homopolymer length: $homo_len\n";
-#   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
-#   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-#   ($expected_mean, $expected_stddev) = richter($homo_len);
-#   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-##   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-##   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-##   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-##   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
-#   $hist = hist($$hpols{$homo_len}, 1, 20);
-#   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
+
+   last if $homo_len <= 4;
+
+   my $values = $$hpols{$homo_len};
+   print "Homopolymer length: $homo_len\n";
+   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
+   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   ($expected_mean, $expected_stddev) = richter($homo_len);
+   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
+   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev;
+
+   ###
+   write_data($values, 'homo_richter_'.$homo_len.'bp.txt');
+   ###
+
+#   $hist = hist($$hpols{$homo_len}, 1, 30);
+#   $ehist = normal(1, 30, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
 #   $coeff = corr_coeff($hist, $ehist, $mean);
 #   print "   coeff = $coeff\n";
 #   cmp_ok $coeff, '>', 0.80;
 #   #cmp_ok $coeff, '>', 0.99;
-#}
-#$hpols = {};
+}
+$hpols = {};
 
 ####
 #die "Temp exit\n";
@@ -173,10 +182,12 @@ $hpols = {};
 sub add_homopolymers {
    my ($err_str, $ref_seq, $err_h) = @_;
 
+
+
    # Record position and length of homopolymer errors
    my %errors;
    if (defined $err_str) {
-      $err_str = combine_dels($err_str);
+      $err_str = combine_dels($err_str, $ref_seq);
       my @errors = split ',', $err_str;
       for my $error (@errors) {
          # Record homopolymer error
@@ -213,20 +224,28 @@ sub add_homopolymers {
 
 
 sub combine_dels {
-   # Put deletions in adjacent position into a single error entry.
+   # Put homopolymer deletions at adjacent position into a single error entry
+   # (but only if they affect the same homopolymer)
    # Ex: 45-,46-,47-    becomes 45---
-   my ($err_str) = @_;
+   my ($err_str, $ref_seq) = @_;
    my %errors;
+
    for my $error (split ',', $err_str) {
       my ($pos, $type, $repl) = ($error =~ m/(\d+)([%+-])([a-z]*)/i);
-      push @{$errors{$pos}{$type}}, $repl;
-      if ( $type eq '-' ) {
-         $errors{$pos}{'-'} = [ undef ]; # this prevents redundant deletions
+      if ($type eq '-') {
+         # Keep track of what was deleted
+         $repl = substr $ref_seq, $pos-1, 1;
+         $errors{$pos}{'-'} = [ $repl ];
+      } else {
+         push @{$errors{$pos}{$type}}, $repl;
       }
    }
 
    for my $pos (sort {$b <=> $a} (keys %errors)) {
-      if ( exists $errors{$pos}{'-'} && exists $errors{$pos-1} && exists $errors{$pos-1}{'-'} ) {
+      if (    exists $errors{$pos}{'-'}
+          &&  exists $errors{$pos-1}
+          &&  exists $errors{$pos-1}{'-'}
+          && ($errors{$pos}{'-'}[0] eq $errors{$pos-1}{'-'}[0]) ) {
          push @{$errors{$pos-1}{'-'}}, @{$errors{$pos}{'-'}};
          delete $errors{$pos}{'-'};
          delete $errors{$pos} if scalar keys %{$errors{$pos}} == 0;
@@ -250,59 +269,9 @@ sub combine_dels {
 }
 
 
-
-sub uniform {
-   # Evaluate the uniform function in the given integer range
-   my ($x_max, $mean, $num) = @_;
-   my @ys;
-   for my $x (1 .. $x_max) {
-      my $y = $num * $mean / 100;
-      push @ys, $y;
-   }
-   return \@ys;
-}
-
-
-sub linear {
-   # Evaluate the linear function in the given integer range
-   my ($x_max, $mean, $right, $num) = @_;
-   my $height = ($right - $mean) * 2;
-   my $width  = $x_max - 1;
-   my $slope = $height / $width;   
-   my $left = $mean - ($right - $mean);
-   my @ys;
-   for my $x (1 .. $x_max) {
-      my $y = $left + ($x-1) * $slope;
-      push @ys, $y;
-   }
-   for (my $x = 0; $x < $x_max; $x++) {
-      $ys[$x] *= $num / 100;
-   }
-   return \@ys;
-}
-
-
-sub normal {
-   # Evaluate the normal function in the given integer range
-   my ($x_min, $x_max, $mean, $variance, $num) = @_;
-   my @ys;
-   for my $x ($x_min .. $x_max) {
-      my $proba = 1 / sqrt(2 * PI * $variance) * exp( - ($x - $mean)**2 / (2 * $variance));
-      my $y = $proba * $num;
-
-      ####
-      #$y = int($y + 0.5);
-      ####
-
-      push @ys, $y;
-   }
-   return \@ys;
-}
-
-
 sub margulies {
    my ($homo_len) = @_;
-   my $mean     = $homo_len;
+   my $mean   = $homo_len;
    my $stddev = $homo_len * 0.15;
    return $mean, $stddev;
 }
@@ -310,7 +279,7 @@ sub margulies {
 
 sub richter {
    my ($homo_len) = @_;
-   my $mean     = $homo_len;
+   my $mean   = $homo_len;
    my $stddev = sqrt($homo_len) * 0.15;
    return $mean, $stddev;
 }
