@@ -41,7 +41,9 @@ while ( $read = $factory->next_read ) {
 
 for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
 
+   #### This distribution is narrow, i.e. hard to fit with fitdist
    last if $homo_len <= 4;
+   ####
 
    my $values = $$hpols{$homo_len};
    print "Homopolymer length: $homo_len\n";
@@ -55,8 +57,8 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
    cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
 
-   $hist = hist($$hpols{$homo_len}, 1, 30);
-   $ehist = normal(1, 30, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   $hist = hist($$hpols{$homo_len}, 1, 50);
+   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
    $coeff = corr_coeff($hist, $ehist, $mean);
    print "   coeff = $coeff\n";
    cmp_ok $coeff, '>', 0.95;
@@ -69,6 +71,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
 
 }
 $hpols = {};
+
 
 
 # Richter homopolymer distribution
@@ -95,7 +98,7 @@ while ( $read = $factory->next_read ) {
 
 for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
 
-   last if $homo_len <= 4;
+   #last if $homo_len <= 4;
 
    my $values = $$hpols{$homo_len};
    print "Homopolymer length: $homo_len\n";
@@ -112,77 +115,64 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    write_data($values, 'homo_richter_'.$homo_len.'bp.txt');
    ###
 
-#   $hist = hist($$hpols{$homo_len}, 1, 30);
-#   $ehist = normal(1, 30, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
-#   $coeff = corr_coeff($hist, $ehist, $mean);
-#   print "   coeff = $coeff\n";
-#   cmp_ok $coeff, '>', 0.80;
-#   #cmp_ok $coeff, '>', 0.99;
+   $hist = hist($$hpols{$homo_len}, 1, 50);
+   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   $coeff = corr_coeff($hist, $ehist, $mean);
+   print "   coeff = $coeff\n";
+   cmp_ok $coeff, '>', 0.95;
 }
 $hpols = {};
 
-####
-#die "Temp exit\n";
-####
+
 
 # Margulies homopolymer distribution
 
-#ok $factory = Grinder->new(
-#   -reference_file   => data('homopolymer_database.fa'),
-#   -unidirectional   => 1                              ,
-#   -read_dist        => 220                            ,
-#   -total_reads      => 1000                           ,
-#   -homopolymer_dist => 'margulies'                    ,
-#), 'Margulies';
+ok $factory = Grinder->new(
+   -reference_file   => data('homopolymer_database.fa'),
+   -unidirectional   => 1                              ,
+   -read_dist        => 220                            ,
+   -total_reads      => 1000                           ,
+   -homopolymer_dist => 'margulies'                    ,
+), 'Margulies';
 
-#while ( $read = $factory->next_read ) {
-#   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
-#
-#   print "$error_str\n";
-#
-#   if ($error_str) {
-#      unlike $error_str, qr/%/;
-#      like   $error_str, qr/[+-]/;
-#   } else {
-#      ok 1;
-#      ok 1;
-#   }
-#   $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
-#}
+while ( $read = $factory->next_read ) {
+   my ($error_str) = ($read->desc =~ /errors=(\S+)/);
+   $hpols = add_homopolymers($error_str, $read->reference->seq, $hpols);
+   if ($error_str) {
+      unlike $error_str, qr/%/;
+      like   $error_str, qr/[+-]/;
+   } else {
+      ok 1;
+      ok 1;
+   }
+}
 
-#use Data::Dumper; print Dumper($hpols);
-
-#for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-#   ### make tests work for < 4 !
-#   next if $homo_len < 4; 
-#   ###
-#   print "Homopolymer length: $homo_len\n";
-#   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
-#   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
-#   ($expected_mean, $expected_stddev) = margulies($homo_len);
-#   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-#   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-#   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-#   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-#   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
-#   $hist = hist($$hpols{$homo_len}, 1, 20);
-#
-#   use Data::Dumper; print Dumper($hist);
-#
-#   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
-#   $coeff = corr_coeff($hist, $ehist, $mean);
-#   print "   coeff = $coeff\n";
-#   cmp_ok $coeff, '>', 0.80;
-#   #cmp_ok $coeff, '>', 0.99;
-#}
-#$hpols = {};
+for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
+   ### make tests work for < 4 !
+   #last if $homo_len <= 4; 
+   ###
+   print "Homopolymer length: $homo_len\n";
+   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
+   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   ($expected_mean, $expected_stddev) = margulies($homo_len);
+   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
+   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
+   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
+   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
+   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
+   $hist = hist($$hpols{$homo_len}, 1, 50);
+   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   $coeff = corr_coeff($hist, $ehist, $mean);
+   print "   coeff = $coeff\n";
+   #cmp_ok $coeff, '>', 0.80;
+   cmp_ok $coeff, '>', 0.95;
+}
+$hpols = {};
 
 
 
 sub add_homopolymers {
    my ($err_str, $ref_seq, $err_h) = @_;
-
-
 
    # Record position and length of homopolymer errors
    my %errors;

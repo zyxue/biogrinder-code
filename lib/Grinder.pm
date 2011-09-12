@@ -1930,9 +1930,9 @@ sub rand_homopolymer_errors {
     if ( $self->{homopolymer_dist} eq 'balzer' ) {
       $stddev = 0.03494 + $len * 0.06856;
     } elsif ($self->{homopolymer_dist} eq 'richter') {
-      $stddev = 0.15 + sqrt($len);
+      $stddev = 0.15 * sqrt($len);
     } elsif ($self->{homopolymer_dist} eq 'margulies') {
-      $stddev = 0.15 + $len;
+      $stddev = 0.15 * $len;
     } else {
       die "Error: Unknown homopolymer distribution '".$self->{homopolymer_dist}."'\n";
     }
