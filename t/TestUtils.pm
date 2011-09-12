@@ -13,6 +13,7 @@ BEGIN {
    @ISA     = 'Exporter';
    @EXPORT  = qw{
       PI
+      between_ok
       data
       stats
       hist
@@ -37,6 +38,14 @@ our $can_rfit;
 
 # The Pi mathematical constant
 use constant PI => 4 * atan2(1, 1);
+
+sub between_ok {
+   # Test that a value is in the given range (inclusive)
+   my ($value, $min, $max) = @_;
+   cmp_ok( $value, '>=', $min ) and
+      cmp_ok( $value, '<=', $max ) or
+      diag("Got $value but allowed range was [$min, $max]");
+}
 
 
 sub data {
@@ -207,13 +216,13 @@ sub test_linear_dist {
 
    cmp_ok( $ratio_lo, '<', 2 ) and
       cmp_ok( $ratio_hi, '>', 2 ) or
-      diag("Permitted range was: $ratio_lo < ratio < $ratio_hi");
+      diag("Allowed range was: $ratio_lo < ratio < $ratio_hi");
  
    my $slope_lo = (1 - 0.05) * $want_slope; # Allow a 5% standard deviation
    my $slope_hi = (1 + 0.05) * $want_slope;
    cmp_ok( $slope, '>', $slope_lo ) and 
       cmp_ok $slope, '<', $slope_hi or
-      diag("Permitted range was: $slope_lo < slope < $slope_hi");
+      diag("Allowed range was: $slope_lo < slope < $slope_hi");
 
    is( $chisqtest, 'not rejected', 'Chi square test') or
       diag("p-value was: $chisqpvalue") and write_data($values, $filename);

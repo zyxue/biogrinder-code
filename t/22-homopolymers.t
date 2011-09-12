@@ -6,16 +6,14 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-###plan tests => 6648;
-plan tests => 4392;
+plan tests => 6108;
 
 
 my ($factory, $nof_reads, $read, $hpols, $min, $max, $mean, $stddev,
     $expected_mean, $expected_stddev, $hist, $ehist, $coeff);
 
-###
-my $delta_perc = 0.05;
-###
+my $delta = 0.20; # 20%
+my $min_coeff = 0.75;
 
 # Balzer homopolymer distribution
 
@@ -40,35 +38,24 @@ while ( $read = $factory->next_read ) {
 }
 
 for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-
-   #### This distribution is narrow, i.e. hard to fit with fitdist
-   last if $homo_len <= 4;
-   ####
-
+   last if $homo_len <= 3; ### TODO: go up to 2
    my $values = $$hpols{$homo_len};
-   print "Homopolymer length: $homo_len\n";
    ($min, $max, $mean, $stddev) = stats($values);
-   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
    ($expected_mean, $expected_stddev) = balzer($homo_len);
-   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-
-   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
-
-   $hist = hist($$hpols{$homo_len}, 1, 50);
-   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   #print "Balzer homopolymer length: $homo_len\n";
+   #print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
+   #print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   between_ok( $mean, (1-$delta)*$expected_mean, (1+$delta)*$expected_mean );
+   between_ok( $stddev, (1-$delta)*$expected_stddev, (1+$delta)*$expected_stddev );
+   $hist = hist($$hpols{$homo_len}, 1, 20);
+   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
    $coeff = corr_coeff($hist, $ehist, $mean);
-   print "   coeff = $coeff\n";
-   cmp_ok $coeff, '>', 0.95;
-
+   cmp_ok $coeff, '>', $min_coeff;
    #### TODO: Better test of normality
    #SKIP: {
    #   skip rfit_msg(), 6 if not can_rfit();
    #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
    #}
-
 }
 $hpols = {};
 
@@ -97,29 +84,24 @@ while ( $read = $factory->next_read ) {
 }
 
 for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-
-   #last if $homo_len <= 4;
-
+   last if $homo_len <= 3; ### TODO: go up to 2
    my $values = $$hpols{$homo_len};
-   print "Homopolymer length: $homo_len\n";
-   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
-   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   ($min, $max, $mean, $stddev) = stats($values);
    ($expected_mean, $expected_stddev) = richter($homo_len);
-   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev;
-
-   ###
-   write_data($values, 'homo_richter_'.$homo_len.'bp.txt');
-   ###
-
-   $hist = hist($$hpols{$homo_len}, 1, 50);
-   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   #print "Richter homopolymer length: $homo_len\n";
+   #print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
+   #print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   between_ok( $mean, (1-$delta)*$expected_mean, (1+$delta)*$expected_mean );
+   between_ok( $stddev, (1-$delta)*$expected_stddev, (1+$delta)*$expected_stddev );
+   $hist = hist($$hpols{$homo_len}, 1, 20);
+   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
    $coeff = corr_coeff($hist, $ehist, $mean);
-   print "   coeff = $coeff\n";
-   cmp_ok $coeff, '>', 0.95;
+   cmp_ok $coeff, '>', $min_coeff;
+   #### TODO: Better test of normality
+   #SKIP: {
+   #   skip rfit_msg(), 6 if not can_rfit();
+   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #}
 }
 $hpols = {};
 
@@ -148,24 +130,24 @@ while ( $read = $factory->next_read ) {
 }
 
 for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
-   ### make tests work for < 4 !
-   #last if $homo_len <= 4; 
-   ###
-   print "Homopolymer length: $homo_len\n";
-   ($min, $max, $mean, $stddev) = stats($$hpols{$homo_len});
-   print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   last if $homo_len <= 3; ### TODO: go up to 2
    ($expected_mean, $expected_stddev) = margulies($homo_len);
-   print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
-   cmp_ok $mean, '>', (1-$delta_perc)*$expected_mean;
-   cmp_ok $mean, '<', (1+$delta_perc)*$expected_mean;
-   cmp_ok $stddev, '>', (1-$delta_perc)*$expected_stddev;
-   cmp_ok $stddev, '<', (1+$delta_perc)*$expected_stddev; 
-   $hist = hist($$hpols{$homo_len}, 1, 50);
-   $ehist = normal(1, 50, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
+   my $values = $$hpols{$homo_len};
+   ($min, $max, $mean, $stddev) = stats($values);
+   #print "Margulies homopolymer length: $homo_len\n";
+   #print "   expected mean = $expected_mean, expected stddev = $expected_stddev\n";
+   #print "   min = $min, max = $max, mean = $mean, stddev = $stddev\n";
+   between_ok( $mean, (1-$delta)*$expected_mean, (1+$delta)*$expected_mean );
+   between_ok( $stddev, (1-$delta)*$expected_stddev, (1+$delta)*$expected_stddev );
+   $hist = hist($$hpols{$homo_len}, 1, 20);
+   $ehist = normal(1, 20, $mean, $stddev**2, 4000); # 4 homopolymers of each size in the 1000 reads
    $coeff = corr_coeff($hist, $ehist, $mean);
-   print "   coeff = $coeff\n";
-   #cmp_ok $coeff, '>', 0.80;
-   cmp_ok $coeff, '>', 0.95;
+   cmp_ok $coeff, '>', $min_coeff;
+   #### TODO: Better test of normality
+   #SKIP: {
+   #   skip rfit_msg(), 6 if not can_rfit();
+   #   test_normal_dist($values, $mean, $stddev, "homopolymers_balzer_".$homo_len."bp.txt");
+   #}
 }
 $hpols = {};
 
@@ -194,7 +176,7 @@ sub add_homopolymers {
          my $hres    = substr $ref_seq, $pos-1, 1; # first residue of homopolymer
          my $new_res = substr $repl, 0, 1;         # residue to add to homopolymer
          if ( $type eq '+' ) { # in case of insertion (not deletion)
-            ok $hres eq $new_res;
+            die if not $hres eq $new_res;
          }
       }
    }
