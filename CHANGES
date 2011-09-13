@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+0.3.x   
+        Tests do not fail if the optional dependency Statistics::R is not installed
+
 0.3.7   13-Sep-2011
         Fixed bug in richter and margulies homopolymer error models
         Fixed bug so that uutput rank file now collapses amplicon by species

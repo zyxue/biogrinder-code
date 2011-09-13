@@ -161,8 +161,9 @@ sub write_data {
 
 
 sub can_rfit {
-   # Test if a system can run the fitdistrplus R module through the Statistics::R
-   # Perl interface and load if it can. Return 1 for success, 0 otherwise.
+   # Determine if a system can run the fitdistrplus R module through the
+   # Statistics::R Perl interface. Load Statistics::R if it can and return 1.
+   # Return 0 otherwise.
    if (not defined $can_rfit) {
       eval {
          require Statistics::R;
@@ -178,7 +179,6 @@ sub can_rfit {
          warn $msg;
       } else {
          $can_rfit = 1;
-         require Statistics::R;
       }
    }
    return $can_rfit;
