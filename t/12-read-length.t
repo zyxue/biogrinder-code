@@ -79,7 +79,7 @@ $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
-   skip rfit_msg(), 6 if not can_rfit();
+   skip rfit_msg(), 5 if not can_rfit();
    test_normal_dist(\@rlengths, 50, 5);
 }
 

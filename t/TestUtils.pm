@@ -4,7 +4,6 @@ package t::TestUtils;
 use strict;
 use warnings;
 use Test::More;
-use Statistics::R;
 use File::Spec::Functions;
 use List::Util qw( min max );
 
@@ -163,7 +162,7 @@ sub write_data {
 
 sub can_rfit {
    # Test if a system can run the fitdistrplus R module through the Statistics::R
-   # Perl interface. Return 1 if it can, 0 otherwise.
+   # Perl interface and load if it can. Return 1 for success, 0 otherwise.
    if (not defined $can_rfit) {
       eval {
          require Statistics::R;
@@ -173,12 +172,13 @@ sub can_rfit {
       };
       if ($@) {
          $can_rfit = 0;
-         my $msg = "Warning: The Statistics::R module for Perl, R (R-Project) ".
+         my $msg = "Note: The Statistics::R module for Perl, R (R-Project) ".
             "or the fitdistrplus module for R could not be found on this system.".
             " Some tests will be skipped...\n";
          warn $msg;
       } else {
          $can_rfit = 1;
+         require Statistics::R;
       }
    }
    return $can_rfit;
@@ -186,7 +186,7 @@ sub can_rfit {
 
 
 sub rfit_msg {
-   return "Cannot use the fitdistrplus R module on this system";
+   return "fitdistrplus not available...";
 }
 
 
