@@ -29,6 +29,7 @@ requires   'Bio::SeqIO'              =>  0;
 
 author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
+author_requires 'Module::Install::AutoLicense';
 author_requires 'Statistics::R'  => '0.21';
 
 
