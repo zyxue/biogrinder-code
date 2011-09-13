@@ -14,10 +14,10 @@ resources
    repository 'git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder';
 
 
-# Dependencies
+# Dependencies for everyone
 
 build_requires 'Test::More';
-# Regular Perl module dependencies for Grinder
+
 requires   'Getopt::Euclid'          => '0.2.4';
 requires   'Math::Random::MT'        =>  0;
 requires   'Math::Random::MT::Perl'  => '1.06';
@@ -30,10 +30,13 @@ requires   'Bio::SeqIO'              =>  0;
 author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
+author_requires 'Module::Install::ReadmeFromPod';
 author_requires 'Statistics::R'  => '0.21';
 
 
-auto_install; # process dependencies
+# Install dependencies
+
+auto_install;
 
 
 # Extra scripts to install
@@ -48,12 +51,12 @@ install_script 'utils/change_paired_read_orientation';
 WriteAll;
 
 
-# Generate LICENSE file
+# Generate the LICENSE file
 
 auto_license();
 
 
-# Generate the README file from the module's POD
+# Generate the README files from the module's POD
 
 auto_readme();
 
@@ -64,21 +67,14 @@ auto_readme();
 
 
 sub auto_readme {
-   print "*** Building README files...\n";
+   #print "*** Building README files...\n";
    my $source = 'lib/Grinder.pm';
-   generate_readme_text( $source, 'README'     );
-   generate_readme_html( $source, 'README.htm' );
+   readme_from $source;
+   readme_html_from( $source, 'README.htm' );
    return 1;
 }
 
-sub generate_readme_text {
-   my ($in, $out) = @_;
-   `pod2text $in $out`;
-   warn "Warning: Could not generate $out.\n$!\n" if $? == -1;
-   return $?; # exit status
-}
-
-sub generate_readme_html {
+sub readme_html_from {
    my ($in, $out) = @_;
    `pod2html --infile=$in --outfile=$out`;
    warn "Warning: Could not generate $out.\n$!\n" if $? == -1;
