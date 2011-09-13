@@ -6,6 +6,8 @@ use inc::Module::Install;
 name     'Grinder';
 all_from 'lib/Grinder.pm';
 
+license 'gpl3'; # As of version 1.01, Module::Install does not parse the GPL version number
+
 resources
    homepage   'http://sourceforge.net/projects/biogrinder/';
    bugtracker 'http://sourceforge.net/tracker/?group_id=244196&atid=1124737';
@@ -45,7 +47,13 @@ install_script 'utils/change_paired_read_orientation';
 WriteAll;
 
 
+# Generate LICENSE file
+
+auto_license();
+
+
 # Generate the README file from the module's POD
+
 auto_readme();
 
 
