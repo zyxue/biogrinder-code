@@ -15,7 +15,6 @@ resources
 # Dependencies
 
 build_requires 'Test::More';
-
 # Regular Perl module dependencies for Grinder
 requires   'Getopt::Euclid'          => '0.2.4';
 requires   'Math::Random::MT'        =>  0;
@@ -23,7 +22,13 @@ requires   'Math::Random::MT::Perl'  => '1.06';
 requires   'Bio::SeqIO'              =>  0;
 #requires  'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 
-recommends 'Statistics::R'           => '0.21';
+
+# Dependencies for authors
+
+author_requires 'Module::Install';
+author_requires 'Module::Install::AuthorRequires';
+author_requires 'Statistics::R'  => '0.21';
+
 
 auto_install; # process dependencies
 
@@ -35,13 +40,13 @@ install_script 'utils/average_genome_size';
 install_script 'utils/change_paired_read_orientation';
 
 
-# Generate META.yml and Makefile
+# Generate Makefile and META.yml files
 
 WriteAll;
 
 
-# Build the README from the module's POD using Perl's pod2text and pod2html
-generate_readme();
+# Generate the README file from the module's POD
+auto_readme();
 
 
 
@@ -49,7 +54,7 @@ generate_readme();
 #--------- UTILS --------------------------------------------------------------#
 
 
-sub generate_readme {
+sub auto_readme {
    print "*** Building README files...\n";
    my $source = 'lib/Grinder.pm';
    generate_readme_text( $source, 'README'     );
