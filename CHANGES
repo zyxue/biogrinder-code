@@ -1,19 +1,20 @@
 Revision history for Grinder
 
-0.3.x   
-        More comprehensive tests for seeding and random number generation
-        Added tests for chimeras
-	The Grinder script is now called 'grinder' (lowercase)
-        Moved README build process in the Makefile.PL
-        Tests use cross-platform filenames
-        Output rank file now collapses amplicon by species
-        Allow tracking of redundant mutations
-        Location of amplicon on reference sequence is now recorded in the read description
-        Internal database of reference sequences is now indexed by object ID, not sequence ID
-        Chimera description -> amplicon field is now be coma-separated.
+0.3.7   13-Sep-2011
+        Fixed bug in richter and margulies homopolymer error models
+        Fixed bug so that uutput rank file now collapses amplicon by species
+        The Grinder CLI script is now called 'grinder' (all lowercase)
         Option mutation_ratio has changed so that it is possible to specify indels without substitutions
-        Tests for indel and substitution error models
-
+        Location of amplicon relative to the reference sequence is now recorded
+          in the read description using the 'amplicon' field
+        Better reporting of chimeras in read descriptions using a comma-separated
+          list for the 'amplicon' and 'reference' field
+        Redundant sequencing errors (multiple errors at the same position) are
+          now tracked in read descriptions
+        New dependency: using Math::Random::MT Perl module for added speed
+        Improved build and test mechanics
+        Added tests for chimeras, indels, substitutions and homopolymers
+        More comprehensive tests for seeding and random number generation
 
 0.3.6   03-Aug-2011
         Support for reference sequences that contain several amplicons
