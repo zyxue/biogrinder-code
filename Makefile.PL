@@ -5,8 +5,7 @@ use inc::Module::Install;
 
 name     'Grinder';
 all_from 'lib/Grinder.pm';
-
-license 'gpl3'; # As of version 1.01, Module::Install does not parse the GPL version number
+license  'gpl3'; # As of version 1.01, Module::Install does not parse the GPL version number
 
 resources
    homepage   'http://sourceforge.net/projects/biogrinder/';
@@ -16,13 +15,13 @@ resources
 
 # Dependencies for everyone
 
-build_requires 'Test::More';
+build_requires  'Test::More';
 
-requires   'Getopt::Euclid'          => '0.2.4';
-requires   'Math::Random::MT'        =>  0;
-requires   'Math::Random::MT::Perl'  => '1.06';
-requires   'Bio::SeqIO'              =>  0;
-#requires  'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
+requires        'Getopt::Euclid'          => '0.2.4';
+requires        'Math::Random::MT'        =>  0;
+requires        'Math::Random::MT::Perl'  => '1.06';
+requires        'Bio::SeqIO'              =>  0;
+#requires       'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 
 
 # Dependencies for authors
@@ -31,6 +30,7 @@ author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
 author_requires 'Module::Install::ReadmeFromPod';
+author_requires 'Module::Install::AutoManifest';
 author_requires 'Statistics::R'  => '0.21';
 
 
@@ -44,6 +44,11 @@ auto_install;
 install_script 'script/grinder';
 install_script 'utils/average_genome_size';
 install_script 'utils/change_paired_read_orientation';
+
+
+# Generate MANIFEST file
+
+auto_manifest();
 
 
 # Generate Makefile and META.yml files
