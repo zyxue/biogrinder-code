@@ -93,16 +93,20 @@
         #if str($permuted_perc):
           -permuted_perc    $permuted_perc
         #end if
+
         ## Need int(str(...)) because $random_seed is an InputValueWrapper object not a string or an integer
         #if int(str($random_seed)) > 0
-          -random_seed    $random_seed
+          -random_seed      $random_seed
         #end if
-        -desc_track       $desc_track
+
+        #if str($permuted_perc):
+          -desc_track       $desc_track
+        #end if
         #if str($qual_levels):
           -qual_levels      $qual_levels
         #end if
         #if str( $profile_file ) != "None":
-          -profile_file   $profile_file.value
+          -profile_file     $profile_file.value
         #end if
   </command>
 
