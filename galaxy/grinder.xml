@@ -82,11 +82,17 @@
           -num_libraries    $num_libraries
         #end if
         #if str( $multiplex_ids ) != "None":
-          -multiplex_ids   $multiplex_ids
+          -multiplex_ids    $multiplex_ids
         #end if
-        -diversity        $diversity
-        -shared_perc      $shared_perc
-        -permuted_perc    $permuted_perc
+        #if str($diversity):
+          -diversity        $diversity
+        #end if
+        #if str($shared_perc):
+          -shared_perc      $shared_perc
+        #end if
+        #if str($permuted_perc):
+          -permuted_perc    $permuted_perc
+        #end if
         ## Need int(str(...)) because $random_seed is an InputValueWrapper object not a string or an integer
         #if int(str($random_seed)) > 0
           -random_seed    $random_seed
