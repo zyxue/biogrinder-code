@@ -3,7 +3,6 @@
   <!--
     Author: florent.angly@gmail.com
     TODO:
-    • Use a Galaxy dataset as input
     • Need to adjust <outputs> for multiple output libraries
     • Link to full manual
     • Better sync with Grinder parameters, defaults and help
@@ -106,8 +105,7 @@
   </command>
 
   <inputs>
-    <!--<param name="reference_file" type="data" format="fasta" label="Reference sequences" help="FASTA file that contains the input reference sequences" />-->
-    ## Maybe useful to have the option to use a file from a reference database
+
     <conditional name="reference_file">
       <param name="specify" type="select" label="Specify">
         <option value="builtin">Built-in file</option>
@@ -115,7 +113,7 @@
       </param>
       <when value="builtin">
         <param name="value" type="select" label="Reference sequences" help="Galaxy built-in FASTA file">
-          <options from_data_table="all_fasta" column="1" offset="0" />
+          <options from_data_table="all_fasta" />
         </param>
       </when>
       <when value="uploaded">
