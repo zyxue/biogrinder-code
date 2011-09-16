@@ -16,12 +16,12 @@ our $VERSION = '0.3.7';
 
 =head1 NAME
 
-Grinder - Simulate shotgun and amplicon DNA sequence libraries
+Grinder - Genomic, metagenomic and amplicon sequence simulator
 
 =head1 DESCRIPTION
 
-Grinder is a program to create artificial random shotgun and amplicon sequence
-libraries based on reference sequences in a FASTA file. Features include:
+Grinder is a program to create random shotgun and amplicon sequence libraries
+based on reference sequences in a FASTA file. Features include:
 
 =over
 
@@ -106,7 +106,6 @@ for you:
 
 =over
 
-
 =item *
 
 Bio::SeqIO (from Bioperl)
@@ -136,7 +135,6 @@ On Linux, Unix, MacOS:
 
    perl Makefile.PL
    make
-   make test
 
 And finally, with administrator privileges:
 
