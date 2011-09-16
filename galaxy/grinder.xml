@@ -3,6 +3,7 @@
   <!--
     Author: florent.angly@gmail.com
     TODO:
+    • Basic tests
     • Need to adjust <outputs> for multiple output libraries
     • Link to full manual
     • Better sync with Grinder parameters, defaults and help
@@ -121,9 +122,9 @@
       </when>
     </conditional>
 
-    <param name="total_reads" type="text" value="100" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify the fold coverage>" />
+    <param name="total_reads" type="text" value="100" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify the fold coverage." />
 
-    <param name="coverage_fold" type="text" optional="true" label="Coverage fold" help="Generate the number of reads needed to achieve the specified fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify total_reads>" />
+    <param name="coverage_fold" type="text" optional="true" label="Coverage fold" help="Generate the number of reads needed to achieve the specified fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify the number of reads directly" />
 
     <param name="read_dist" type="text" value="100" optional="true" label="Sequence length distribution" help="Desired sequence length distribution specified as:
   average length, distribution ('uniform' or 'normal') and standard deviation
@@ -181,7 +182,7 @@ Examples:
    1/ uniform distribution: uniform,
    2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
 
-    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option." />
+    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option. **Note** There is no support for multiple libraries in this Galaxy GUI at the moment!" />
 
     <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
 
@@ -224,38 +225,25 @@ Note that the arguments specified in the profile should not be specified again o
   </outputs>
 
   <tests>
-    <!--
-      Tests cannot be run because of the non-deterministic element of the simulation.
-      But if you run the following "tests" manually in the browser and check against
-      the output files, they should be very similar to the listed output files.
-    -->
+    <!-- no tests since they would not not always return the same results -->
     <!--
     <test>
-      <param name="input_type" value="history" />
-      <param name="input1" value="ngs_simulation_in1.fasta" ftype="fasta" />
-      <param name="read_len" value="76" />
-      <param name="avg_coverage" value="200" />
-      <param name="error_rate" value="0.001" />
-      <param name="num_sims" value="25" />
-      <param name="polymorphism" value="0.02,0.04,0.1" />
-      <param name="detection_thresh" value="0.01,0.02" />
-      <param name="summary_out" value="true" />
-      <output name="output_png" file="ngs_simulation_out1.png" />
-      <output name="output_summary" file="ngs_simulation_out2.tabular" />
+      <param name="specify" value="uploaded" />
+      <param name="value" value="ngs_simulation_in1.fasta" ftype="fasta" />
+      <output name="ranks" file="" />
+      <output name="fasta" file="" />
+      <output name="qual" file="" />
     </test>
+
     <test>
-      <param name="input_type" value="built-in" />
-      <param name="genome" value="pUC18" />
-      <param name="read_len" value="50" />
-      <param name="avg_coverage" value="150" />
-      <param name="error_rate" value="0.005" />
-      <param name="num_sims" value="25" />
-      <param name="polymorphism" value="0.001,0.005" />
-      <param name="detection_thresh" value="0.001,0.002" />
-      <param name="summary_out" value="false" />
-      <output name="output_png" file="ngs_simulation_out3.png" />
-    </test>
+      <param name="specify" value="builtin" />
+      <param name="builtin" value="pUC18" />
+      <output name="ranks" file="" />
+      <output name="fasta" file="" />
+      <output name="qual" file="" />
     -->
+    </test>
+
   </tests>
 
   <help>
@@ -275,6 +263,17 @@ based on reference sequences in a FASTA file. Features include:
 * profile mechanism to store preferred options
 * API to automate the creation of a large number of simulated datasets
 
+
+**Input**
+
+A variety of FASTA databases containing genes or genomes can be used as input
+for Grinder, such as the NCBI RefSeq collection (ftp://ftp.ncbi.nih.gov/refseq/release/microbial/),
+the GreenGenes 16S rRNA database (http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta), theh uman genome and transcriptome (ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/, ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz), ...
+
+These input files can either be provided as a Galaxy dataset, or can be uploaded
+by Galaxy users in their history.
+ 
+
 **Output**
 
 For each library requested, a first file contains the abundance of the species
@@ -292,20 +291,21 @@ in the simulated community created, e.g.:
 
 The second file is a FASTA file containing shotgun or amplicon reads, e.g.:
 
-  >1 source=13824_Veillonella_criceti position=89-1088 strand=+
+  >1 reference=13824_Veillonella_criceti position=89-1088 strand=+
   ACCAACCTGCCCTTCAGAGGGGGATAACAACGGGAAACCGTTGCTAATACCGCGTACGAA
   TGGACTTCGGCATCGGAGTTCATTGAAAGGTGGCCTCTATTTATAAGCTATCGCTGAAGG
   AGGGGGTTGCGTCTGATTAGCTAGTTGGAGGGGTAATGGCCCACCAAGGCAA
 
-  >2 source=103712_Fusobacterium_nucleatum position=2-1001 strand=+
+  >2 reference=103712_Fusobacterium_nucleatum position=2-1001 strand=+
   TGAACGAAGAGTTTGATCCTGGCTCAGGATGAACGCTGACAGAATGCTTAACACATGCAA
   GTCAACTTGAATTTGGGTTTTTAACTTAGGTTTGGG
 
-If you used the qual_levels option, a third file representing the quality scores
-of the read is created.
+If you specify the quality score levels option, a third file representing the
+quality scores of the reads is created.
 
-  >1 source=13824_Veillonella_criceti position=89-1088 strand=+
+  >1 reference=103712_Fusobacterium_nucleatum position=2-1001 strand=+
   30 30 30 10 30 30 ...
+
 
   </help>
 
