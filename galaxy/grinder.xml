@@ -20,10 +20,10 @@
   <command interpreter="python">
     stderr_wrapper.py
       grinder
-        #if $reference_file.specify == "uploaded":
-          -reference_file      $reference_file.value
-        #else if $reference_file.specify == "builtin":
-          -reference_file      $reference_file.values[ 'all_fasta' ].get_fields() )[0][-1] }"
+        #if $reference_file.specify == "builtin":
+          -reference_file   ${ filter( lambda x: str( x[0] ) == str( $reference_file.value ), $__app__.tool_data_tables[ 'all_fasta' ].get_fields() )[0][-1] }
+        #else if $reference_file.specify == "uploaded":
+          -reference_file   $reference_file.value
         #end if
         #if str($coverage_fold):
           -coverage_fold    $coverage_fold
@@ -110,12 +110,12 @@
     ## Maybe useful to have the option to use a file from a reference database
     <conditional name="reference_file">
       <param name="specify" type="select" label="Specify">
-        <option value="uploaded">Uploaded file</option>
         <option value="builtin">Built-in file</option>
+        <option value="uploaded">Uploaded file</option>
       </param>
       <when value="builtin">
         <param name="value" type="select" label="Reference sequences" help="Galaxy built-in FASTA file">
-          <options from_data_table="all_fasta" />
+          <options from_data_table="all_fasta" column="1" offset="0" />
         </param>
       </when>
       <when value="uploaded">
