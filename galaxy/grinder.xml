@@ -3,17 +3,10 @@
   <!--
     Author: florent.angly@gmail.com
     TODO:
-    • bug #403 was resolved, so remove <conditionals> now:
-      <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" />
-      #if str( $forward_reverse ) != "None":
-        -forward_reverse      $forward_reverse
-      #end if
-    • use a Galaxy dataset as input
-    • need to adjust <outputs> for multiple output libraries
-    • put the stdout in a log file
-    • link to full manual
-    •  use &lt;unidirectional&gt; for refering to parameters
-    • how to make newlines in help?
+    • Use a Galaxy dataset as input
+    • Need to adjust <outputs> for multiple output libraries
+    • Link to full manual
+    • Better sync with Grinder parameters, defaults and help
   -->
 
   <description>genomic, metagenomic and amplicon read simulator (BETA)</description>
@@ -44,11 +37,13 @@
         #if str($insert_dist):
           -insert_dist      $insert_dist
         #end if
-
-        -exclude_chars      $exclude_chars
-        -delete_chars       $delete_chars
-
-        #if str( $forward_reverse ) != "None":
+        #if str($exclude_chars):
+          -exclude_chars    $exclude_chars
+        #end if
+        #if str($delete_chars):
+          -delete_chars     $delete_chars
+        #end if
+        #if str($forward_reverse) != "None":
           -forward_reverse  $forward_reverse
         #end if
         #if str($unidirectional):
@@ -72,7 +67,7 @@
         #if str($chimera_perc):
           -chimera_perc     $chimera_perc
         #end if
-        #if str( $abundance_file ) != "None":
+        #if str($abundance_file) != "None":
           -abundance_file   $abundance_file
         #end if
         #if str($abundance_model):
@@ -81,7 +76,7 @@
         #if str($num_libraries):
           -num_libraries    $num_libraries
         #end if
-        #if str( $multiplex_ids ) != "None":
+        #if str($multiplex_ids) != "None":
           -multiplex_ids    $multiplex_ids
         #end if
         #if str($diversity):
@@ -102,9 +97,12 @@
         #if str($qual_levels):
           -qual_levels      $qual_levels
         #end if
-        #if str( $profile_file ) != "None":
+        #if str($profile_file) != "None":
           -profile_file     $profile_file.value
         #end if
+        <!-- When Galaxy bug #661 is resolved, then we can use the same method to check for all optional argument  -->
+        <!-- i.e. either   if str($param) != "None":   or   if str($param):                                        -->
+        <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611 -->
   </command>
 
   <inputs>
@@ -125,9 +123,9 @@
       </when>
     </conditional>
 
-    <param name="coverage_fold" type="text" value="0.1" optional="true" label="Coverage fold" help="Desired fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify &lt;total_reads&gt;>" />
+    <param name="total_reads" type="text" value="100" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify the fold coverage>" />
 
-    <param name="total_reads" type="text" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify &lt;fold_coverage&gt;>" />
+    <param name="coverage_fold" type="text" optional="true" label="Coverage fold" help="Generate the number of reads needed to achieve the specified fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify total_reads>" />
 
     <param name="read_dist" type="text" value="100" optional="true" label="Sequence length distribution" help="Desired sequence length distribution specified as:
   average length, distribution ('uniform' or 'normal') and standard deviation
@@ -145,25 +143,11 @@ Examples:
 Two distinct reads are generated whether or not the mate pair overlaps.
 Default: insert_dist.default" />
 
-    <param name="exclude_chars" type="text" value="''" optional="true" label="Characters to exclude" help="Do not create reads containing any of the specified characters (case insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N).">
+    <param name="exclude_chars" type="text" optional="true" label="Characters to exclude" help="Do not create reads containing any of the specified characters (case insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N)." />
 
-      <!--
-      ## May need to prevent specific characters from being sanitized by Galaxy
-      <sanitizer>
-        <valid>
-          <add value="'"/>
-          <add value='"'/>
-          <add value="-"/>
-          <add value="."/>
-        </valid>
-      </sanitizer>
-      -->
+    <param name="delete_chars" type="text" optional="true" label="Characters to delete" help="Remove the specified characters from the reference sequences (case insensitive), e.g. 'N-' to remove gaps (-) and ambiguities (N)." />
 
-    </param>
-
-    <param name="delete_chars" type="text" value="''" optional="true" label="Characters to delete" help="Remove the specified characters from the reference sequences (case insensitive), e.g. 'N-' to remove gaps (-) and ambiguities (N)." />
-
-    <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" help="Use amplicon sequencing using the given forward and reverse PCR primer sequences (in a FASTA file, in this order). The second sequence in the FASTA file (the reverse primer) is optional. The sequences should use the IUPAC convention for degenerate residues). Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers respectively (primers that target the v6 to v9 region of the 16S rRNA gene). Genome sequences that do not match the specified primers are excluded. It is recommended to use the &lt;unidirectional&gt; and no &lt;length_bias&gt; options to generate amplicon reads." />
+    <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" help="Use amplicon sequencing using the given forward and reverse PCR primer sequences (in a FASTA file, in this order). The second sequence in the FASTA file (the reverse primer) is optional. The sequences should use the IUPAC convention for degenerate residues). Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers respectively (primers that target the v6 to v9 region of the 16S rRNA gene). Genome sequences that do not match the specified primers are excluded. It is recommended to use the unidirectional and no genome length bias options to generate amplicon reads." />
 
     <param name="unidirectional" type="select" display="radio" value="0" label="Sequencing direction" help="Produce reads just from one strand, by opposition to the reference strand and its reverse complement.">
       <option value="0">both strands</option>
@@ -189,7 +173,7 @@ For example, for Sanger-type errors, use:
    Richter:   N(n, 0.15 * sqrt(n)),         Richter et al. 2008.
    Balzer:    N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010." />
 
-    <param name="chimera_perc" type="float" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. A typical value is 10%." />
+    <param name="chimera_perc" type="text" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. A typical value is 10%." />
 
     <param name="abundance_file" type="data" format="tabular" optional="true" label="Abundance file" help="Specify the relative abundance of the genomes manually in an input file. Each line of the file should contain a sequence name and its relative abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different communities." />
 
@@ -199,18 +183,18 @@ Examples:
    1/ uniform distribution: uniform,
    2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
 
-    <param name="num_libraries" type="integer" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be with &lt;diversity&gt;, &lt;shared_perc&gt; and &lt;permuted_perc&gt;. Assign them different MID tags with &lt;multiplex_mids&gt;." />
+    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option." />
 
     <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
 
     <!-- When Galaxy bug #661 is resolved, then we can really have optional parameters of type "integer" or "float" -->
     <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611      -->
-    <!-- Affects Grinder params: diversity (int), shared_perc (float), permuted_perc (float) and random_seed (int)  -->
-    <param name="diversity" type="integer" value="0" optional="true" label="Diversity (richness)" help="Richness, or number of genomes to include in the shotgun libraries. Use 0 for the maximum diversity possible, i.e. all the genomes from the input file when a single independent library is requested." />
+    <!-- Affected params: diversity (int), shared_perc (float), permuted_perc (float), random_seed (int), num_libraries (int), chimera_perc (float)  -->
+    <param name="diversity" type="text" optional="true" label="Diversity (richness)" help="Richness, or number of genomes to include in the shotgun libraries. Use 0 for the maximum diversity possible, i.e. all the genomes from the input file when a single independent library is requested." />
 
-    <param name="shared_perc" type="float" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of genomes they should have in common." />
+    <param name="shared_perc" type="text" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of genomes they should have in common." />
 
-    <param name="permuted_perc" type="float" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant genomes to permute in rank-abundance." />
+    <param name="permuted_perc" type="text" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant genomes to permute in rank-abundance." />
 
     <param name="random_seed" type="text" optional="true" label="Random seed" help="Seed number to use for the pseudo-random number generator." />
 
