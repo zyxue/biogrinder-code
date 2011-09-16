@@ -93,12 +93,9 @@
         #if str($permuted_perc):
           -permuted_perc    $permuted_perc
         #end if
-
-        ## Need int(str(...)) because $random_seed is an InputValueWrapper object not a string or an integer
-        #if int(str($random_seed)) > 0
+        #if str($random_seed):
           -random_seed      $random_seed
         #end if
-
         #if str($permuted_perc):
           -desc_track       $desc_track
         #end if
@@ -206,13 +203,16 @@ Examples:
 
     <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
 
+    <!-- When Galaxy bug #661 is resolved, then we can really have optional parameters of type "integer" or "float" -->
+    <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611      -->
+    <!-- Affects Grinder params: diversity (int), shared_perc (float), permuted_perc (float) and random_seed (int)  -->
     <param name="diversity" type="integer" value="0" optional="true" label="Diversity (richness)" help="Richness, or number of genomes to include in the shotgun libraries. Use 0 for the maximum diversity possible, i.e. all the genomes from the input file when a single independent library is requested." />
 
     <param name="shared_perc" type="float" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of genomes they should have in common." />
 
     <param name="permuted_perc" type="float" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant genomes to permute in rank-abundance." />
 
-    <param name="random_seed" type="integer" value="0" optional="true" label="Random seed" help="Seed number to use for the pseudo-random number generator." />
+    <param name="random_seed" type="text" optional="true" label="Random seed" help="Seed number to use for the pseudo-random number generator." />
 
     <param name="desc_track" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Read tracking" help="Track read information (reference sequence, position, errors, ...) by writing it in the FASTA read description." />
 
