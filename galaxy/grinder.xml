@@ -1,1 +1,322 @@
-/home/floflooo/Software/galaxy-dist/tools/ngs_simulation/grinder.xml
+<tool id="grinder" name="Grinder" version="0.3.7">
+
+  <!--
+    Author: florent.angly@gmail.com
+    TODO:
+    • bug #403 was resolved, so remove <conditionals> now:
+      <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" />
+      #if str( $forward_reverse ) != "None":
+        -forward_reverse      $forward_reverse
+      #end if
+    • use a Galaxy dataset as input
+    • need to adjust <outputs> for multiple output libraries
+    • put the stdout in a log file
+    • link to full manual
+    •  use &lt;unidirectional&gt; for refering to parameters
+    • how to make newlines in help?
+  -->
+
+  <description>genomic, metagenomic and amplicon read simulator (BETA)</description>
+
+  <requirements>
+    <requirement type="binary">grinder</requirement>
+  </requirements>
+
+  <version_string>grinder --version</version_string>
+
+  <command interpreter="python">
+    stderr_wrapper.py
+      grinder
+        #if $reference_file.specify == "uploaded":
+          -reference_file      $reference_file.value
+        #else if $reference_file.specify == "builtin":
+          -reference_file      $reference_file.values[ 'all_fasta' ].get_fields() )[0][-1] }"
+        #end if
+        #if str($coverage_fold):
+          -coverage_fold    $coverage_fold
+        #end if
+        #if str($total_reads):
+          -total_reads      $total_reads
+        #end if
+        #if str($read_dist):
+          -read_dist        $read_dist
+        #end if
+        #if str($insert_dist):
+          -insert_dist      $insert_dist
+        #end if
+
+        -exclude_chars      $exclude_chars
+        -delete_chars       $delete_chars
+
+        #if str( $forward_reverse ) != "None":
+          -forward_reverse  $forward_reverse
+        #end if
+        #if str($unidirectional):
+          -unidirectional   $unidirectional
+        #end if
+        #if str($length_bias):
+          -length_bias      $length_bias
+        #end if
+        #if str($copy_bias):
+          -copy_bias        $copy_bias
+        #end if
+        #if str($mutation_dist):
+          -mutation_dist    $mutation_dist
+        #end if
+        #if str($mutation_ratio):
+          -mutation_ratio   $mutation_ratio
+        #end if
+        #if str($homopolymer_dist):
+          -homopolymer_dist $homopolymer_dist
+        #end if
+        #if str($chimera_perc):
+          -chimera_perc     $chimera_perc
+        #end if
+        #if str( $abundance_file ) != "None":
+          -abundance_file   $abundance_file
+        #end if
+        #if str($abundance_model):
+          -abundance_model  $abundance_model
+        #end if
+        #if str($num_libraries):
+          -num_libraries    $num_libraries
+        #end if
+        #if str( $multiplex_ids ) != "None":
+          -multiplex_ids   $multiplex_ids
+        #end if
+        -diversity        $diversity
+        -shared_perc      $shared_perc
+        -permuted_perc    $permuted_perc
+        ## Need int(str(...)) because $random_seed is an InputValueWrapper object not a string or an integer
+        #if int(str($random_seed)) > 0
+          -random_seed    $random_seed
+        #end if
+        -desc_track       $desc_track
+        #if str($qual_levels):
+          -qual_levels      $qual_levels
+        #end if
+        #if str( $profile_file ) != "None":
+          -profile_file   $profile_file.value
+        #end if
+  </command>
+
+  <inputs>
+    <!--<param name="reference_file" type="data" format="fasta" label="Reference sequences" help="FASTA file that contains the input reference sequences" />-->
+    ## Maybe useful to have the option to use a file from a reference database
+    <conditional name="reference_file">
+      <param name="specify" type="select" label="Specify">
+        <option value="uploaded">Uploaded file</option>
+        <option value="builtin">Built-in file</option>
+      </param>
+      <when value="builtin">
+        <param name="value" type="select" label="Reference sequences" help="Galaxy built-in FASTA file">
+          <options from_data_table="all_fasta" />
+        </param>
+      </when>
+      <when value="uploaded">
+        <param name="value" type="data" format="fasta" label="Reference sequences" help="FASTA file that contains the input reference sequences" />
+      </when>
+    </conditional>
+
+    <param name="coverage_fold" type="text" value="0.1" optional="true" label="Coverage fold" help="Desired fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify &lt;total_reads&gt;>" />
+
+    <param name="total_reads" type="text" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify &lt;fold_coverage&gt;>" />
+
+    <param name="read_dist" type="text" value="100" optional="true" label="Sequence length distribution" help="Desired sequence length distribution specified as:
+  average length, distribution ('uniform' or 'normal') and standard deviation
+Only the first element is required.
+Examples:
+   1/ All sequences exactly 250 bp long: 250
+   2/ Uniform distribution around 100+-10 bp: 100 uniform 10
+   3/ Read normally distributed with an average of 800 and a standard deviation
+      of 100 bp: 800 normal 100" />
+
+    <param name="insert_dist" type="text" value="0" optional="true" label="Insert size distribution" help="Create shotgun paired end reads (mate pairs) spanning the given insert length (the reads are interior to the insert):
+   0 : off,
+   or: insert size distribution in bp, in the same format as the read length
+       distribution (a typical value is 2,500 bp)
+Two distinct reads are generated whether or not the mate pair overlaps.
+Default: insert_dist.default" />
+
+    <param name="exclude_chars" type="text" value="''" optional="true" label="Characters to exclude" help="Do not create reads containing any of the specified characters (case insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N).">
+
+      <!--
+      ## May need to prevent specific characters from being sanitized by Galaxy
+      <sanitizer>
+        <valid>
+          <add value="'"/>
+          <add value='"'/>
+          <add value="-"/>
+          <add value="."/>
+        </valid>
+      </sanitizer>
+      -->
+
+    </param>
+
+    <param name="delete_chars" type="text" value="''" optional="true" label="Characters to delete" help="Remove the specified characters from the reference sequences (case insensitive), e.g. 'N-' to remove gaps (-) and ambiguities (N)." />
+
+    <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" help="Use amplicon sequencing using the given forward and reverse PCR primer sequences (in a FASTA file, in this order). The second sequence in the FASTA file (the reverse primer) is optional. The sequences should use the IUPAC convention for degenerate residues). Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers respectively (primers that target the v6 to v9 region of the 16S rRNA gene). Genome sequences that do not match the specified primers are excluded. It is recommended to use the &lt;unidirectional&gt; and no &lt;length_bias&gt; options to generate amplicon reads." />
+
+    <param name="unidirectional" type="select" display="radio" value="0" label="Sequencing direction" help="Produce reads just from one strand, by opposition to the reference strand and its reverse complement.">
+      <option value="0">both strands</option>
+      <option value="1">forward strand only</option>
+      <option value="-1">reverse strand only</option>
+    </param>
+
+    <param name="length_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Length bias" help="In shotgun libraries, sample species proportionally to their genome length: at the same relative abundance, larger genomes contribute more reads than smaller genomes." />
+
+    <param name="copy_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Copy number bias" help="In amplicon libraries, sample species proportionally to the number of copies of the target gene: at equal relative abundance, genomes that have multiple copies of the target gene contribute more amplicon reads than genomes that have a single copy. Note: you should use full genomes in the reference file to make use of this option." />
+
+    <param name="mutation_dist" type="text" value="0" optional="true" label="Mutation distribution" help="Introduce sequencing errors in the reads, under the form of mutations (substitutions, insertions and deletions) using a specified frequency distribution:
+   average probability (%),
+   model (uniform, linear),
+   value at 3&apos; end (not applicable for uniform model).
+For example, for Sanger-type errors, use:
+   1.5 linear 2." />
+
+    <param name="mutation_ratio" type="text" value="80 20" optional="true" label="Mutation ratio" help="Indicate the percentage of substitutions and indels (insertions and deletions). For example, use 80 20 (4 substitutions for each indel) for Sanger reads. Note that this parameter has no effect unless you specify the mutation distribution option." />
+
+    <param name="homopolymer_dist" type="text" value="0" optional="true" label="Homopolymer distribution" help="Introduce sequencing errors in the reads under the form of homopolymeric stretches (e.g. AAA, CCCCC) using a specified model (n: homopolymer length).
+   Margulies: N(n, 0.15 * n),               Margulies et al. 2005.
+   Richter:   N(n, 0.15 * sqrt(n)),         Richter et al. 2008.
+   Balzer:    N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010." />
+
+    <param name="chimera_perc" type="float" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. A typical value is 10%." />
+
+    <param name="abundance_file" type="data" format="tabular" optional="true" label="Abundance file" help="Specify the relative abundance of the genomes manually in an input file. Each line of the file should contain a sequence name and its relative abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different communities." />
+
+    <param name="abundance_model" type="text" value="uniform 1" optional="true" label="Rank abundance model" help="Relative abundance model for the input genomes:
+   uniform, linear, powerlaw, logarithmic or exponential.
+Examples:
+   1/ uniform distribution: uniform,
+   2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
+
+    <param name="num_libraries" type="integer" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be with &lt;diversity&gt;, &lt;shared_perc&gt; and &lt;permuted_perc&gt;. Assign them different MID tags with &lt;multiplex_mids&gt;." />
+
+    <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
+
+    <param name="diversity" type="integer" value="0" optional="true" label="Diversity (richness)" help="Richness, or number of genomes to include in the shotgun libraries. Use 0 for the maximum diversity possible, i.e. all the genomes from the input file when a single independent library is requested." />
+
+    <param name="shared_perc" type="float" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of genomes they should have in common." />
+
+    <param name="permuted_perc" type="float" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant genomes to permute in rank-abundance." />
+
+    <param name="random_seed" type="integer" value="0" optional="true" label="Random seed" help="Seed number to use for the pseudo-random number generator." />
+
+    <param name="desc_track" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Read tracking" help="Track read information (reference sequence, position, errors, ...) by writing it in the FASTA read description." />
+
+    <param name="qual_levels" type="text" optional="true" label="Quality score levels" help="Generate basic quality scores for the simulated reads. Good residues are given a specified good score (e.g. 30) and residues that are the result of an insertion or substitution are given a specified bad score (e.g. 10). Specify first the good score and then the bad score, e.g. '30 10'" />
+
+    <param name="profile_file" type="data" format="txt" optional="true" label="Profile file" help="A file that contains Grinder arguments. This is useful if you use many options or often use the same options. Lines with comments (#) are ignored. Consider the profile file, 'simple_profile.txt':
+
+    # A simple Grinder profile
+    -read_dist 105 normal 12
+    -total_reads 1000
+
+Running: grinder -reference_file viral_genomes.fa -profile_file simple_profile.txt
+
+Translates into: grinder -reference_file viral_genomes.fa -read_dist 105 normal 12 -total_reads 1000
+
+Note that the arguments specified in the profile should not be specified again on the command line." />
+
+  </inputs>
+
+  <outputs>
+    <data format="tabular" name="ranks" from_work_dir="grinder-ranks.txt"  label="${tool.name} ranks from ${on_string}"      />
+    <conditional/>
+    <data format="fasta"   name="fasta" from_work_dir="grinder-reads.fa"   label="${tool.name} reads from ${on_string}"      />
+    <data format="qual"    name="qual"  from_work_dir="grinder-reads.qual" label="${tool.name} read quals from ${on_string}"  >
+      <filter>(str(qual_levels))</filter>
+    </data>
+  </outputs>
+
+  <tests>
+    <!--
+      Tests cannot be run because of the non-deterministic element of the simulation.
+      But if you run the following "tests" manually in the browser and check against
+      the output files, they should be very similar to the listed output files.
+    -->
+    <!--
+    <test>
+      <param name="input_type" value="history" />
+      <param name="input1" value="ngs_simulation_in1.fasta" ftype="fasta" />
+      <param name="read_len" value="76" />
+      <param name="avg_coverage" value="200" />
+      <param name="error_rate" value="0.001" />
+      <param name="num_sims" value="25" />
+      <param name="polymorphism" value="0.02,0.04,0.1" />
+      <param name="detection_thresh" value="0.01,0.02" />
+      <param name="summary_out" value="true" />
+      <output name="output_png" file="ngs_simulation_out1.png" />
+      <output name="output_summary" file="ngs_simulation_out2.tabular" />
+    </test>
+    <test>
+      <param name="input_type" value="built-in" />
+      <param name="genome" value="pUC18" />
+      <param name="read_len" value="50" />
+      <param name="avg_coverage" value="150" />
+      <param name="error_rate" value="0.005" />
+      <param name="num_sims" value="25" />
+      <param name="polymorphism" value="0.001,0.005" />
+      <param name="detection_thresh" value="0.001,0.002" />
+      <param name="summary_out" value="false" />
+      <output name="output_png" file="ngs_simulation_out3.png" />
+    </test>
+    -->
+  </tests>
+
+  <help>
+
+**What it does**
+
+Grinder is a program to create random shotgun and amplicon sequence libraries
+based on reference sequences in a FASTA file. Features include:
+* shotgun library or amplicon library
+* arbitrary read length distribution and number of reads
+* simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
+* support for creating paired-end (mate pair) datasets
+* specific rank-abundance settings or manually given abundance for each genome
+* creation of datasets with a given richness (alpha diversity)
+* independent datasets can share a variable number of genomes (beta diversity)
+* modeling of the bias created by varying genome lengths or gene copy number
+* profile mechanism to store preferred options
+* API to automate the creation of a large number of simulated datasets
+
+**Output**
+
+For each library requested, a first file contains the abundance of the species
+in the simulated community created, e.g.:
+
+  # rank  seqID   rel. abundance
+  1       86715_Lachnospiraceae   0.367936925098555
+  2       6439_Neisseria_polysaccharea    0.183968462549277
+  3       103712_Fusobacterium_nucleatum  0.122645641699518
+  4       103024_Frigoribacterium 0.0919842312746386
+  5       129066_Streptococcus_pyogenes   0.0735873850197109
+  6       106485_Pseudomonas_aeruginosa   0.0613228208497591
+  7       13824_Veillonella_criceti       0.0525624178712221
+  8       28044_Lactosphaera      0.0459921156373193
+
+The second file is a FASTA file containing shotgun or amplicon reads, e.g.:
+
+  >1 source=13824_Veillonella_criceti position=89-1088 strand=+
+  ACCAACCTGCCCTTCAGAGGGGGATAACAACGGGAAACCGTTGCTAATACCGCGTACGAA
+  TGGACTTCGGCATCGGAGTTCATTGAAAGGTGGCCTCTATTTATAAGCTATCGCTGAAGG
+  AGGGGGTTGCGTCTGATTAGCTAGTTGGAGGGGTAATGGCCCACCAAGGCAA
+
+  >2 source=103712_Fusobacterium_nucleatum position=2-1001 strand=+
+  TGAACGAAGAGTTTGATCCTGGCTCAGGATGAACGCTGACAGAATGCTTAACACATGCAA
+  GTCAACTTGAATTTGGGTTTTTAACTTAGGTTTGGG
+
+If you used the qual_levels option, a third file representing the quality scores
+of the read is created.
+
+  >1 source=13824_Veillonella_criceti position=89-1088 strand=+
+  30 30 30 10 30 30 ...
+
+  </help>
+
+</tool>
+
+
