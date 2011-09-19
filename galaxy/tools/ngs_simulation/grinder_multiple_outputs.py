@@ -50,6 +50,10 @@ def __main__():
         # Assign the dataset format
         if extension == '.txt': 
            format = 'text'
+        elif extension == '.fq':
+           format = 'fastqsanger'
+        elif extension == '.fastq':
+           format = 'fastqsanger'
         elif extension == '.fa':
            format = 'fasta'
         elif extension == '.fna':
@@ -58,10 +62,6 @@ def __main__():
            format = 'fasta'
         elif extension == '.fasta':
            format = 'fasta'
-        elif extension == '.fq':
-           format = 'fastq'
-        elif extension == '.fastq':
-           format = 'fastq'
         elif extension == '.qual':
            format = 'qual'
         else:
@@ -85,8 +85,9 @@ def __main__():
         name = name + '-' + lib_type        
 
         # Move the dataset to the proper place
-        optional_spec = 'asdf'
-        destination = os.path.join( output_dir, 'primary_%s_%s_visible_%s_%s' % ( output_id, name, format, optional_spec ) )
+        #db_ref = ''
+        #destination = os.path.join( output_dir, 'primary_%s_%s_visible_%s_%s' % (output_id, name, format, db_ref) )
+        destination = os.path.join( output_dir, 'primary_%s_%s_visible_%s' % (output_id, name, format) )
 
         print "moving %s to %s" % (source, destination)
 
