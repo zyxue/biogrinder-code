@@ -2472,7 +2472,7 @@ sub new_subseq {
      -track       => $tracking,
      -qual_levels => $qual_levels,
   );
-  
+
   # Record location of amplicon on reference sequence in the sequence description
   my $amplicon_desc = $seq_obj->{_amplicon};
   if (defined $amplicon_desc) {
@@ -2491,7 +2491,8 @@ sub new_subseq {
     }
     $newseq->strand($orientation);
     my $new_desc = $newseq->desc;
-    $newseq->desc( $new_desc =~ s/strand=(\S+)/strand=$orientation/g );
+    $new_desc =~ s/strand=(\S+)/strand=$orientation/g;
+    $newseq->desc( $new_desc );
   }
 
   return $newseq;

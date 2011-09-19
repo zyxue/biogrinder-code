@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 15;
+plan tests => 21;
 
 
 my ($factory, $nof_reads, $read);
@@ -17,6 +17,29 @@ my ($factory, $nof_reads, $read);
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
    -total_reads    => 10                         ,
+   -unidirectional => 0                          ,
+   -desc_track     => 1                          ,
+), 'Shotgun tracking';
+
+ok $read = $factory->next_read;
+like $read->desc, qr/reference=.*position=.*strand=.*/;
+
+
+ok $factory = Grinder->new(
+   -reference_file => data('shotgun_database.fa'),
+   -total_reads    => 10                         ,
+   -unidirectional => 1                          ,
+   -desc_track     => 1                          ,
+), 'Shotgun tracking';
+
+ok $read = $factory->next_read;
+like $read->desc, qr/reference=.*position=.*strand=.*/;
+
+
+ok $factory = Grinder->new(
+   -reference_file => data('shotgun_database.fa'),
+   -total_reads    => 10                         ,
+   -unidirectional => -1                         ,
    -desc_track     => 1                          ,
 ), 'Shotgun tracking';
 
@@ -35,6 +58,7 @@ ok $factory = Grinder->new(
 
 ok $read = $factory->next_read;
 like $read->desc, qr/reference=\S+.*amplicon=\d+-\d+.*position=.*strand=.*/;
+
 
 ok $factory = Grinder->new(
    -reference_file  => data('amplicon_database.fa'),
