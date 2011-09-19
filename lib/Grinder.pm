@@ -313,6 +313,15 @@ Default: reference_file.default
    reference_file.type: readable
    reference_file.default: '-'
 
+=item -tr <total_reads> | -total_reads <total_reads>
+
+Number of shotgun or amplicon reads to generate for each library. Do not specify
+this if you specify the coverage. Default: 
+
+=for Euclid:
+   total_reads.type: +integer
+   total_reads.default: 100
+
 =item -cf <coverage_fold> | -coverage_fold <coverage_fold>
 
 Desired fold coverage of the input reference sequences (the output FASTA length divided
@@ -321,16 +330,7 @@ Default: coverage_fold.default x
 
 =for Euclid:
    coverage_fold.type: +number
-   coverage_fold.default: 0.1
    coverage_fold.excludes: total_reads
-
-=item -tr <total_reads> | -total_reads <total_reads>
-
-Number of shotgun or amplicon reads to generate for each library. Do not specify
-this if you specify the coverage.
-
-=for Euclid:
-   total_reads.type: +integer
 
 =back
 
