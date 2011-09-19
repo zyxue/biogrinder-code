@@ -1,10 +1,10 @@
-<tool id="grinder" name="Grinder" version="0.3.7">
+<tool id="grinder" name="Grinder" version="0.3.7" force_history_refresh="True">
 
   <!--
     Author: florent.angly@gmail.com
     TODO:
+    • See bfast tool (tools/sr_mapping/bfast_wrapper.xml) for how to use datatables easily
     • Basic tests
-    • Need to adjust <outputs> for multiple output libraries
     • Link to full manual
     • Better sync with Grinder parameters, defaults and help
   -->
@@ -17,92 +17,106 @@
 
   <version_string>grinder --version</version_string>
 
-  <command interpreter="python">
-    stderr_wrapper.py
+  <command>
+    #set $tool_dir = os.path.join( os.path.abspath($__root_dir__), 'tools', 'ngs_simulation' )
+    #set $script1  = os.path.join( $tool_dir, 'stderr_wrapper.py' )
+    #set $script2  = os.path.join( $tool_dir, 'grinder_multiple_outputs.py' )
+
+    $script1
       grinder
-        #if $reference_file.specify == "builtin":
-          -reference_file   ${ filter( lambda x: str( x[0] ) == str( $reference_file.value ), $__app__.tool_data_tables[ 'all_fasta' ].get_fields() )[0][-1] }
-        #else if $reference_file.specify == "uploaded":
-          -reference_file   $reference_file.value
-        #end if
-        #if str($coverage_fold):
-          -coverage_fold    $coverage_fold
-        #end if
-        #if str($total_reads):
-          -total_reads      $total_reads
-        #end if
-        #if str($read_dist):
-          -read_dist        $read_dist
-        #end if
-        #if str($insert_dist):
-          -insert_dist      $insert_dist
-        #end if
-        #if str($exclude_chars):
-          -exclude_chars    $exclude_chars
-        #end if
-        #if str($delete_chars):
-          -delete_chars     $delete_chars
-        #end if
-        #if str($forward_reverse) != "None":
-          -forward_reverse  $forward_reverse
-        #end if
-        #if str($unidirectional):
-          -unidirectional   $unidirectional
-        #end if
-        #if str($length_bias):
-          -length_bias      $length_bias
-        #end if
-        #if str($copy_bias):
-          -copy_bias        $copy_bias
-        #end if
-        #if str($mutation_dist):
-          -mutation_dist    $mutation_dist
-        #end if
-        #if str($mutation_ratio):
-          -mutation_ratio   $mutation_ratio
-        #end if
-        #if str($homopolymer_dist):
-          -homopolymer_dist $homopolymer_dist
-        #end if
-        #if str($chimera_perc):
-          -chimera_perc     $chimera_perc
-        #end if
-        #if str($abundance_file) != "None":
-          -abundance_file   $abundance_file
-        #end if
-        #if str($abundance_model):
-          -abundance_model  $abundance_model
-        #end if
-        #if str($num_libraries):
-          -num_libraries    $num_libraries
-        #end if
-        #if str($multiplex_ids) != "None":
-          -multiplex_ids    $multiplex_ids
-        #end if
-        #if str($diversity):
-          -diversity        $diversity
-        #end if
-        #if str($shared_perc):
-          -shared_perc      $shared_perc
-        #end if
-        #if str($permuted_perc):
-          -permuted_perc    $permuted_perc
-        #end if
-        #if str($random_seed):
-          -random_seed      $random_seed
-        #end if
-        #if str($permuted_perc):
-          -desc_track       $desc_track
-        #end if
-        #if str($qual_levels):
-          -qual_levels      $qual_levels
-        #end if
-        #if str($profile_file) != "None":
-          -profile_file     $profile_file.value
-        #end if
-        <!-- When Galaxy bug #661 is resolved, then we can use the same method to check for all optional argument  -->
-        <!-- i.e. either   if str($param) != "None":   or   if str($param):                                        -->
-        <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611 -->
+      #if $reference_file.specify == "builtin":
+        -reference_file   ${ filter( lambda x: str( x[0] ) == str( $reference_file.value ), $__app__.tool_data_tables[ 'all_fasta' ].get_fields() )[0][-1] }
+      #else if $reference_file.specify == "uploaded":
+        -reference_file   $reference_file.value
+      #end if
+      #if str($coverage_fold):
+        -coverage_fold    $coverage_fold
+      #end if
+      #if str($total_reads):
+        -total_reads      $total_reads
+      #end if
+      #if str($read_dist):
+        -read_dist        $read_dist
+      #end if
+      #if str($insert_dist):
+        -insert_dist      $insert_dist
+      #end if
+      #if str($exclude_chars):
+        -exclude_chars    $exclude_chars
+      #end if
+      #if str($delete_chars):
+        -delete_chars     $delete_chars
+      #end if
+      #if str($forward_reverse) != "None":
+        -forward_reverse  $forward_reverse
+      #end if
+      #if str($unidirectional):
+        -unidirectional   $unidirectional
+      #end if
+      #if str($length_bias):
+        -length_bias      $length_bias
+      #end if
+      #if str($copy_bias):
+        -copy_bias        $copy_bias
+      #end if
+      #if str($mutation_dist):
+        -mutation_dist    $mutation_dist
+      #end if
+      #if str($mutation_ratio):
+        -mutation_ratio   $mutation_ratio
+      #end if
+      #if str($homopolymer_dist):
+        -homopolymer_dist $homopolymer_dist
+      #end if
+      #if str($chimera_perc):
+        -chimera_perc     $chimera_perc
+      #end if
+      #if str($abundance_file) != "None":
+        -abundance_file   $abundance_file
+      #end if
+      #if str($abundance_model):
+        -abundance_model  $abundance_model
+      #end if
+      #if str($num_libraries):
+        -num_libraries    $num_libraries
+      #end if
+      #if str($multiplex_ids) != "None":
+        -multiplex_ids    $multiplex_ids
+      #end if
+      #if str($diversity):
+        -diversity        $diversity
+      #end if
+      #if str($shared_perc):
+        -shared_perc      $shared_perc
+      #end if
+      #if str($permuted_perc):
+        -permuted_perc    $permuted_perc
+      #end if
+      #if str($random_seed):
+        -random_seed      $random_seed
+      #end if
+      #if str($permuted_perc):
+        -desc_track       $desc_track
+      #end if
+      #if str($qual_levels):
+        -qual_levels      $qual_levels
+      #end if
+      #if str($profile_file) != "None":
+        -profile_file     $profile_file.value
+      #end if
+      <!-- When Galaxy bug #661 is resolved, then we can use the same method to check for all optional argument  -->
+      <!-- i.e. either   if str($param) != "None":   or   if str($param):                                        -->
+      <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611 -->
+
+      #set $output_dir = $__new_file_path__
+      -output_dir         $output_dir
+
+      #set $base_name  = $output.id
+      -base_name          $base_name
+    ;
+
+    $script2 $output_dir $base_name
+
   </command>
 
   <inputs>
@@ -182,7 +196,7 @@ Examples:
    1/ uniform distribution: uniform,
    2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
 
-    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option. **Note** There is no support for multiple libraries in this Galaxy GUI at the moment!" />
+    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option." />
 
     <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
 
@@ -215,6 +229,7 @@ Note that the arguments specified in the profile should not be specified again o
 
   </inputs>
 
+  <!--
   <outputs>
     <data format="tabular" name="ranks" from_work_dir="grinder-ranks.txt"  label="${tool.name} ranks from ${on_string}"      />
     <conditional/>
@@ -222,6 +237,11 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual"  from_work_dir="grinder-reads.qual" label="${tool.name} read quals from ${on_string}"  >
       <filter>(str(qual_levels))</filter>
     </data>
+  </outputs>
+  -->
+
+  <outputs>
+    <data format="text" name="output" />
   </outputs>
 
   <tests>
@@ -241,8 +261,8 @@ Note that the arguments specified in the profile should not be specified again o
       <output name="ranks" file="" />
       <output name="fasta" file="" />
       <output name="qual" file="" />
-    -->
     </test>
+    -->
 
   </tests>
 
@@ -252,16 +272,17 @@ Note that the arguments specified in the profile should not be specified again o
 
 Grinder is a program to create random shotgun and amplicon sequence libraries
 based on reference sequences in a FASTA file. Features include:
-* shotgun library or amplicon library
-* arbitrary read length distribution and number of reads
-* simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
-* support for creating paired-end (mate pair) datasets
-* specific rank-abundance settings or manually given abundance for each genome
-* creation of datasets with a given richness (alpha diversity)
-* independent datasets can share a variable number of genomes (beta diversity)
-* modeling of the bias created by varying genome lengths or gene copy number
-* profile mechanism to store preferred options
-* API to automate the creation of a large number of simulated datasets
+
+  * shotgun library or amplicon library
+  * arbitrary read length distribution and number of reads
+  * simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
+  * support for creating paired-end (mate pair) datasets
+  * specific rank-abundance settings or manually given abundance for each genome
+  * creation of datasets with a given richness (alpha diversity)
+  * independent datasets can share a variable number of genomes (beta diversity)
+  * modeling of the bias created by varying genome lengths or gene copy number
+  * profile mechanism to store preferred options
+  * API to automate the creation of a large number of simulated datasets
 
 
 **Input**
@@ -277,19 +298,19 @@ by Galaxy users in their history.
 **Output**
 
 For each library requested, a first file contains the abundance of the species
-in the simulated community created, e.g.:
+in the simulated community created, e.g.::
 
-  # rank  seqID   rel. abundance
-  1       86715_Lachnospiraceae   0.367936925098555
-  2       6439_Neisseria_polysaccharea    0.183968462549277
-  3       103712_Fusobacterium_nucleatum  0.122645641699518
-  4       103024_Frigoribacterium 0.0919842312746386
-  5       129066_Streptococcus_pyogenes   0.0735873850197109
-  6       106485_Pseudomonas_aeruginosa   0.0613228208497591
-  7       13824_Veillonella_criceti       0.0525624178712221
-  8       28044_Lactosphaera      0.0459921156373193
+  # rank  seqID                           rel. abundance
+  1       86715_Lachnospiraceae           0.367936925098555 
+  2       6439_Neisseria_polysaccharea    0.183968462549277 
+  3       103712_Fusobacterium_nucleatum  0.122645641699518 
+  4       103024_Frigoribacterium         0.0919842312746386 
+  5       129066_Streptococcus_pyogenes   0.0735873850197109 
+  6       106485_Pseudomonas_aeruginosa   0.0613228208497591 
+  7       13824_Veillonella_criceti       0.0525624178712221 
+  8       28044_Lactosphaera              0.0459921156373193 
 
-The second file is a FASTA file containing shotgun or amplicon reads, e.g.:
+The second file is a FASTA file containing shotgun or amplicon reads, e.g.::
 
   >1 reference=13824_Veillonella_criceti position=89-1088 strand=+
   ACCAACCTGCCCTTCAGAGGGGGATAACAACGGGAAACCGTTGCTAATACCGCGTACGAA
@@ -301,7 +322,7 @@ The second file is a FASTA file containing shotgun or amplicon reads, e.g.:
   GTCAACTTGAATTTGGGTTTTTAACTTAGGTTTGGG
 
 If you specify the quality score levels option, a third file representing the
-quality scores of the reads is created.
+quality scores of the reads is created::
 
   >1 reference=103712_Fusobacterium_nucleatum position=2-1001 strand=+
   30 30 30 10 30 30 ...
@@ -310,5 +331,4 @@ quality scores of the reads is created.
   </help>
 
 </tool>
-
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 """
-Wrapper that execute a program and its arguments but reports standard error
-messages only if the program exit status was not 0
+Wrapper that executes a program with its arguments but reports standard error
+messages only if the program exit status was not 0. This is useful to prevent
+Galaxy to interpret that there was an error if something was printed on stderr,
+e.g. if this was simply a warning.
 Example: ./stderr_wrapper.py myprog arg1 -f arg2
 Author: Florent Angly
 """
@@ -28,11 +30,11 @@ def __main__():
     #args.append( ">" )
     #args.append( "/dev/null" )
 
-    cmdline = " ".join(args)
-    print cmdline
+    #cmdline = " ".join(args)
+    #print cmdline
     try:
         # Run program
-        proc = subprocess.Popen( args=cmdline, shell=True, stderr=subprocess.PIPE )
+        proc = subprocess.Popen( args=args, shell=False, stderr=subprocess.PIPE )
         returncode = proc.wait()
         # Capture stderr, allowing for case where it's very large
         stderr = ''
@@ -47,9 +49,9 @@ def __main__():
         # Running Grinder failed: write error message to stderr
         if returncode != 0:
             raise Exception, stderr
-    except Exception, e: 
+    except Exception, e:
         # Running Grinder failed: write error message to stderr
-        stop_err( 'Error:\n' + str( e ) )
+        stop_err( 'Error: ' + str( e ) )
 
 
 if __name__ == "__main__": __main__()
