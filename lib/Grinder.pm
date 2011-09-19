@@ -10,7 +10,7 @@ use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl;
 use Math::Random::MT qw(srand rand);
 
-our $VERSION = '0.3.7';
+our $VERSION = '0.3.x';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -616,21 +616,33 @@ it in the read description.
 Default: desc_track.default
 
 =for Euclid:
-   desc_track.type: number, desc_track == 0 || desc_track == 1
+   desc_track.type: integer, desc_track == 0 || desc_track == 1
    desc_track.type.error: <desc_track> must be 0 or 1 (not desc_track)
    desc_track.default: 1
 
 =item -ql <qual_levels>... | -qual_levels <qual_levels>...
 
-Generate very basic quality scores for the simulated reads. Good residues are
-given a specified good score (e.g. 30) and residues that are the result of an
-insertion or substitution are given a specified bad score (e.g. 10). Specify
-first the good score and then the bad score on the command-line, e.g.: 30 10
+Generate basic quality scores for the simulated reads. Good residues are given a
+specified good score (e.g. 30) and residues that are the result of an insertion
+or substitution are given a specified bad score (e.g. 10). Specify first the
+good score and then the bad score on the command-line, e.g.: 30 10
 Default: qual_levels.default
 
 =for Euclid:
    qual_levels.type: 0+integer
    qual_levels.default: [ ]
+
+=item -fq <fastq_output> | -fastq_output <fastq_output>
+
+Write the generated reads in FASTQ format (Sanger variant) instead of FASTA and
+QUAL. <qual_levels> need to be specified for this option to be effective.
+
+Default: fastq_output.default
+
+=for Euclid:
+   fastq_output.type: integer, fastq_output == 0 || fastq_output == 1
+   fastq_output.type.error: <fastq_output> must be 0 or 1 (not fastq_output)
+   fastq_output.default: 0
 
 =item -bn <base_name> | -base_name <base_name>
 
@@ -822,12 +834,18 @@ sub Grinder {
     if ($factory->{num_libraries} > 1) {
       $lib_str = '-'.sprintf('%0'.length($factory->{num_libraries}).'d', $cur_lib);
     }
-    my $out_fasta_file = File::Spec->catfile($factory->{output_dir}, 
-        $factory->{base_name}.$lib_str."-reads.fa");
+    my $out_reads_basename = File::Spec->catfile($factory->{output_dir}, 
+      $factory->{base_name}.$lib_str.'-reads.');
+    my $out_fasta_file;
     my $out_qual_file;
-    if (scalar @{$factory->{qual_levels}} > 0) {
-      $out_qual_file = File::Spec->catfile($factory->{output_dir}, 
-        $factory->{base_name}.$lib_str."-reads.qual");
+    my $out_fastq_file;
+    if ( $factory->{fastq_output} ) {
+      $out_fastq_file = $out_reads_basename . 'fastq';
+    } else {
+      $out_fasta_file = $out_reads_basename . 'fa';
+      if (scalar @{$factory->{qual_levels}} > 0) {
+        $out_qual_file = $out_reads_basename . 'qual';
+      }
     }
     my $out_ranks_file = File::Spec->catfile($factory->{output_dir},
       $factory->{base_name}.$lib_str."-ranks.txt");
@@ -836,9 +854,20 @@ sub Grinder {
     $factory->write_community_structure($c_struct, $out_ranks_file);
 
     # Prepare output FASTA file
-    my $out_fasta = Bio::SeqIO->new( -format => 'fasta',
+    my $out_fastq;
+    if ( defined $out_fastq_file ) {
+       $out_fastq = Bio::SeqIO->new( -format  => 'fastq',
+                                     -variant => 'sanger',
+                                     -flush   => 0,
+                                     -file    => ">$out_fastq_file" );
+    }
+
+    my $out_fasta;
+    if ( defined $out_fasta_file ) {
+       $out_fasta = Bio::SeqIO->new( -format => 'fasta',
                                      -flush  => 0,
                                      -file   => ">$out_fasta_file" );
+    }
 
     my $out_qual;
     if ( defined $out_qual_file ) {
@@ -847,17 +876,21 @@ sub Grinder {
                                     -file   => ">$out_qual_file" );
     }
 
+
     # Library report
     my $diversity = $factory->{diversity}[$cur_lib-1];
-    library_report( $cur_lib, $out_ranks_file, $out_fasta_file, $out_qual_file,
-      $factory->{cur_coverage_fold}, $factory->{cur_total_reads}, $diversity);
+    library_report( $cur_lib, $out_ranks_file, $out_fastq_file, $out_fasta_file,
+      $out_qual_file, $factory->{cur_coverage_fold}, $factory->{cur_total_reads},
+      $diversity);
 
     # Generate shotgun or amplicon reads and write them to a file
     while ( my $read = $factory->next_read ) {
-      $out_fasta->write_seq($read);
+      $out_fastq->write_seq($read) if defined $out_fastq;
+      $out_fasta->write_seq($read) if defined $out_fasta;
       $out_qual->write_seq($read) if defined $out_qual
     }
-    $out_fasta->close;
+    $out_fastq->close if defined $out_fastq;
+    $out_fasta->close if defined $out_fasta;
     $out_qual->close if defined $out_qual;
   }
 
@@ -905,12 +938,14 @@ sub write_community_structure {
 
 
 sub library_report {
-  my ($cur_lib, $ranks_file, $fasta_file, $qual_file, $coverage, $nof_seqs, $diversity) = @_;
+  my ($cur_lib, $ranks_file, $fastq_file, $fasta_file, $qual_file, $coverage,
+    $nof_seqs, $diversity) = @_;
   my $format = '%.3f';
   $coverage = sprintf($format, $coverage);
   print "Shotgun library $cur_lib:\n";
   print "   Community structure  = $ranks_file\n";
-  print "   FASTA file           = $fasta_file\n";
+  print "   FASTQ file           = $fastq_file\n" if defined $fastq_file;
+  print "   FASTA file           = $fasta_file\n" if defined $fasta_file;
   print "   QUAL file            = $qual_file\n" if defined $qual_file;
   print "   Library coverage     = $coverage x\n";
   print "   Number of reads      = $nof_seqs\n";
@@ -1098,6 +1133,12 @@ sub initialize {
 
   # Parameter processing: homopolymer model
   $self->{homopolymer_dist} = lc $self->{homopolymer_dist};
+
+  # Parameter processing: fastq_output requires qual_levels
+  if ( ($self->{fastq_output}) &&
+       (not scalar @{$self->{qual_levels}} > 0) ) {
+    die "Error: <qual_levels> needs to be specified to output FASTQ reads\n";
+  }
 
   # Seed the random number generator (manually or by generating a random seed)
   if (not defined $self->{random_seed}) {

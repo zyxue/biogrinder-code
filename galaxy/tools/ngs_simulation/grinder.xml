@@ -9,7 +9,7 @@
     • Better sync with Grinder parameters, defaults and help
   -->
 
-  <description>genomic, metagenomic and amplicon read simulator (BETA)</description>
+  <description>genomic, metagenomic and amplicon read simulator</description>
 
   <requirements>
     <requirement type="binary">grinder</requirement>
@@ -100,6 +100,9 @@
       #end if
       #if str($qual_levels):
         -qual_levels      $qual_levels
+      #end if
+      #if str($fastq_output):
+        -fastq_output     $fastq_output
       #end if
       #if str($profile_file) != "None":
         -profile_file     $profile_file.value
@@ -214,6 +217,10 @@ Examples:
     <param name="desc_track" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Read tracking" help="Track read information (reference sequence, position, errors, ...) by writing it in the FASTA read description." />
 
     <param name="qual_levels" type="text" optional="true" label="Quality score levels" help="Generate basic quality scores for the simulated reads. Good residues are given a specified good score (e.g. 30) and residues that are the result of an insertion or substitution are given a specified bad score (e.g. 10). Specify first the good score and then the bad score, e.g. '30 10'" />
+
+    <param name="fastq_output" type="boolean" truevalue="1" falsevalue="0" checked="false" label="FASTQ output" help="
+Write the generated reads in FASTQ format (Sanger variant) instead of FASTA and
+QUAL. Quality score levels need to be specified for this option to be effective." />
 
     <param name="profile_file" type="data" format="txt" optional="true" label="Profile file" help="A file that contains Grinder arguments. This is useful if you use many options or often use the same options. Lines with comments (#) are ignored. Consider the profile file, 'simple_profile.txt':
 
