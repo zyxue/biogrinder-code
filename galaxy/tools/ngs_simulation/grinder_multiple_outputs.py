@@ -72,7 +72,7 @@ def __main__():
         match = q.search(basename)
         if match != None:
           lib_num = match.group(1)
-          name = 'lib%s' % lib_num
+          name = 'lib%s-' % lib_num
 
         match = r.search(basename)
         if match == None:
@@ -82,7 +82,7 @@ def __main__():
         if format == 'qual':
           lib_type = 'qual'
 
-        name = name + '-' + lib_type        
+        name = name + lib_type        
 
         # Move the dataset to the proper place
         #db_ref = ''
