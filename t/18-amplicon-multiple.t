@@ -6,31 +6,12 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 1204;
+plan tests => 1808;
 
 
-my ($factory, $read, $nof_reads);
+my ($factory, $read, $nof_reads, %got_amplicons, %expected_amplicons);
 
-# Template with several matching amplicons and forward and reverse primers
-
-ok $factory = Grinder->new(
-   -reference_file  => data('multiple_amplicon_database.fa'),
-   -forward_reverse => data('forward_reverse_primers.fa')   ,
-   -length_bias     => 0                                    ,
-   -unidirectional  => 1                                    ,
-   -read_dist       => 100                                  ,
-   -total_reads     => 100                                  ,
-), 'Forward and reverse primers';
-
-$nof_reads = 0;
-while ( $read = $factory->next_read ) {
-   $nof_reads++;
-   ok_read_forward_reverse($read, 1, $nof_reads);
-};
-is $nof_reads, 100;
-
-
-# Template with several matching amplicons and forward primer
+# Template with several matching amplicons and forward primer only
 
 ok $factory = Grinder->new(
    -reference_file  => data('multiple_amplicon_database.fa'),
@@ -47,6 +28,54 @@ while ( $read = $factory->next_read ) {
    ok_read_forward_only($read, 1, $nof_reads);
 };
 is $nof_reads, 100;
+
+# Template with several matching amplicons and forward and reverse primers
+
+ok $factory = Grinder->new(
+   -reference_file  => data('multiple_amplicon_database.fa'),
+   -forward_reverse => data('forward_reverse_primers.fa')   ,
+   -length_bias     => 0                                    ,
+   -unidirectional  => 1                                    ,
+   -read_dist       => 100                                  ,
+   -total_reads     => 100                                  ,
+), 'Forward and reverse primers';
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   $got_amplicons{$read->seq} = undef;
+   ok_read_forward_reverse($read, 1, $nof_reads);
+};
+is $nof_reads, 100;
+%expected_amplicons = (
+   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
+);
+is_deeply( \%got_amplicons, \%expected_amplicons );
+undef %got_amplicons;
+
+
+# Template with several nested amplicons and forward and reverse primers
+
+ok $factory = Grinder->new(
+   -reference_file  => data('nested_amplicon_database.fa'),
+   -forward_reverse => data('forward_reverse_primers.fa')   ,
+   -length_bias     => 0                                    ,
+   -unidirectional  => 1                                    ,
+   -read_dist       => 100                                  ,
+   -total_reads     => 100                                  ,
+), 'Forward and reverse primers, nested amplicons';
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   $got_amplicons{$read->seq} = undef;
+   ok_read_forward_reverse($read, 1, $nof_reads);
+};
+is $nof_reads, 100;
+is_deeply( \%got_amplicons, \%expected_amplicons );
+undef %got_amplicons;
+
 
 
 sub ok_read_forward_reverse {

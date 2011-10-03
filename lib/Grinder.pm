@@ -2324,6 +2324,13 @@ sub database_extract_amplicons {
     while ( $seqstr =~ m/($forward_regexp.*?$reverse_regexp)/g ) {
       my $end      = pos($seqstr);
       my $start    = $end - length($1) + 1;
+
+      # Now trim the left end to obtain the shortest amplicon
+      my $ampliconstr = substr $seqstr, $start - 1, $end - $start + 1;
+      if ($ampliconstr =~ m/$forward_regexp.*($forward_regexp)/g) {
+         $start += pos($ampliconstr) - length($1);
+      }
+
       my $amplicon = $seq->trunc($start, $end);
       $amplicon->{_amplicon} = $start.'-'.$end;
       push @amplicons, $amplicon;

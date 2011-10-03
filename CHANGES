@@ -7,6 +7,7 @@ Revision history for Grinder
         Generating 100 reads by default instead of coverage 0.1x
         Fixed bug where read description was not created if unidirectional was set to -1
         Support for writing the output reads in FASTQ format (Sanger variant)
+        Support for nested and overlapping amplicons
 
 0.3.7   13-Sep-2011
         Fixed bug in richter and margulies homopolymer error models
