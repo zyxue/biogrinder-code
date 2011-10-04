@@ -2304,11 +2304,8 @@ sub database_create {
 sub database_extract_amplicons {
   my ($self, $seq, $forward_regexp, $reverse_regexp, $ids_to_keep) = @_;
   # A database sequence can have several amplicons, e.g. a genome can have 
-  # several 16S genes. Extract all amplicons from a sequence. Only the shortest
-  # amplicons are returned, which means that for a sequence that matches the
-  # primer twice, there are 3 primer combinations, but only two amplicons are
-  # returned, not three.
-
+  # several 16S genes. Extract all amplicons from a sequence but take only the
+  # shortest when amplicons are nested.
   my $seqstr = $seq->seq;
   my $seqid  = $seq->id;
   my @amplicons;
@@ -2344,7 +2341,6 @@ sub database_extract_amplicons {
        (scalar @amplicons == 0         ) ) {
     die "Error: Requested sequence $seqid does not match the specified forward primer.\n";
   }
-
   return \@amplicons;
 }
 
