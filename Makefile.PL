@@ -1,6 +1,5 @@
 use inc::Module::Install;
 
-
 # Package information
 
 name     'Grinder';
@@ -31,6 +30,7 @@ author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
 author_requires 'Module::Install::ReadmeFromPod';
 author_requires 'Module::Install::AutoManifest';
+###author_requires 'Module::Install::Debian::Perl';
 author_requires 'Statistics::R'  => '0.21';
 
 
@@ -49,6 +49,11 @@ install_script 'utils/change_paired_read_orientation';
 # Generate MANIFEST file
 
 auto_manifest();
+
+
+# Provide mechanism to generate a deb package
+
+###debian();
 
 
 # Generate Makefile and META.yml files

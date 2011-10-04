@@ -3,7 +3,7 @@ Revision history for Grinder
 0.3.x   
         Tests do not fail if the optional dependency Statistics::R is not installed
         Graphical interface for the Galaxy project
-        Tested grinder on windows. Works fine!
+        Tested grinder on Windows. Works fine!
         Generating 100 reads by default instead of coverage 0.1x
         Fixed bug where read description was not created if unidirectional was set to -1
         Support for writing the output reads in FASTQ format (Sanger variant)
