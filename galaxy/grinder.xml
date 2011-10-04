@@ -1,4 +1,4 @@
-<tool id="grinder" name="Grinder" version="0.3.7" force_history_refresh="True">
+<tool id="grinder" name="Grinder" version="0.3.8" force_history_refresh="True">
 
   <!--
     Author: florent.angly@gmail.com
