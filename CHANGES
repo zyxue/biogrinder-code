@@ -1,13 +1,13 @@
 Revision history for Grinder
 
-0.3.x   
-        Tests do not fail if the optional dependency Statistics::R is not installed
+0.3.8   04-Oct-2011
         Graphical interface for the Galaxy project
-        Tested grinder on Windows. Works fine!
-        Generating 100 reads by default instead of coverage 0.1x
-        Fixed bug where read description was not created if unidirectional was set to -1
         Support for writing the output reads in FASTQ format (Sanger variant)
         Support for nested and overlapping amplicons
+        Tests do not fail if the optional dependency Statistics::R is not installed
+        Tested that Grinder works 100% on Windows
+        Generating 100 reads by default instead of coverage 0.1x
+        Fixed bug where read description was not created if unidirectional was set to -1
 
 0.3.7   13-Sep-2011
         Fixed bug in richter and margulies homopolymer error models
