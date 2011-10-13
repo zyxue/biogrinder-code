@@ -1,5 +1,9 @@
 Revision history for Grinder
 
+0.3.x   
+        New option <mate_orientation> to select orientation of mate pairs
+        New default for mate orientation: forward-reverse instead of forward-forward
+
 0.3.8   04-Oct-2011
         Graphical interface for the Galaxy project
         Support for writing the output reads in FASTQ format (Sanger variant)

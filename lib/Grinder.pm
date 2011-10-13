@@ -358,7 +358,7 @@ Genomes smaller than the specified length are not used. Default: read_dist.defau
 
 =item -id <insert_dist>... | -insert_dist <insert_dist>...
 
-Create shotgun paired end reads (mate pairs) spanning the given insert length
+Create shotgun paired-end or mate-pair reads spanning the given insert length
 (the reads are interior to the insert):
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
@@ -369,6 +369,23 @@ Default: insert_dist.default
 =for Euclid:
    insert_dist.type: string
    insert_dist.default: [0]
+
+=item -mo <mate_orientation> | -mate_orientation <mate_orientation>
+
+When generating paired-end or mate-pair reads (see <insert_dist>), specify the
+orientation of the reads (F: forward, R: reverse):
+
+   FR:  ---> <---  e.g. Sanger, Illumina paired-end
+   FF:  ---> --->  e.g. 454
+   RF:  <--- --->  e.g. Illumina mate-pairs
+   RR:  <--- <---
+   
+Default: FR
+
+=for Euclid:
+   mate_orientation.type: string, mate_orientation eq 'FF' || mate_orientation eq 'FR' || mate_orientation eq 'RF' || mate_orientation eq 'RR'
+   mate_orientation.type.error: <mate_orientation> must be FR, FF, RF or RR (not mate_orientation)
+   mate_orientation.default: 'FF'
 
 =item -ec <exclude_chars> | -exclude_chars <exclude_chars>
 
@@ -1718,6 +1735,11 @@ sub next_mate_pair {
   my $pair_num       = int( $self->{cur_read} / 2 + 0.5 );
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
 
+  # Deal with mate orientation
+  my @mate_orientations = split('', $self->{mate_orientation} );
+  my $mate_1_orientation = $mate_orientations[0] eq 'F' ? 1 : -1;
+  my $mate_2_orientation = $mate_orientations[1] eq 'F' ? 1 : -1;
+
   # Choose a random genome
   my $genome = $self->rand_seq($self->{positions}, $oids);
 
@@ -1733,7 +1755,7 @@ sub next_mate_pair {
       $message .= ".\n";
       die $message;
     }
-    # Take a random orientation if needed
+    # Take from a random strand if needed
     my $orientation = ($self->{unidirectional} != 0) ? 1 : rand_seq_orientation();
     # Choose a mate pair length according to the specified distribution
     my $mate_length = rand_seq_length($self->{mate_length}, $self->{mate_model},
@@ -1751,8 +1773,9 @@ sub next_mate_pair {
       $self->{read_delta});
     my $seq_start   = $mate_start;
     my $seq_end     = $mate_start + $read_length - 1;
+    my $mate_orientation = $orientation * $mate_1_orientation;
     $shotgun_seq_1  = new_subseq($pair_num, $genome, $self->{unidirectional},
-      $orientation, $seq_start, $seq_end, $mid, '1', $lib_num, $self->{desc_track},
+      $mate_orientation, $seq_start, $seq_end, $mid, '1', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
       if ($self->{homopolymer_dist} || $self->{mutation_freq});
@@ -1764,8 +1787,9 @@ sub next_mate_pair {
       $self->{read_delta});
     $seq_start     = $mate_end - $read_length + 1;
     $seq_end       = $mate_end;
+    $mate_orientation = $orientation * $mate_2_orientation;
     $shotgun_seq_2 = new_subseq($pair_num, $genome, $self->{unidirectional},
-      $orientation, $seq_start, $seq_end, $mid, '2', $lib_num, $self->{desc_track},
+      $mate_orientation, $seq_start, $seq_end, $mid, '2', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_2 = $self->rand_seq_errors($shotgun_seq_2)
       if ($self->{homopolymer_dist} || $self->{mutation_freq});
@@ -2505,7 +2529,7 @@ sub new_subseq {
     $newid .= $mate_sep.$mate_number;
   }
 
-    # Create a new simulated read object
+  # Create a new simulated read object
   my $newseq = Bio::Seq::SimulatedRead->new(
      -id          => $newid,
      -reference   => $seq_obj,
