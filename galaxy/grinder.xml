@@ -1,13 +1,4 @@
-<tool id="grinder" name="Grinder" version="0.3.8" force_history_refresh="True">
-
-  <!--
-    Author: florent.angly@gmail.com
-    TODO:
-    • See bfast tool (tools/sr_mapping/bfast_wrapper.xml) for how to use datatables easily
-    • Basic tests
-    • Link to full manual
-    • Better sync with Grinder parameters, defaults and help
-  -->
+<tool id="grinder" name="Grinder" version="0.3.8">
 
   <description>genomic, metagenomic and amplicon read simulator</description>
 
@@ -17,12 +8,8 @@
 
   <version_string>grinder --version</version_string>
 
-  <command>
-    #set $tool_dir = os.path.join( os.path.abspath($__root_dir__), 'tools', 'ngs_simulation' )
-    #set $script1  = os.path.join( $tool_dir, 'stderr_wrapper.py' )
-    #set $script2  = os.path.join( $tool_dir, 'grinder_multiple_outputs.py' )
-
-    $script1
+  <command interpreter="python">
+    stderr_wrapper.py
       grinder
       #if $reference_file.specify == "builtin":
         -reference_file   ${ filter( lambda x: str( x[0] ) == str( $reference_file.value ), $__app__.tool_data_tables[ 'all_fasta' ].get_fields() )[0][-1] }
@@ -101,7 +88,7 @@
       #if str($qual_levels):
         -qual_levels      $qual_levels
       #end if
-      #if str($fastq_output):
+      #if str($fastq_output) == '1':
         -fastq_output     $fastq_output
       #end if
       #if str($profile_file) != "None":
@@ -110,16 +97,6 @@
       <!-- When Galaxy bug #661 is resolved, then we can use the same method to check for all optional argument  -->
       <!-- i.e. either   if str($param) != "None":   or   if str($param):                                        -->
       <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611 -->
-
-      #set $output_dir = $__new_file_path__
-      -output_dir         $output_dir
-
-      #set $base_name  = $output.id
-      -base_name          $base_name
-    ;
-
-    $script2 $output_dir $base_name
-
   </command>
 
   <inputs>
@@ -199,7 +176,7 @@ Examples:
    1/ uniform distribution: uniform,
    2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
 
-    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option." />
+    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option. Note that in Galaxy, the maximum number of libraries is 10." />
 
     <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
 
@@ -248,7 +225,164 @@ Note that the arguments specified in the profile should not be specified again o
   -->
 
   <outputs>
-    <data format="text" name="output" />
+
+    <!-- single library output -->
+    <data format="tabular" name="ranks" from_work_dir="grinder-ranks.txt"   label="${tool.name} ranks from ${on_string}">
+      <filter>int(str(num_libraries)) == 1</filter>
+    </data>
+    <data format="fasta"   name="fasta" from_work_dir="grinder-reads.fa"    label="${tool.name} reads from ${on_string}">
+      <filter>int(str(num_libraries)) == 1 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual"  from_work_dir="grinder-reads.qual"  label="${tool.name} quals from ${on_string}">
+      <filter>int(str(num_libraries)) == 1 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq" from_work_dir="grinder-reads.fastq" label="${tool.name} reads from ${on_string}">
+      <filter>int(str(num_libraries)) == 1 and fastq_output == 1</filter>
+    </data>
+
+    <!-- When Galaxy bug #670 is resolved, then we won't have to harcode the number of output datasets  -->
+    <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/670/better-support-for-multiple-outputs -->
+
+    <!-- multiple libraries: library 1 -->
+    <data format="tabular" name="ranks1" from_work_dir="grinder-1-ranks.txt"   label="${tool.name} lib 1 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2</filter>
+    </data>
+    <data format="fasta"   name="fasta1" from_work_dir="grinder-1-reads.fa"    label="${tool.name} lib 1 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual1"  from_work_dir="grinder-1-reads.qual"  label="${tool.name} lib 1 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq1" from_work_dir="grinder-1-reads.fastq" label="${tool.name} lib 1 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 2 -->
+    <data format="tabular" name="ranks2" from_work_dir="grinder-2-ranks.txt"   label="${tool.name} lib 2 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2</filter>
+    </data>
+    <data format="fasta"   name="fasta2" from_work_dir="grinder-2-reads.fa"    label="${tool.name} lib 2 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual2"  from_work_dir="grinder-2-reads.qual"  label="${tool.name} lib 2 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq2" from_work_dir="grinder-2-reads.fastq" label="${tool.name} lib 2 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 2 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 3 -->
+    <data format="tabular" name="ranks3" from_work_dir="grinder-3-ranks.txt"   label="${tool.name} lib 3 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 3</filter>
+    </data>
+    <data format="fasta"   name="fasta3" from_work_dir="grinder-3-reads.fa"    label="${tool.name} lib 3 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 3 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual3"  from_work_dir="grinder-3-reads.qual"  label="${tool.name} lib 3 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 3 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq3" from_work_dir="grinder-3-reads.fastq" label="${tool.name} lib 3 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 3 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 4 -->
+    <data format="tabular" name="ranks4" from_work_dir="grinder-4-ranks.txt"   label="${tool.name} lib 4 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 4</filter>
+    </data>
+    <data format="fasta"   name="fasta4" from_work_dir="grinder-4-reads.fa"    label="${tool.name} lib 4 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 4 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual4"  from_work_dir="grinder-4-reads.qual"  label="${tool.name} lib 4 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 4 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq4" from_work_dir="grinder-4-reads.fastq" label="${tool.name} lib 4 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 4 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 5 -->
+    <data format="tabular" name="ranks5" from_work_dir="grinder-5-ranks.txt"   label="${tool.name} lib 5 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 5</filter>
+    </data>
+    <data format="fasta"   name="fasta5" from_work_dir="grinder-5-reads.fa"    label="${tool.name} lib 5 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 5 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual5"  from_work_dir="grinder-5-reads.qual"  label="${tool.name} lib 5 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 5 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq5" from_work_dir="grinder-5-reads.fastq" label="${tool.name} lib 5 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 5 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 6 -->
+    <data format="tabular" name="ranks6" from_work_dir="grinder-6-ranks.txt"   label="${tool.name} lib 6 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 6</filter>
+    </data>
+    <data format="fasta"   name="fasta6" from_work_dir="grinder-6-reads.fa"    label="${tool.name} lib 6 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 6 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual6"  from_work_dir="grinder-6-reads.qual"  label="${tool.name} lib 6 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 6 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq6" from_work_dir="grinder-6-reads.fastq" label="${tool.name} lib 6 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 6 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 7 -->
+    <data format="tabular" name="ranks7" from_work_dir="grinder-7-ranks.txt"   label="${tool.name} lib 7 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 7</filter>
+    </data>
+    <data format="fasta"   name="fasta7" from_work_dir="grinder-7-reads.fa"    label="${tool.name} lib 7 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 7 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual7"  from_work_dir="grinder-7-reads.qual"  label="${tool.name} lib 7 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 7 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq7" from_work_dir="grinder-7-reads.fastq" label="${tool.name} lib 7 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 7 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 8 -->
+    <data format="tabular" name="ranks8" from_work_dir="grinder-8-ranks.txt"   label="${tool.name} lib 8 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 8</filter>
+    </data>
+    <data format="fasta"   name="fasta8" from_work_dir="grinder-8-reads.fa"    label="${tool.name} lib 8 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 8 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual8"  from_work_dir="grinder-8-reads.qual"  label="${tool.name} lib 8 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 8 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq8" from_work_dir="grinder-8-reads.fastq" label="${tool.name} lib 8 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 8 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 9 -->
+    <data format="tabular" name="ranks9" from_work_dir="grinder-9-ranks.txt"   label="${tool.name} lib 9 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 9</filter>
+    </data>
+    <data format="fasta"   name="fasta9" from_work_dir="grinder-9-reads.fa"    label="${tool.name} lib 9 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 9 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual9"  from_work_dir="grinder-9-reads.qual"  label="${tool.name} lib 9 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 9 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq9" from_work_dir="grinder-9-reads.fastq" label="${tool.name} lib 9 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 9 and fastq_output == 1</filter>
+    </data>
+
+    <!-- multiple libraries: library 10 -->
+    <data format="tabular" name="ranks10" from_work_dir="grinder-10-ranks.txt"   label="${tool.name} lib 10 ranks from ${on_string}">
+      <filter>int(str(num_libraries)) >= 10</filter>
+    </data>
+    <data format="fasta"   name="fasta10" from_work_dir="grinder-10-reads.fa"    label="${tool.name} lib 10 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 10 and fastq_output == 0</filter>
+    </data>
+    <data format="qual"    name="qual10"  from_work_dir="grinder-10-reads.qual"  label="${tool.name} lib 10 quals from ${on_string}">
+      <filter>int(str(num_libraries)) >= 10 and str(qual_levels) and fastq_output == 0</filter>
+    </data>
+    <data format="fastq"   name="fastq10" from_work_dir="grinder-10-reads.fastq" label="${tool.name} lib 10 reads from ${on_string}">
+      <filter>int(str(num_libraries)) >= 10 and fastq_output == 1</filter>
+    </data>
+
   </outputs>
 
   <tests>
@@ -270,7 +404,6 @@ Note that the arguments specified in the profile should not be specified again o
       <output name="qual" file="" />
     </test>
     -->
-
   </tests>
 
   <help>
