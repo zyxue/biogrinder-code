@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+0.x     
+        Galaxy GUI fix so that the output is fastqsanger, not just fastq
+
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs
         New default for mate orientation: forward-reverse instead of forward-forward

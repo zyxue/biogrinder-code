@@ -217,16 +217,6 @@ Note that the arguments specified in the profile should not be specified again o
 
   </inputs>
 
-  <!--
-  <outputs>
-    <data format="tabular" name="ranks" from_work_dir="grinder-ranks.txt"  label="${tool.name} ranks from ${on_string}"      />
-    <conditional/>
-    <data format="fasta"   name="fasta" from_work_dir="grinder-reads.fa"   label="${tool.name} reads from ${on_string}"      />
-    <data format="qual"    name="qual"  from_work_dir="grinder-reads.qual" label="${tool.name} read quals from ${on_string}"  >
-      <filter>(str(qual_levels))</filter>
-    </data>
-  </outputs>
-  -->
 
   <outputs>
 
@@ -240,7 +230,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual"  from_work_dir="grinder-reads.qual"  label="${tool.name} quals from ${on_string}">
       <filter>int(str(num_libraries)) == 1 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq" from_work_dir="grinder-reads.fastq" label="${tool.name} reads from ${on_string}">
+    <data format="fastqsanger" name="fastq" from_work_dir="grinder-reads.fastq" label="${tool.name} reads from ${on_string}">
       <filter>int(str(num_libraries)) == 1 and fastq_output == 1</filter>
     </data>
 
@@ -257,7 +247,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual1"  from_work_dir="grinder-1-reads.qual"  label="${tool.name} lib 1 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 2 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq1" from_work_dir="grinder-1-reads.fastq" label="${tool.name} lib 1 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq1" from_work_dir="grinder-1-reads.fastq" label="${tool.name} lib 1 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 2 and fastq_output == 1</filter>
     </data>
 
@@ -271,7 +261,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual2"  from_work_dir="grinder-2-reads.qual"  label="${tool.name} lib 2 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 2 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq2" from_work_dir="grinder-2-reads.fastq" label="${tool.name} lib 2 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq2" from_work_dir="grinder-2-reads.fastq" label="${tool.name} lib 2 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 2 and fastq_output == 1</filter>
     </data>
 
@@ -285,7 +275,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual3"  from_work_dir="grinder-3-reads.qual"  label="${tool.name} lib 3 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 3 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq3" from_work_dir="grinder-3-reads.fastq" label="${tool.name} lib 3 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq3" from_work_dir="grinder-3-reads.fastq" label="${tool.name} lib 3 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 3 and fastq_output == 1</filter>
     </data>
 
@@ -299,7 +289,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual4"  from_work_dir="grinder-4-reads.qual"  label="${tool.name} lib 4 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 4 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq4" from_work_dir="grinder-4-reads.fastq" label="${tool.name} lib 4 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq4" from_work_dir="grinder-4-reads.fastq" label="${tool.name} lib 4 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 4 and fastq_output == 1</filter>
     </data>
 
@@ -313,7 +303,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual5"  from_work_dir="grinder-5-reads.qual"  label="${tool.name} lib 5 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 5 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq5" from_work_dir="grinder-5-reads.fastq" label="${tool.name} lib 5 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq5" from_work_dir="grinder-5-reads.fastq" label="${tool.name} lib 5 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 5 and fastq_output == 1</filter>
     </data>
 
@@ -327,7 +317,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual6"  from_work_dir="grinder-6-reads.qual"  label="${tool.name} lib 6 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 6 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq6" from_work_dir="grinder-6-reads.fastq" label="${tool.name} lib 6 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq6" from_work_dir="grinder-6-reads.fastq" label="${tool.name} lib 6 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 6 and fastq_output == 1</filter>
     </data>
 
@@ -341,7 +331,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual7"  from_work_dir="grinder-7-reads.qual"  label="${tool.name} lib 7 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 7 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq7" from_work_dir="grinder-7-reads.fastq" label="${tool.name} lib 7 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq7" from_work_dir="grinder-7-reads.fastq" label="${tool.name} lib 7 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 7 and fastq_output == 1</filter>
     </data>
 
@@ -355,7 +345,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual8"  from_work_dir="grinder-8-reads.qual"  label="${tool.name} lib 8 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 8 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq8" from_work_dir="grinder-8-reads.fastq" label="${tool.name} lib 8 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq8" from_work_dir="grinder-8-reads.fastq" label="${tool.name} lib 8 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 8 and fastq_output == 1</filter>
     </data>
 
@@ -369,7 +359,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual9"  from_work_dir="grinder-9-reads.qual"  label="${tool.name} lib 9 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 9 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq9" from_work_dir="grinder-9-reads.fastq" label="${tool.name} lib 9 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq9" from_work_dir="grinder-9-reads.fastq" label="${tool.name} lib 9 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 9 and fastq_output == 1</filter>
     </data>
 
@@ -383,7 +373,7 @@ Note that the arguments specified in the profile should not be specified again o
     <data format="qual"    name="qual10"  from_work_dir="grinder-10-reads.qual"  label="${tool.name} lib 10 quals from ${on_string}">
       <filter>int(str(num_libraries)) >= 10 and str(qual_levels) and fastq_output == 0</filter>
     </data>
-    <data format="fastq"   name="fastq10" from_work_dir="grinder-10-reads.fastq" label="${tool.name} lib 10 reads from ${on_string}">
+    <data format="fastqsanger" name="fastq10" from_work_dir="grinder-10-reads.fastq" label="${tool.name} lib 10 reads from ${on_string}">
       <filter>int(str(num_libraries)) >= 10 and fastq_output == 1</filter>
     </data>
 
