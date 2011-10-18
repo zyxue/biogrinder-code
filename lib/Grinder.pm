@@ -358,8 +358,9 @@ Genomes smaller than the specified length are not used. Default: read_dist.defau
 
 =item -id <insert_dist>... | -insert_dist <insert_dist>...
 
-Create shotgun paired-end or mate-pair reads spanning the given insert length
-(the reads are interior to the insert):
+Create shotgun paired-end or mate-pair reads spanning the given insert length.
+Important: the insert is defined in the biological sense, i.e. its length includes
+the length of both reads and of the stretch of DNA between them:
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
        distribution (a typical value is 2,500 bp)
@@ -380,12 +381,12 @@ orientation of the reads (F: forward, R: reverse):
    RF:  <--- --->  e.g. Illumina mate-pairs
    RR:  <--- <---
    
-Default: FR
+Default: mate_orientation.default
 
 =for Euclid:
    mate_orientation.type: string, mate_orientation eq 'FF' || mate_orientation eq 'FR' || mate_orientation eq 'RF' || mate_orientation eq 'RR'
    mate_orientation.type.error: <mate_orientation> must be FR, FF, RF or RR (not mate_orientation)
-   mate_orientation.default: 'FF'
+   mate_orientation.default: 'FR'
 
 =item -ec <exclude_chars> | -exclude_chars <exclude_chars>
 
