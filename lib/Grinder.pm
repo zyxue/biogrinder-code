@@ -10,7 +10,7 @@ use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl;
 use Math::Random::MT qw(srand rand);
 
-our $VERSION = '0.3.8';
+our $VERSION = '0.3.9';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -83,7 +83,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.3.8
+0.3.9
 
 =head1 AUTHOR
 
