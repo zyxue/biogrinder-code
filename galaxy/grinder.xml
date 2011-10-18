@@ -1,4 +1,4 @@
-<tool id="grinder" name="Grinder" version="0.3.8">
+<tool id="grinder" name="Grinder" version="0.3.9">
 
   <description>genomic, metagenomic and amplicon read simulator</description>
 
@@ -27,6 +27,9 @@
       #end if
       #if str($insert_dist):
         -insert_dist      $insert_dist
+      #end if
+      #if str($mate_orientation):
+        -mate_orientation $mate_orientation
       #end if
       #if str($exclude_chars):
         -exclude_chars    $exclude_chars
@@ -133,8 +136,9 @@ Examples:
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
        distribution (a typical value is 2,500 bp)
-Two distinct reads are generated whether or not the mate pair overlaps.
-Default: insert_dist.default" />
+Two distinct reads are generated whether or not the mate pair overlaps." />
+
+    <param name="mate_orientation" type="text" value="FR" optional="true" label="Mate orientation" help="When generating paired-end or mate-pair reads (see the insert distribution parameter), specify the orientation of the reads (F: forward, R: reverse): FR for Sanger or Illumina paired-end, FF for 454, RF for Illumina mate-pairs, or RR" />
 
     <param name="exclude_chars" type="text" optional="true" label="Characters to exclude" help="Do not create reads containing any of the specified characters (case insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N)." />
 
