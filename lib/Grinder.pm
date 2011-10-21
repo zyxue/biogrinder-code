@@ -9,6 +9,7 @@ use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl;
 use Math::Random::MT qw(srand rand);
+use List::Util qw(max);
 
 our $VERSION = '0.3.9';
 
@@ -1213,6 +1214,11 @@ sub initialize {
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
   # Import genome sequences, skipping genomes too short
+
+  ####
+  # need to detect molecule type? dna, rna, aa?
+  ####
+
   $self->{database} = $self->database_create( $self->{reference_file},
     $self->{unidirectional}, $self->{forward_reverse}, $self->{abundance_file},
     $self->{delete_chars} );
@@ -2099,6 +2105,11 @@ sub rand_point_errors {
     if ( rand() <= $subst_frac ) {
 
       # Substitute at given position by a random replacement nucleotide
+
+      #####
+      # Migrate to rand_res
+      #####
+
       push @{$$error_specs{$idx+1}{'%'}}, rand_nuc( substr($seq_str, $idx, 1) );
 
     } else {
@@ -2106,6 +2117,11 @@ sub rand_point_errors {
       # Equiprobably insert or delete
       if ( rand() < 0.5 ) {
         # Insertion after given position
+
+        #####
+        # Migrate to rand_res
+        #####
+
         push @{$$error_specs{$idx+1}{'+'}}, rand_nuc(); 
       } else {
         # Make a deletion at given position
@@ -2120,6 +2136,62 @@ sub rand_point_errors {
   return $error_specs;
 }
 
+#####
+# Migrate to rand_res
+# Need to take into account alphabet, i.e. dna, rna, aa
+#####
+
+#####
+sub rand_res {
+  # Pick a residue at random from the given alphabet (dna, rna or protein).
+  # An optional residue to exclude can be given. The default alphabet is dna.
+  my ($not_nuc, $alphabet) = @_;
+  my @cdf;
+  my @res;
+  if (defined $not_nuc) {
+    # Exclude a specific nucleotide from the search
+    my %res_hash;
+
+    ####
+    # make %res_hash and @cdf global to the Grinder scope
+    ####
+
+    if ($alphabet eq 'dna') {
+      %res_hash = ( 'A' => undef,
+                    'C' => undef,
+                    'G' => undef,
+                    'T' => undef, );
+      @cdf  = (0, 0.33333333, 0.66666666, 1);
+    } elsif ($alphabet eq 'rna') {
+      %res_hash = ( 'A' => undef,
+                    'C' => undef,
+                    'G' => undef,
+                    'U' => undef, );
+      @cdf  = (0, 0.33333333, 0.66666666, 1);
+    } elsif ($alphabet eq 'protein') {
+      #%res_hash = ( 'A' => undef,
+      #              'C' => undef,
+      #              'G' => undef,
+      #              'U' => undef, );
+      @cdf  = (0, 0.33333333, 0.66666666, 1);
+    } else {
+      
+    }
+
+    delete $res_hash{uc($not_nuc)};
+    @res = keys %res_hash;
+
+  } else {
+    # All nucleotides are possible
+    @res = ('A', 'C', 'G', 'T');
+    @cdf  = (0, 0.25, 0.5, 0.75, 1);
+  }
+  my $res = $res[rand_weighted(\@cdf)];
+  return $res; 
+}
+####
+
+#####
 sub rand_nuc {
   # Pick a nucleotide at random. An optional nucleotide to exclude can be given.
   my $not_nuc = shift;
@@ -2141,6 +2213,7 @@ sub rand_nuc {
   }
   return $nucs[rand_weighted(\@cdf)]; 
 }
+####
 
 
 sub rand_seq_length {
@@ -2312,9 +2385,27 @@ sub database_create {
     }
   }
   # Process database sequences
-  my %seq_db;        # hash of BioPerl sequence objects (all amplicons)
-  my %seq_ids;       # hash of reference sequence IDs and IDs of their amplicons
+  my %seq_db;      # hash of BioPerl sequence objects (all amplicons)
+  my %seq_ids;     # hash of reference sequence IDs and IDs of their amplicons
+
+  ####
+  my %mol_types;    # hash of count of molecule types (dna, rna, protein)
+  ####
+
   while ( my $ref_seq = <$in> ) {
+
+    ####
+    # Record molecule type
+    $mol_types{$ref_seq->alphabet}++;
+    ####
+
+    ####
+    print "$ref_seq\n";
+    print $ref_seq->alphabet."\n";
+    use Data::Dumper;
+    print Dumper(\%mol_types);
+    ####
+
     # Skip unwanted sequences
     my $ref_seq_id = $ref_seq->id;
     next if (scalar keys %ids_to_keep > 0) && (not exists $ids_to_keep{$ref_seq_id});
@@ -2347,7 +2438,16 @@ sub database_create {
   }
   undef $in; # close the filehandle (maybe?!)
 
-  # Sanity check
+  # Determine database type: dna, rna, protein
+  my $db_alphabet = $self->database_get_mol_type(\%mol_types);
+  $self->{alphabet} = $db_alphabet;
+
+  # Error if using amplicon on protein database
+  if ( ($db_alphabet eq 'protein') && (defined $forward_reverse_primers) ) {
+    die "Error: Cannot use amplicon primers on proteic reference sequences\n";
+  }
+
+  # Error if no usable sequences in the database
   if (scalar keys %seq_ids == 0) {
     die "Error: No genome sequences could be used. If you specified a file of".
       " abundances for the genome sequences, make sure that their ID match the".
@@ -2357,6 +2457,33 @@ sub database_create {
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
   return $database;
+}
+
+
+sub database_get_mol_type {
+  # Given a count of the different molecule types in the database, determine
+  # what molecule type it is.
+  my ($self, $mol_types) = @_;
+  my $max_count = 0;
+  my $max_type  = '';
+  while (my ($type, $count) = each %$mol_types) {
+    if ($count > $max_count) {
+      $max_count = $count;
+      $max_type  = $type;
+    }
+  }
+  my $other_count = 0;
+  while (my ($type, $count) = each %$mol_types) {
+    if (not $type eq $max_type) {
+      $other_count += $count;
+    }
+  }
+  if ($max_count < $other_count) {
+    die "Error: Cannot determine what type of molecules the reference sequences".
+        " are. Got $max_count sequences of type '$max_type' and $other_count ".
+        "others.\n";
+  }
+  return $max_type;
 }
 
 
@@ -2433,7 +2560,6 @@ sub database_get_parent_id {
   # came from
   my ($self, $oid) = @_;
   my $seq_id = $self->database_get_seq($oid)->id;
-###  $seq_id =~ s/_amplicon.*$//;
   return $seq_id;
 }
 
