@@ -1214,14 +1214,11 @@ sub initialize {
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
   # Import genome sequences, skipping genomes too short
-
-  ####
-  # need to detect molecule type? dna, rna, aa?
-  ####
-
   $self->{database} = $self->database_create( $self->{reference_file},
     $self->{unidirectional}, $self->{forward_reverse}, $self->{abundance_file},
     $self->{delete_chars} );
+
+  $self->initialize_alphabet;
 
   # Genome relative abundance in the different independent libraries to create
   $self->{c_structs} = $self->community_structures( $self->{database}->{ids},
@@ -1346,6 +1343,7 @@ sub community_structures {
   return $c_structs;
 }
 
+
 sub community_calculate_diversities {
   my ($c_structs) = @_;
   my ($diversities, $overall_diversity, $perc_shared, $perc_permuted) = (0, 0, 0, 0);
@@ -1388,6 +1386,7 @@ sub community_calculate_diversities {
 
   return \@richnesses, $overall_diversity, $perc_shared, $perc_permuted;
 }
+
 
 sub community_given_abundances {
   # Read a file of genome abundances. The file should be space or tab-delimited. 
@@ -2148,6 +2147,14 @@ sub rand_res {
   my ($not_nuc, $alphabet) = @_;
   my @cdf;
   my @res;
+
+  ####
+  #$self->{alphabet}
+  #$self->{alphabet_hash}
+  #$self->{alphabet_insertion_cdf}
+  #$self->{alphabet_substitution_cdf}
+  ####
+
   if (defined $not_nuc) {
     # Exclude a specific nucleotide from the search
     my %res_hash;
@@ -2190,6 +2197,67 @@ sub rand_res {
   return $res; 
 }
 ####
+
+sub initialize_alphabet {
+  # Store the characters of the alphabet to use and calculate their cdf so that
+  # we can easily pick them at random later
+  my ($self) = @_;
+  my $alphabet = $self->{alphabet};
+  # Characters available in alphabet
+  my %alphabet_hash;
+  if ($alphabet eq 'dna') {
+    %alphabet_hash = (
+      'A' => undef,
+      'C' => undef,
+      'G' => undef,
+      'T' => undef,
+    );
+  } elsif ($alphabet eq 'rna') {
+    %alphabet_hash = (
+      'A' => undef,
+      'C' => undef,
+      'G' => undef,
+      'U' => undef,
+    );
+  } elsif ($alphabet eq 'protein') {
+    %alphabet_hash = (
+      'A' => undef,
+      'B' => undef,
+      'C' => undef,
+      'D' => undef,
+      'E' => undef,
+      'F' => undef,
+      'G' => undef,
+      'H' => undef,
+      'I' => undef,
+      'J' => undef,
+      'K' => undef,
+      'L' => undef,
+      'M' => undef,
+      'N' => undef,
+      'O' => undef,
+      'P' => undef,
+      'Q' => undef,
+      'R' => undef,
+      'S' => undef,
+      'T' => undef,
+      'U' => undef,
+      'V' => undef,
+      'W' => undef,
+      'X' => undef,
+      'Y' => undef,
+      'Z' => undef,
+    );
+  } else {
+    die "Error: unknown alphabet '$alphabet'\n";
+  }
+  my $num_chars = scalar keys %alphabet_hash;
+  $self->{alphabet_hash} = \%alphabet_hash;
+  # CDF for this alphabet
+  $self->{alphabet_insertion_cdf} = $self->proba_cumul([(1/$num_chars) x $num_chars]);
+  $self->{alphabet_substitution_cdf} = $self->proba_cumul([(1/($num_chars-1)) x ($num_chars-1)]);
+  return 1;
+}
 
 #####
 sub rand_nuc {
@@ -2429,7 +2497,7 @@ sub database_create {
 
   # Error if using amplicon on protein database
   if ( ($db_alphabet eq 'protein') && (defined $forward_reverse_primers) ) {
-    die "Error: Cannot use amplicon primers on proteic reference sequences\n";
+    die "Error: Cannot use amplicon primers with proteic reference sequences\n";
   }
 
   # Error if no usable sequences in the database
@@ -2467,6 +2535,9 @@ sub database_get_mol_type {
     die "Error: Cannot determine what type of molecules the reference sequences".
         " are. Got $max_count sequences of type '$max_type' and $other_count ".
         "others.\n";
+  }
+  if ( (not $max_type eq 'dna') && (not $max_type eq 'rna') && (not $max_type eq 'protein') ) {
+    die "Error: Reference sequences are in an unknown alphabet '$max_type'\n";
   }
   return $max_type;
 }

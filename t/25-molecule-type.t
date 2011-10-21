@@ -42,11 +42,11 @@ ok $factory = Grinder->new(
 is $factory->{alphabet}, 'protein';
 
 
-# Protein
+# Mixed
 
 ok $factory = Grinder->new(
    -reference_file  => data('database_mixed.fa')   ,
    -total_reads     => 100                       ,
-), 'Protein';
+), 'Mixed';
 
 is $factory->{alphabet}, 'protein';
