@@ -6,7 +6,7 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 305;
+plan tests => 8;
 
 
 my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);

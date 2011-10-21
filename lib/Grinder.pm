@@ -2387,25 +2387,10 @@ sub database_create {
   # Process database sequences
   my %seq_db;      # hash of BioPerl sequence objects (all amplicons)
   my %seq_ids;     # hash of reference sequence IDs and IDs of their amplicons
-
-  ####
   my %mol_types;    # hash of count of molecule types (dna, rna, protein)
-  ####
-
   while ( my $ref_seq = <$in> ) {
-
-    ####
     # Record molecule type
     $mol_types{$ref_seq->alphabet}++;
-    ####
-
-    ####
-    print "$ref_seq\n";
-    print $ref_seq->alphabet."\n";
-    use Data::Dumper;
-    print Dumper(\%mol_types);
-    ####
-
     # Skip unwanted sequences
     my $ref_seq_id = $ref_seq->id;
     next if (scalar keys %ids_to_keep > 0) && (not exists $ids_to_keep{$ref_seq_id});
