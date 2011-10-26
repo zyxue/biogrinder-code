@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 403;
 
 
 my ($factory, $read, $nof_reads);
@@ -26,6 +25,8 @@ while ( $read = $factory->next_read ) {
    ok_mate($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
+
+done_testing();
 
 
 

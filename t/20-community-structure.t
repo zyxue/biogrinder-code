@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 19;
 
 
 my ($factory, $nof_reads, $read, @reads, $ra, $era, $coeff, $min, $max, $mean,
@@ -172,6 +171,9 @@ cmp_ok $coeff, '>', 0.97;
 isnt $param1, $param2;
 
 @reads = ();
+
+done_testing();
+
 
 
 

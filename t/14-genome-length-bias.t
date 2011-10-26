@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 14;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -44,3 +43,4 @@ between_ok( $sources{'seq2'}, 99 , 159 ); # avg = 129
 between_ok( $sources{'seq4'}, 357, 417 ); # avg = 387
 between_ok( $sources{'seq5'}, 357, 417 ); # avg = 387
 
+done_testing();

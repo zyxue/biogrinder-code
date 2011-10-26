@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 403;
 
 
 my ($factory, $nof_reads, $read);
@@ -52,3 +51,4 @@ while ( $read = $factory->next_read ) {
    is $read->desc, undef;
 };
 
+done_testing();

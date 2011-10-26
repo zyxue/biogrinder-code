@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7024;
 
 
 my ($factory, $nof_reads, $read, @epositions, $min, $max, $mean, $stddev, $prof,
@@ -163,4 +162,6 @@ SKIP: {
 }
 
 @epositions = ();
+
+done_testing();
 

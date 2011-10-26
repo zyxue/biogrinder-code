@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 58;
 
 
 my ($factory, $nof_reads, $read, $lib_num, $ranks1, $ranks2, $ranks3, $rank1_perm);
@@ -214,6 +213,8 @@ sub compare_ranks {
 
    return 1;
 }
+
+done_testing();
 
 
 

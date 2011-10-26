@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 80;
 
 
 my ($factory, $nof_reads, $read);
@@ -52,3 +51,4 @@ while ( $read = $factory->next_read ) {
    is substr($read->seq, 0, 8), 'AAAATTTT';
 };
 
+done_testing();

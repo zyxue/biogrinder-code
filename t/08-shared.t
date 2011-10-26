@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 35;
 
 
 my ($factory, $nof_reads, $read, $lib_num, %sources, %shared);
@@ -207,4 +206,6 @@ is scalar keys %{$sources{2}}, 5;
 is scalar keys %shared, 3;
 %sources = ();
 %shared  = ();
+
+done_testing();
 

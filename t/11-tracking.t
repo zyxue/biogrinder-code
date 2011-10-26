@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 21;
 
 
 my ($factory, $nof_reads, $read);
@@ -92,3 +91,4 @@ ok $factory = Grinder->new(
 ok $read = $factory->next_read;
 like $read->desc, qr/reference=.*position=.*strand=.*/;
 
+done_testing();

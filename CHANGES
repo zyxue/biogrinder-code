@@ -8,6 +8,7 @@ Revision history for Grinder
           of doing nothing (reported by Rob Schmieder).
         Information displayed on screen now properly reports whether the library
           is of type shotgun or amplicon
+        Tests use done_testing() instead of a fixed number of tests
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs

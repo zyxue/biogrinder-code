@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 19;
 
 
 my ($factory, $seed1, $seed2, $seed3, @dataset1, @dataset2);
@@ -53,3 +52,4 @@ for my $i (1 .. 10) {
   is $dataset1[$i-1]->seq, $dataset2[$i-1]->seq;
 }
 
+done_testing();

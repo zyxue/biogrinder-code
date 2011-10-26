@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 8;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -86,3 +85,5 @@ while ( $read = $factory->next_read ) {
 
 is scalar keys %sources, 3;
 %sources = ();
+
+done_testing();

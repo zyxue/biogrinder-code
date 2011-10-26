@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 6108;
 
 
 my ($factory, $nof_reads, $read, $hpols, $min, $max, $mean, $stddev,
@@ -150,6 +149,9 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    #}
 }
 $hpols = {};
+
+done_testing();
+
 
 
 

@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 403;
 
 
 my ($factory, $read, $nof_reads);
@@ -59,6 +58,9 @@ sub ok_read {
    is $read->id, $nof_reads;
    is $read->length, 48;
 }
+
+done_testing();
+
 
 
 

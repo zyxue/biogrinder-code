@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 7;
 
 
 my ($factory, $nof_reads, $read);
@@ -33,4 +32,6 @@ ok $factory = Grinder->new(
 
 ok $read = $factory->next_read;
 is scalar @{$read->qual}, 52;
-is_deeply $read->qual, [(30) x 52 ]
+is_deeply $read->qual, [(30) x 52 ];
+
+done_testing();

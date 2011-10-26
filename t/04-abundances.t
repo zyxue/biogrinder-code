@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 38;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -127,3 +126,5 @@ ok not exists $sources{'seq5'};
 is $sources{'seq3'}, 1000;
 
 is $factory->next_lib, undef;
+
+done_testing();

@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 3180;
 
 
 my ($factory, $lib, $nof_libs, $nof_reads, $read);
@@ -55,6 +54,8 @@ while ( $lib = $factory->next_lib ) {
    is $nof_reads, 99;
 }
 is $nof_libs, 4;
+
+done_testing();
 
 
 

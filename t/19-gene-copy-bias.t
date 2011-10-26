@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 11;
 
 
 my ($factory, $nof_reads, $read, %sources);
@@ -50,3 +49,4 @@ between_ok( $sources{'seq3'},   0,  20 );
 is $factory->next_lib, undef;
 %sources = ();
 
+done_testing();

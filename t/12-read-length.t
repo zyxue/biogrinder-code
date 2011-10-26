@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 28;
 
 
 my ($factory, $nof_reads, $read, @rlengths, $min, $max, $mean, $stddev, $hist,
@@ -85,3 +84,4 @@ SKIP: {
 
 @rlengths = ();
 
+done_testing();

@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More;
 
 
 BEGIN {
@@ -12,3 +12,5 @@ BEGIN {
 diag( "Testing Grinder $Grinder::VERSION, Perl $], $^X" );
 
 use_ok('t::TestUtils');
+
+done_testing();

@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 812;
 
 
 my ($factory, $read, $nof_reads);
@@ -101,6 +100,9 @@ while ( $read = $factory->next_read ) {
    }
 };
 is $nof_reads, 100;
+
+done_testing();
+
 
 
 sub ok_mate_1_F {

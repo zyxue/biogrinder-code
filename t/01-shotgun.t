@@ -5,7 +5,6 @@ use warnings;
 use Test::More;
 use t::TestUtils;
 
-plan tests => 405;
 
 use Grinder;
 my ($factory, $nof_reads, $read);
@@ -36,6 +35,9 @@ while ( $read = $factory->next_read ) {
    ok_read($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
+
+done_testing();
+
 
 
 sub ok_read {

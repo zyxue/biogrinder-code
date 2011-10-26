@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 1808;
 
 
 my ($factory, $read, $nof_reads, %got_amplicons, %expected_amplicons);
@@ -75,6 +74,9 @@ while ( $read = $factory->next_read ) {
 is $nof_reads, 100;
 is_deeply( \%got_amplicons, \%expected_amplicons );
 undef %got_amplicons;
+
+done_testing();
+
 
 
 

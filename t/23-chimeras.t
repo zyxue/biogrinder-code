@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 305;
 
 
 my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);
@@ -67,6 +66,9 @@ while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
    is nof_references($read->desc), 2;
 }
+
+done_testing();
+
 
 
 

@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 27;
 
 
 my ($factory, $read);
@@ -64,3 +63,4 @@ while ( $read = $factory->next_read ) {
   unlike $read->seq, qr/[N-]/i;
 }
 
+done_testing();
