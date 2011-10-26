@@ -3,6 +3,9 @@ Revision history for Grinder
 0.x     
         Galaxy GUI fix so that the output is fastqsanger, not just fastq
         Documentation updates (reported by Rob Schmieder)
+        -reference_file is now a required argument, so that running grinder without
+          argument generated an error message and points the user to --help instead
+          of doing nothing.
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs

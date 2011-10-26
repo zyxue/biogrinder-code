@@ -316,13 +316,11 @@ Three 16S amplicon libraries with specified MIDs
 
 Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly
 
-   zcat microbial_db.fna.gz | grinder -total_reads 100
+   zcat microbial_db.fna.gz | grinder -reference_file - -total_reads 100
 
 =back
 
-=head1 OPTIONS
-
-Basic parameters
+=head1 CLI REQUIRED ARGUMENTS
 
 =over
 
@@ -336,6 +334,14 @@ Default: reference_file.default
 =for Euclid:
    reference_file.type: readable
    reference_file.default: '-'
+
+=back
+
+=head1 CLI OPTIONAL ARGUMENTS
+
+Basic parameters
+
+=over
 
 =item -tr <total_reads> | -total_reads <total_reads>
 
@@ -991,7 +997,7 @@ sub library_report {
   print "   Community structure  = $ranks_file\n";
   print "   FASTQ file           = $fastq_file\n" if defined $fastq_file;
   print "   FASTA file           = $fasta_file\n" if defined $fasta_file;
-  print "   QUAL file            = $qual_file\n" if defined $qual_file;
+  print "   QUAL file            = $qual_file\n"  if defined $qual_file;
   print "   Library coverage     = $coverage x\n";
   print "   Number of reads      = $nof_seqs\n";
   print "   Diversity (richness) = $diversity\n";
