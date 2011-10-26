@@ -5,7 +5,7 @@ Revision history for Grinder
         Documentation updates (reported by Rob Schmieder)
         -reference_file is now a required argument, so that running grinder without
           argument generated an error message and points the user to --help instead
-          of doing nothing.
+          of doing nothing (reported by Rob Schmieder).
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs
