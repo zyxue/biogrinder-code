@@ -930,9 +930,9 @@ sub Grinder {
 
     # Library report
     my $diversity = $factory->{diversity}[$cur_lib-1];
-    library_report( $cur_lib, $out_ranks_file, $out_fastq_file, $out_fasta_file,
-      $out_qual_file, $factory->{cur_coverage_fold}, $factory->{cur_total_reads},
-      $diversity);
+    library_report( $cur_lib, $factory->{forward_reverse}, $out_ranks_file,
+      $out_fastq_file, $out_fasta_file, $out_qual_file, $factory->{cur_coverage_fold},
+      $factory->{cur_total_reads}, $diversity);
 
     # Generate shotgun or amplicon reads and write them to a file
     while ( my $read = $factory->next_read ) {
@@ -989,11 +989,12 @@ sub write_community_structure {
 
 
 sub library_report {
-  my ($cur_lib, $ranks_file, $fastq_file, $fasta_file, $qual_file, $coverage,
-    $nof_seqs, $diversity) = @_;
+  my ($cur_lib, $forward_reverse, $ranks_file, $fastq_file, $fasta_file,
+    $qual_file, $coverage, $nof_seqs, $diversity) = @_;
   my $format = '%.3f';
   $coverage = sprintf($format, $coverage);
-  print "Shotgun library $cur_lib:\n";
+  my $lib_type = defined $forward_reverse ? 'Amplicon' : 'Shotgun';
+  print "$lib_type library $cur_lib:\n";
   print "   Community structure  = $ranks_file\n";
   print "   FASTQ file           = $fastq_file\n" if defined $fastq_file;
   print "   FASTA file           = $fasta_file\n" if defined $fasta_file;

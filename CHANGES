@@ -6,6 +6,8 @@ Revision history for Grinder
         -reference_file is now a required argument, so that running grinder without
           argument generated an error message and points the user to --help instead
           of doing nothing (reported by Rob Schmieder).
+        Information displayed on screen now properly reports whether the library
+          is of type shotgun or amplicon
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs
