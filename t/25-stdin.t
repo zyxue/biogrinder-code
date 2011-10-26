@@ -19,8 +19,6 @@ ok $factory = Grinder->new(
    -read_dist        => 48   ,
 ), 'Input from stdin';
 
-ok $factory->next_lib;
-
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;

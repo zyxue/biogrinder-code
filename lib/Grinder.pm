@@ -2097,6 +2097,7 @@ sub rand_point_errors {
 
     # Do a substitution or indel
     if ( rand() <= $subst_frac ) {
+
       # Substitute at given position by a random replacement nucleotide
       push @{$$error_specs{$idx+1}{'%'}}, rand_nuc( substr($seq_str, $idx, 1) );
 
@@ -2111,6 +2112,7 @@ sub rand_point_errors {
         next if length($seq_str) == 1; # skip this deletion to avoid a 0 length
         push @{$$error_specs{$idx+1}{'-'}}, undef;
       }
+
     }
 
   }
