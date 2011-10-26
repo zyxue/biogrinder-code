@@ -236,7 +236,7 @@ Here are a few examples to illustrate the use of the Grinder in a terminal:
 
 =item 1.
 
-A shotgun library with a coverage of 0.1X
+A shotgun DNA library with a coverage of 0.1X
 
    grinder -reference_file genomes.fna -coverage_fold 0.1
 
@@ -1219,6 +1219,11 @@ sub initialize {
     $self->{delete_chars} );
 
   $self->initialize_alphabet;
+  if ( ($self->{alphabet} eq 'protein')     &&
+       ($self->{mate_length} != 0)          &&
+       (not $self->{mate_orientation} eq 'FF') ) {
+    die "Error: Cannot use <mate_orientation> = FF with proteic reference sequences\n";
+  }
 
   # Genome relative abundance in the different independent libraries to create
   $self->{c_structs} = $self->community_structures( $self->{database}->{ids},
@@ -1231,6 +1236,66 @@ sub initialize {
   $self->{cur_read} = 0;
 
   return $self;
+}
+
+
+sub initialize_alphabet {
+  # Store the characters of the alphabet to use and calculate their cdf so that
+  # we can easily pick them at random later
+  my ($self) = @_;
+  my $alphabet = $self->{alphabet};
+  # Characters available in alphabet
+  my %alphabet_hash;
+  if ($alphabet eq 'dna') {
+    %alphabet_hash = (
+      'A' => undef,
+      'C' => undef,
+      'G' => undef,
+      'T' => undef,
+    );
+  } elsif ($alphabet eq 'rna') {
+    %alphabet_hash = (
+      'A' => undef,
+      'C' => undef,
+      'G' => undef,
+      'U' => undef,
+    );
+  } elsif ($alphabet eq 'protein') {
+    %alphabet_hash = (
+      'A' => undef,
+      'R' => undef,
+      'N' => undef,
+      'D' => undef,
+      'C' => undef,
+      'Q' => undef,
+      'E' => undef,
+      'G' => undef,
+      'H' => undef,
+      'I' => undef,
+      'L' => undef,
+      'K' => undef,
+      'M' => undef,
+      'F' => undef,
+      'P' => undef,
+      'S' => undef,
+      'T' => undef,
+      'W' => undef,
+      'Y' => undef,
+      'V' => undef,
+      #'B' => undef, # D or N
+      #'Z' => undef, # Q or E
+      #'X' => undef, # any amino-acid
+      # J, O and U are the only unused letters
+    );
+  } else {
+    die "Error: unknown alphabet '$alphabet'\n";
+  }
+  my $num_chars = scalar keys %alphabet_hash;
+  $self->{alphabet_hash} = \%alphabet_hash;
+  # CDF for this alphabet
+  $self->{alphabet_complete_cdf} = $self->proba_cumul([(1/$num_chars) x $num_chars]);
+  $self->{alphabet_truncated_cdf} = $self->proba_cumul([(1/($num_chars-1)) x ($num_chars-1)]);
+  return 1;
 }
 
 
@@ -1378,11 +1443,7 @@ sub community_calculate_diversities {
   }
   $perc_shared = ($overall_diversity - $nof_non_shared) * 100 / $overall_diversity;
 
-  #####
-  # TODO
-  # Calculate percent permuted
-  # ...
-  ##### 
+  # TODO: Could calculate percent permuted
 
   return \@richnesses, $overall_diversity, $perc_shared, $perc_permuted;
 }
@@ -2104,24 +2165,13 @@ sub rand_point_errors {
     if ( rand() <= $subst_frac ) {
 
       # Substitute at given position by a random replacement nucleotide
-
-      #####
-      # Migrate to rand_res
-      #####
-
-      push @{$$error_specs{$idx+1}{'%'}}, rand_nuc( substr($seq_str, $idx, 1) );
-
+      push @{$$error_specs{$idx+1}{'%'}}, $self->rand_res( substr($seq_str, $idx, 1) );
     } else {
 
       # Equiprobably insert or delete
       if ( rand() < 0.5 ) {
         # Insertion after given position
-
-        #####
-        # Migrate to rand_res
-        #####
-
-        push @{$$error_specs{$idx+1}{'+'}}, rand_nuc(); 
+        push @{$$error_specs{$idx+1}{'+'}}, $self->rand_res(); 
       } else {
         # Make a deletion at given position
         next if length($seq_str) == 1; # skip this deletion to avoid a 0 length
@@ -2135,153 +2185,27 @@ sub rand_point_errors {
   return $error_specs;
 }
 
-#####
-# Migrate to rand_res
-# Need to take into account alphabet, i.e. dna, rna, aa
-#####
 
-#####
 sub rand_res {
-  # Pick a residue at random from the given alphabet (dna, rna or protein).
-  # An optional residue to exclude can be given. The default alphabet is dna.
-  my ($not_nuc, $alphabet) = @_;
-  my @cdf;
+  # Pick a residue at random from the stored alphabet (dna, rna or protein).
+  # An optional residue to exclude can be specified.
+  my ($self, $not_nuc) = @_;
+  my $cdf;
   my @res;
-
-  ####
-  #$self->{alphabet}
-  #$self->{alphabet_hash}
-  #$self->{alphabet_insertion_cdf}
-  #$self->{alphabet_substitution_cdf}
-  ####
-
-  if (defined $not_nuc) {
-    # Exclude a specific nucleotide from the search
-    my %res_hash;
-
-    ####
-    # make %res_hash and @cdf global to the Grinder scope
-    ####
-
-    if ($alphabet eq 'dna') {
-      %res_hash = ( 'A' => undef,
-                    'C' => undef,
-                    'G' => undef,
-                    'T' => undef, );
-      @cdf  = (0, 0.33333333, 0.66666666, 1);
-    } elsif ($alphabet eq 'rna') {
-      %res_hash = ( 'A' => undef,
-                    'C' => undef,
-                    'G' => undef,
-                    'U' => undef, );
-      @cdf  = (0, 0.33333333, 0.66666666, 1);
-    } elsif ($alphabet eq 'protein') {
-      #%res_hash = ( 'A' => undef,
-      #              'C' => undef,
-      #              'G' => undef,
-      #              'U' => undef, );
-      @cdf  = (0, 0.33333333, 0.66666666, 1);
-    } else {
-      
-    }
-
-    delete $res_hash{uc($not_nuc)};
-    @res = keys %res_hash;
-
+  if (not defined $not_nuc) {
+    # Use complete alphabet
+    @res = keys %{$self->{alphabet_hash}};
+    $cdf = $self->{alphabet_complete_cdf};
   } else {
-    # All nucleotides are possible
-    @res = ('A', 'C', 'G', 'T');
-    @cdf  = (0, 0.25, 0.5, 0.75, 1);
+    # Remove non-desired residue from alphabet
+    my %res = %{$self->{alphabet_hash}};
+    delete $res{uc($not_nuc)};
+    @res = keys %res;
+    $cdf = $self->{alphabet_truncated_cdf};
   }
-  my $res = $res[rand_weighted(\@cdf)];
+  my $res = $res[rand_weighted($cdf)];
   return $res; 
 }
-####
-
-sub initialize_alphabet {
-  # Store the characters of the alphabet to use and calculate their cdf so that
-  # we can easily pick them at random later
-  my ($self) = @_;
-  my $alphabet = $self->{alphabet};
-  # Characters available in alphabet
-  my %alphabet_hash;
-  if ($alphabet eq 'dna') {
-    %alphabet_hash = (
-      'A' => undef,
-      'C' => undef,
-      'G' => undef,
-      'T' => undef,
-    );
-  } elsif ($alphabet eq 'rna') {
-    %alphabet_hash = (
-      'A' => undef,
-      'C' => undef,
-      'G' => undef,
-      'U' => undef,
-    );
-  } elsif ($alphabet eq 'protein') {
-    %alphabet_hash = (
-      'A' => undef,
-      'B' => undef,
-      'C' => undef,
-      'D' => undef,
-      'E' => undef,
-      'F' => undef,
-      'G' => undef,
-      'H' => undef,
-      'I' => undef,
-      'J' => undef,
-      'K' => undef,
-      'L' => undef,
-      'M' => undef,
-      'N' => undef,
-      'O' => undef,
-      'P' => undef,
-      'Q' => undef,
-      'R' => undef,
-      'S' => undef,
-      'T' => undef,
-      'U' => undef,
-      'V' => undef,
-      'W' => undef,
-      'X' => undef,
-      'Y' => undef,
-      'Z' => undef,
-    );
-  } else {
-    die "Error: unknown alphabet '$alphabet'\n";
-  }
-  my $num_chars = scalar keys %alphabet_hash;
-  $self->{alphabet_hash} = \%alphabet_hash;
-  # CDF for this alphabet
-  $self->{alphabet_insertion_cdf} = $self->proba_cumul([(1/$num_chars) x $num_chars]);
-  $self->{alphabet_substitution_cdf} = $self->proba_cumul([(1/($num_chars-1)) x ($num_chars-1)]);
-  return 1;
-}
-
-#####
-sub rand_nuc {
-  # Pick a nucleotide at random. An optional nucleotide to exclude can be given.
-  my $not_nuc = shift;
-  my @cdf;
-  my @nucs;
-  if (defined $not_nuc) {
-    # Exclude a specific nucleotide from the search
-    my %nucs_hash = ( 'A' => undef,
-                      'C' => undef,
-                      'G' => undef,
-                      'T' => undef  );
-    delete $nucs_hash{uc($not_nuc)};
-    @nucs = keys %nucs_hash;
-    @cdf  = (0, 0.33333333, 0.66666666, 1);
-  } else {
-    # All nucleotides are possible
-    @nucs = ('A', 'C', 'G', 'T');
-    @cdf  = (0, 0.25, 0.5, 0.75, 1);
-  }
-  return $nucs[rand_weighted(\@cdf)]; 
-}
-####
 
 
 sub rand_seq_length {
@@ -2500,6 +2424,12 @@ sub database_create {
     die "Error: Cannot use amplicon primers with proteic reference sequences\n";
   }
 
+  # Error if using amplicon on protein database
+  if ( ($db_alphabet eq 'protein') && ($unidirectional != 1) ) {
+    die "Error: Got <unidirectional> = $unidirectional but can only use ".
+      "<unidirectional> = 1 with proteic reference sequences\n";
+  }
+
   # Error if no usable sequences in the database
   if (scalar keys %seq_ids == 0) {
     die "Error: No genome sequences could be used. If you specified a file of".
@@ -2711,9 +2641,7 @@ sub lib_coverage {
   $coverage = ($nof_seqs * $read_length) / $lib_length;
   # 3/ Sanity check
 
-  ####
-  # Warn only if diversity was explicitely specified on the command line
-  ####
+  # TODO: Warn only if diversity was explicitely specified on the command line
 
   if ( $nof_seqs < $diversity) {
     warn "Warning: The number of reads to produce is lower than the required ".

@@ -14,6 +14,7 @@ BEGIN {
       PI
       between_ok
       data
+      get_chars
       stats
       hist
       uniform
@@ -50,6 +51,20 @@ sub between_ok {
 sub data {
    # Get the complete filename of a test data file
    return catfile('t', 'data', @_);
+}
+
+
+sub get_chars {
+   # Return a hashref where the keys are the characters seen in the specified
+   # string
+   my ($string) = @_;
+   my %chars;
+   for my $pos (0 .. length($string)-1) {
+      my $char = substr $string, $pos, 1;
+      $chars{$char} = undef;
+   }
+   my @chars = keys %chars;
+   return \%chars;
 }
 
 
