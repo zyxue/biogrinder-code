@@ -9,6 +9,8 @@ Revision history for Grinder
         Information displayed on screen now properly reports whether the library
           is of type shotgun or amplicon
         Tests use done_testing() instead of a fixed number of tests
+        Fixed a bug that caused a crash when using an indel model and a homopolymer
+          model simultaneously
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs

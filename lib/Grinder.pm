@@ -499,9 +499,9 @@ Aberrations and sequencing errors
 Introduce sequencing errors in the reads, under the form of mutations
 (substitutions, insertions and deletions) at positions that follow a specified
 distribution (with replacement):
-   average probability (%),
-   model (uniform, linear),
-   value at 3' end (not applicable for uniform model).
+   average probability (%)
+   model (uniform, linear)
+   value at 3' end (not applicable for uniform model)
 
 For example, for Sanger-type errors, use:
    1.5 linear 2
@@ -2040,16 +2040,13 @@ sub rand_homopolymer_errors {
     $diff = $new_len - $len;
     next unless $diff;
     # Otherwise, track the error generated
-    if ($diff > 0) { # Homopolymer extension
-      my $ext = $res x $diff;
-      if (exists $$error_specs{$pos}{'+'}) {
-        $$error_specs{$pos}{'+'} .= $ext;
-      } else {
-        $$error_specs{$pos}{'+'} = $ext;
-      }
-    } elsif ($diff < 0) { # Homopolymer shrinkage
+    if ($diff > 0) { 
+      # Homopolymer extension
+      push @{$$error_specs{$pos}{'+'}}, ($res) x $diff;
+    } elsif ($diff < 0) {
+      # Homopolymer shrinkage
       for my $offset ( 0 .. abs($diff)-1 ) {
-        $$error_specs{$pos+$offset}{'-'} = '';
+        push @{$$error_specs{$pos+$offset}{'-'}}, undef;
       }
     }
 
@@ -2104,6 +2101,7 @@ sub rand_point_errors {
       push @{$$error_specs{$idx+1}{'%'}}, rand_nuc( substr($seq_str, $idx, 1) );
 
     } else {
+
       # Equiprobably insert or delete
       if ( rand() < 0.5 ) {
         # Insertion after given position
