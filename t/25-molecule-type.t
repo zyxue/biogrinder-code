@@ -6,7 +6,6 @@ use Test::More;
 use t::TestUtils;
 use Grinder;
 
-plan tests => 308;
 
 
 my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);
@@ -47,6 +46,7 @@ my $protein_want_chars = {
    'Y' => undef,
    'V' => undef,
 };
+
 
 # DNA database
 
@@ -106,9 +106,11 @@ while ($read = $factory->next_read) {
 # Mixed
 
 ok $factory = Grinder->new(
-   -reference_file  => data('database_mixed.fa')   ,
-   -total_reads     => 100                       ,
+   -reference_file  => data('database_mixed.fa'),
+   -total_reads     => 100                      ,
+   -unidirectional  => +1                         ,
 ), 'Mixed';
 
 is $factory->{alphabet}, 'protein';
 
+done_testing();
