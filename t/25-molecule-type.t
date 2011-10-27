@@ -108,7 +108,7 @@ while ($read = $factory->next_read) {
 ok $factory = Grinder->new(
    -reference_file  => data('database_mixed.fa'),
    -total_reads     => 100                      ,
-   -unidirectional  => +1                         ,
+   -unidirectional  => +1                       ,
 ), 'Mixed';
 
 is $factory->{alphabet}, 'protein';

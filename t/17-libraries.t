@@ -117,7 +117,7 @@ sub ok_mate {
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
    like $read->seq, qr/[$letters]+/;
-   my $id = $nof_libs.'_'.int($nof_reads/2+0.5).'/'.($nof_reads%2?1:2);
+   my $id = $nof_libs.'_'.round($nof_reads/2).'/'.($nof_reads%2?1:2);
    is $read->id, $id;
    is $read->length, 48;
 }

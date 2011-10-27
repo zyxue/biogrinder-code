@@ -56,7 +56,7 @@ sub ok_mate {
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
    like $read->seq, qr/[$letters]+/;
-   my $id = int($nof_reads/2+0.5).'/'.($nof_reads%2?1:2);
+   my $id = round($nof_reads/2).'/'.($nof_reads%2?1:2);
    is $read->id, $id;
    is $read->length, 48;
 }

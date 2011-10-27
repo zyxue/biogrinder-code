@@ -44,7 +44,7 @@ while ( $read = $factory->next_read ) {
 ($min, $max, $mean, $stddev) = stats(\@rlengths);
 is $min, 40;
 is $max, 60;
-is int($mean+0.5), 50;
+is round($mean), 50;
 between_ok( $stddev, 5.3, 6.3 ); # should be 5.79
 $hist = hist(\@rlengths, 1, 100);
 $ehist = uniform(1, 100, 40, 60, 1000);
