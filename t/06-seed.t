@@ -48,8 +48,9 @@ while (my $read = $factory->next_read) {
    push @dataset2, $read;
 }
 
-for my $i (1 .. 10) {
-  is $dataset1[$i-1]->seq, $dataset2[$i-1]->seq;
-}
+is_deeply \@dataset1, \@dataset2;
+#for my $i (1 .. 10) {
+#  is $dataset1[$i-1]->seq, $dataset2[$i-1]->seq;
+#}
 
 done_testing();

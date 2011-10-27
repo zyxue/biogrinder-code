@@ -4,12 +4,13 @@ use 5.006;
 use strict;
 use warnings;
 use File::Spec;
+use List::Util qw(max);
 use Bio::SeqIO;
 use Bio::Seq::SimulatedRead;
 use Getopt::Euclid qw( :minimal_keys :defer );
-use Math::Random::MT::Perl;
-use Math::Random::MT qw(srand rand);
-use List::Util qw(max);
+use Math::Random::MT::Perl;          # create a seed
+use Math::Random::MT qw(srand rand); # seed and draw from the random generator
+
 
 our $VERSION = '0.3.9';
 
@@ -1271,7 +1272,7 @@ sub initialize {
   if (not defined $self->{random_seed}) {
     $self->{random_seed} = Math::Random::MT::Perl::_rand_seed();
   }
-  srand $self->{random_seed};
+  srand( $self->{random_seed} );
 
   # Sequence length check
   my $max_read_length = $self->{read_length} + $self->{read_delta}; # approximation
