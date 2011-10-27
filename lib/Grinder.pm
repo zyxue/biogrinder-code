@@ -935,6 +935,7 @@ under Git revision control. To get started with a patch, do:
 #---------- GRINDER FUNCTIONAL API --------------------------------------------#
 
 sub Grinder {
+  # This is the main function and is called by the script 'grinder'
   my (@args) = @_;
 
   # Create Grinder object
@@ -1155,10 +1156,16 @@ sub get_random_seed {
 sub argparse {
   # Process arguments
   my ($self, $args) = @_;
+  my @old_args = @$args;
   # Read profile file
   $args = process_profile_file($args);
   # Parse and validate arguments with Getopt::Euclid
   Getopt::Euclid->process_args($args);
+  # Check that Euclid worked, i.e. that there is at least one parameter in %ARGV
+  if ( scalar keys %ARGV == 0 ) {
+    die "Error: the command line arguments could not be parsed because of an ".
+      "internal problem\n";
+  }
   # Get parsed arguments from %ARGV and put them in $self
   for my $arg (keys %ARGV) {
     # Skip short argument names (they are also represented with long names)
@@ -1260,7 +1267,7 @@ sub initialize {
   }
 
   # Parameter processing: homopolymer model
-  $self->{homopolymer_dist} = lc $self->{homopolymer_dist};
+  $self->{homopolymer_dist} = lc $self->{homopolymer_dist} if defined $self->{homopolymer_dist};
 
   # Parameter processing: fastq_output requires qual_levels
   if ( ($self->{fastq_output}) &&
@@ -2388,7 +2395,7 @@ sub randomize {
 sub database_create {
   # Read and import sequences
   # Parameters:
-  #   * FASTA file containing the sequences
+  #   * FASTA file containing the sequences or '-' for stdin. REQUIRED
   #   * Sequencing unidirectionally? 0: no, 1: yes forward, -1: yes reverse
   #   * Amplicon PCR primers (optional): Should be provided in a FASTA file and
   #     use the IUPAC convention. If a primer sequence is given, any sequence
@@ -2401,6 +2408,9 @@ sub database_create {
   my ($self, $fasta_file, $unidirectional, $forward_reverse_primers,
     $abundance_file, $delete_chars) = @_;
   # Input filehandle
+  if (not defined $fasta_file) {
+    die "Error: No reference sequences provided\n";
+  }
   my $in;
   if ($fasta_file eq '-') {
     $in = Bio::SeqIO->newFh(
