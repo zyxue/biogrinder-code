@@ -527,16 +527,10 @@ Aberrations and sequencing errors
 
 Introduce sequencing errors in the reads, under the form of mutations
 (substitutions, insertions and deletions) at positions that follow a specified
-distribution (with replacement):
-   average probability (%)
-   model (uniform, linear)
-   value at 3' end (not applicable for uniform model)
-
-For example, for Sanger-type errors, use:
-   1.5 linear 2
-
-Use the <mutation_ratio> option to alter how many of these mutations are
-substitutions or indels. Default: mutation_dist.default
+distribution (with replacement): average probability (%), model (uniform, linear),
+value at 3' end (not applicable for uniform model). For example, for Sanger-type
+errors, use: 1.5 linear 2. Use the <mutation_ratio> option to alter how many of
+these mutations are substitutions or indels. Default: mutation_dist.default
 
 =for Euclid:
    mutation_dist.type: string
