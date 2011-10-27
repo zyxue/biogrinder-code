@@ -17,12 +17,24 @@ our $VERSION = '0.3.9';
 
 =head1 NAME
 
-Grinder - Multi-omics shotgun and amplicon sequencing read simulator
+Grinder - A versatile multi-omics shotgun and amplicon sequencing read simulator
 
 =head1 DESCRIPTION
 
-Grinder is a program to create random shotgun and amplicon sequence libraries
-based on DNA, RNA or proteic reference sequences in a FASTA file. Features include:
+Grinder is a versatile program to create random shotgun and amplicon sequence
+libraries based on DNA, RNA or proteic reference sequences provided in a FASTA
+file.
+
+Grinder can produce genomic, metagenomic, transcriptomic, metatranscriptomic,
+proteomic, metaproteomic shotgun and amplicon datasets from current sequencing
+technologies such as Sanger, 454, Illumina. These simulated datasets can be used
+to test the accuracy of bioinformatic tools under specific hypothesis, e.g. with
+or without sequencing errors, or with low or high community diversity. Grinder
+may also be used to help decide between alternative sequencing methods for a
+sequence-based project, e.g. should the library be paired-end or not, how many
+reads should be sequenced.
+
+Grinder features include:
 
 =over
 
@@ -73,13 +85,51 @@ available to biologists or power users through multiple interfaces: GUI, CLI and
 
 =back
 
-Grinder can thus produce metagenomic, amplicon or shotgun sequence datasets
-which can be used to test the accuracy of bioinformatic tools or help
-decide between alternative sequencing methods in an experiment.
+Briefly, given a FASTA file containing reference sequence (genomes, genes,
+transcripts or proteins), Grinder performs the following steps:
+
+=over
+
+=item 1.
+
+Read the reference sequences, and for amplicon datasets, extracts full-length
+reference PCR amplicons using the provided degenerate PCR primers.
+
+=item 2.
+
+Determine the community structure based on the provided alpha diversity (number
+of reference sequences in the library), beta diversity (number of reference
+sequences in common between several independent libraries) and specified rank-
+abundance model. 
+
+=item 3.
+
+Take shotgun reads from the reference sequences or amplicon reads from the full-
+length reference PCR amplicons. The reads may be paired-end reads when an insert
+size distribution is specified. The length of the reads depends on the provided
+read length distribution and their abundance depends on the relative abundance
+in the community structure. Genome length may also biases the number of reads to
+take for shotgun datasets at this step. Similarly, for amplicon datasets, the
+number of copies of the target gene in the reference genomes may bias the number
+of reads to take.
+
+=item 4.
+
+Alter reads by inserting sequencing errors (indels, substitutions and homopolymer
+errors) following a position-specific model to simulate reads created by current
+sequencing technologies (Sanger, 454, Illumina). Write the reads and their
+quality scores in FASTA, QUAL and FASTQ files.
+
+=back
 
 =head1 CITATION
 
 If you use Grinder in your research, please cite:
+
+   Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2011) Grinder: a
+   versatile sequence simulator for environmental shotgun and amplicon datasets
+   
+In review...
 
    Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
    GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
