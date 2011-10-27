@@ -17,18 +17,23 @@ our $VERSION = '0.3.9';
 
 =head1 NAME
 
-Grinder - Genomic, metagenomic and amplicon sequence simulator
+Grinder - Multi-omics shotgun and amplicon sequencing read simulator
 
 =head1 DESCRIPTION
 
 Grinder is a program to create random shotgun and amplicon sequence libraries
-based on reference sequences in a FASTA file. Features include:
+based on DNA, RNA or proteic reference sequences in a FASTA file. Features include:
 
 =over
 
 =item *
 
 shotgun library or amplicon library
+
+=item *
+
+omics and meta-omics support to generate genomic, transcriptomic, proteomic,
+metagenomic, metatranscriptomic or metaproteomic datasets
 
 =item *
 
@@ -40,11 +45,11 @@ simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers
 
 =item *
 
-support for creating paired-end (mate pair) datasets
+support for paired-end (mate pair) datasets
 
 =item *
 
-specific rank-abundance settings or manually given abundance for each genome
+specific rank-abundance settings or manually given abundance for each genome, gene or protein
 
 =item *
 
@@ -190,7 +195,7 @@ The 'utils' folder included in the Grinder package contains some utilities:
 =item average genome size:
 
 This calculates the average genome size (in bp) of a simulated random library
-produces by Grinder.
+produced by Grinder.
 
 =item change_paired_read_orientation:
 
@@ -204,7 +209,7 @@ in a FASTA file.
 A variety of FASTA databases can be used as input for Grinder. For example, the
 GreenGenes database (L<http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta>)
 contains over 180,000 16S rRNA clone sequences from various species which would
-be appropriate to produce a 16S amplicon dataset. A set of over 41,000 OTU
+be appropriate to produce a 16S rRNA amplicon dataset. A set of over 41,000 OTU
 representative sequences and their affiliation in seven different taxonomic
 sytems can also be used for the same purpose (L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/rep_set/gg_97_otus_6oct2010.fasta>
 and L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/>).
@@ -223,14 +228,15 @@ over 3,100 curated viral sequences (L<ftp://ftp.ncbi.nih.gov/refseq/release/vira
 which can be used to produce artificial viral metagenomes.
 
 Quite a few eukaryotic organisms have been sequenced and their genome or genes
-can be the basis for simulating genomic and transcriptomic (RNA-seq) datasets. 
-For example, you can use the human genome, available at
-L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/>, or the human transcripts,
-downloadable from L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz>.
+can be the basis for simulating genomic, transcriptomic (RNA-seq) or proteomic 
+datasets. For example, you can use the human genome available at
+L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/>, the human transcripts
+downloadable from L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz>
+or the human proteome at L<ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.protein.faa.gz>.
 
 =head1 CLI EXAMPLES
 
-Here are a few examples to illustrate the use of the Grinder in a terminal:
+Here are a few examples that illustrate the use of Grinder in a terminal:
 
 =over
 
@@ -248,74 +254,94 @@ Same thing but save the result files in a specific folder and with a specific na
 
 =item 3.
 
-A shotgun library with 1000 reads
+A DNA shotgun library with 1000 reads
 
    grinder -reference_file genomes.fna -total_reads 1000
 
 =item 4.
 
-A shotgun library where species are distributed according to a power law
+A DNA shotgun library where species are distributed according to a power law
 
    grinder -reference_file genomes.fna -abundance_model powerlaw 0.1
 
 =item 5.
 
-A shotgun library with 123 species
+A DNA shotgun library with 123 species
 
    grinder -reference_file genomes.fna -diversity 123
 
 =item 6.
 
-Two shotgun libraries that have 50% of the species in common
+Two DNA shotgun libraries that have 50% of the species in common
 
    grinder -reference_file genomes.fna -num_libraries 2 -shared_perc 50
 
 =item 7.
 
-A shotgun library where species relative abundances are manually specified
+A DNA shotgun library where species relative abundances are manually specified
 
    grinder -reference_file genomes.fna -abundance_file my_abundances.txt
 
 =item 8.
 
-A shotgun library with Sanger reads
+A DNA shotgun library with Sanger reads
 
    grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
 
 =item 9.
 
-A shotgun library with first-generation 454 reads
+A DNA shotgun library with first-generation 454 reads
 
    grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
 
 =item 10.
 
-A paired-end shotgun library (insert size normally distributed around 2.5 kbp
-with 0.2 kbp standard deviation)
+A paired-end DNA shotgun library, where the insert size is normally distributed
+around 2.5 kbp and has 0.2 kbp standard deviation
 
    grinder -reference_file genomes.fna -insert_dist 2500 normal 200
 
 =item 11.
 
-A 16S amplicon library
+A transcriptomic dataset
+
+   grinder -reference_file transcripts.fna -unidirectional 1
+
+Note the use of -unidirectional 1 to prevent reads to be taken from the reverse-
+complement of the reference sequences.
+
+=item 12.
+
+A proteomic dataset
+
+   grinder -reference_file proteins.faa -unidirectional 1
+
+=item 13.
+
+A 16S rRNA amplicon library
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1
 
-=item 12.
+Note the use of -length_bias 0 because reference sequence length should not affect
+the relative abundance of amplicons.
+
+=item 14.
 
 The same amplicon library with 20% of chimeric reads
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
 
-=item 13.
+=item 15.
 
-Three 16S amplicon libraries with specified MIDs
+Three 16S rRNA amplicon libraries with specified MIDs and no reference sequences
+in common
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
 
-=item 14.
+=item 16.
 
-Reading reference sequences from the standard input, which allows you to decompress FASTA files on the fly
+Reading reference sequences from the standard input, which allows you to
+decompress FASTA files on the fly:
 
    zcat microbial_db.fna.gz | grinder -reference_file - -total_reads 100
 
@@ -328,7 +354,7 @@ Reading reference sequences from the standard input, which allows you to decompr
 =item -rf <reference_file> | -reference_file <reference_file> | -gf <reference_file> | -genome_file <reference_file>
 
 FASTA file that contains the input reference sequences (full genomes, 16S rRNA
-genes, transcripts, ...) or '-' to read them from the standard input. See the
+genes, transcripts, proteins...) or '-' to read them from the standard input. See the
 README file for examples of databases you can use and where to get them from. 
 Default: reference_file.default
 
@@ -355,8 +381,8 @@ this if you specify the coverage. Default: total_reads.default
 
 =item -cf <coverage_fold> | -coverage_fold <coverage_fold>
 
-Desired fold coverage of the input reference sequences (the output FASTA length divided
-by the input FASTA length). Default: coverage_fold.default x
+Desired fold coverage of the input reference sequences (the output FASTA length
+divided by the input FASTA length). Default: coverage_fold.default x
 
 =for Euclid:
    coverage_fold.type: +number
@@ -410,7 +436,7 @@ orientation of the reads (F: forward, R: reverse):
    FF:  ---> --->  e.g. 454
    RF:  <--- --->  e.g. Illumina mate-pairs
    RR:  <--- <---
-   
+
 Default: mate_orientation.default
 
 =for Euclid:
@@ -439,26 +465,28 @@ e.g. 'N-' to renove gaps (-) and ambiguities (N). Default: delete_chars.default
 
 =item -fr <forward_reverse> | -forward_reverse <forward_reverse>
 
-Use amplicon sequencing using the given forward and reverse PCR primer sequences
-(in a FASTA file). It is recommended to use the <length_bias> and <unidirectional>
-options to generate amplicon reads. To sequence from the forward strand
-(<unidirectional> = 1), put the forward primer first and reverse primer second.
-To sequence from the reverse strand, invert the primers in the FASTA file and
-use <unidirectional> = -1. The second primer sequence in the FASTA file is always
-optional. The sequences should use the IUPAC convention for degenerate residues.
-Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers
-respectively (primers that target the v6 to v9 region of the 16S rRNA gene).
-Genome sequences that do not match the specified primers are excluded.
+Use DNA amplicon sequencing using a forward and reverse PCR primer sequence
+provided in a FASTA file. The primer sequences should use the IUPAC convention
+for degenerate residues. It is recommended to use <copy_bias> = 1 and 
+<length_bias> = 0 to generate amplicon reads. Also, to sequence from the forward
+strand, set <unidirectional> to 1 and put the forward primer first and reverse
+primer second in the FASTA file. To sequence from the reverse strand, invert the
+primers in the FASTA file and use <unidirectional> = -1. The second primer
+sequence in the FASTA file is always optional. Example: AAACTYAAAKGAATTGRCGG and
+ACGGGCGGTGTGTRC for the 926F and 1392R primers that target the V6 to V9 region
+of the 16S rRNA gene. Reference sequences that that do not match the specified
+primers are excluded.
 
 =for Euclid:
    forward_reverse.type: readable
 
 =item -un <unidirectional> | -unidirectional <unidirectional>
 
-Instead of producing reads bidirectionally, i.e. from the reference strand and
-its reverse complement, proceed unidirectionally, i.e. from one strand only
-(forward or reverse). Values: 0 (off), 1 (forward), -1 (reverse). Default:
-unidirectional.default
+Instead of producing reads bidirectionally, from the reference strand and its
+reverse complement, proceed unidirectionally, from one strand only (forward or
+reverse). Values: 0 (off, i.e. bidirectional), 1 (forward), -1 (reverse). Use
+<unidirectional> = 1 for strand specific transcriptomic or proteomic datasets.
+Default: unidirectional.default
 
 =for Euclid:
    unidirectional.type: integer, unidirectional >= -1 && unidirectional <= 1
@@ -2476,8 +2504,8 @@ sub database_get_mol_type {
 sub database_extract_amplicons {
   my ($self, $seq, $forward_regexp, $reverse_regexp, $ids_to_keep) = @_;
   # A database sequence can have several amplicons, e.g. a genome can have 
-  # several 16S genes. Extract all amplicons from a sequence but take only the
-  # shortest when amplicons are nested.
+  # several 16S rRNA genes. Extract all amplicons from a sequence but take only
+  # the shortest when amplicons are nested.
   my $seqstr = $seq->seq;
   my $seqid  = $seq->id;
   my @amplicons;
