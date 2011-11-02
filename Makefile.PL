@@ -52,11 +52,6 @@ install_script 'utils/change_paired_read_orientation';
 auto_manifest();
 
 
-# Provide mechanism to generate a deb package
-
-###debian();
-
-
 # Generate Makefile and META.yml files
 
 WriteAll;
