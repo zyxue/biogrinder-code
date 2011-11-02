@@ -152,13 +152,11 @@ between_ok( $mean     ,  97, 103 ); # exp. mean number of errors at each pos is 
 
 SKIP: {
    skip rfit_msg() if not can_rfit();
-
    #### TODO
    #TODO: {
    #   $TODO = "Need to implement a linear density distribution in R";
    #   test_linear_dist(\@epositions, 1, 50, 0.0000000001);
    #}
-   ####
 }
 
 @epositions = ();
@@ -192,13 +190,11 @@ between_ok( $mean     ,   80,  120 ); # mean number at each pos should be 100 (1
 
 SKIP: {
    skip rfit_msg() if not can_rfit();
-
    #### TODO
    #TODO: {
-   #   $TODO = "Need to implement a linear density distribution in R";
-   #   test_linear_dist(\@epositions, 1, 50, 0.0000000001);
+   #   $TODO = "Need to implement a polynomial distribution in R";
+   #   test_polynomial_dist(\@epositions, 1, 50, 0.0000000001);
    #}
-   ####
 }
 
 @epositions = ();
