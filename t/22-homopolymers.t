@@ -52,7 +52,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    cmp_ok $coeff, '>', $min_coeff;
    #### TODO: Better test of normality
    #SKIP: {
-   #   skip rfit_msg(), 6 if not can_rfit();
+   #   skip rfit_msg() if not can_rfit();
    #   test_normal_dist($values, $mean, $stddev);
    #}
 }
@@ -98,7 +98,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    cmp_ok $coeff, '>', $min_coeff;
    #### TODO: Better test of normality
    #SKIP: {
-   #   skip rfit_msg(), 6 if not can_rfit();
+   #   skip rfit_msg() if not can_rfit();
    #   test_normal_dist($values, $mean, $stddev);
    #}
 }
@@ -144,7 +144,7 @@ for my $homo_len ( sort {$b <=> $a} (keys %$hpols) ) {
    cmp_ok $coeff, '>', $min_coeff;
    #### TODO: Better test of normality
    #SKIP: {
-   #   skip rfit_msg(), 6 if not can_rfit();
+   #   skip rfit_msg() if not can_rfit();
    #   test_normal_dist($values, $mean, $stddev);
    #}
 }

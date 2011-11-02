@@ -121,7 +121,7 @@ between_ok( $mean, 97, 103 ); # should be 100
 cmp_ok $stddev, '<', 12;
 
 SKIP: {
-   skip rfit_msg(), 5 if not can_rfit();
+   skip rfit_msg() if not can_rfit();
    test_uniform_dist(\@epositions, 1, 50);
 }
 
@@ -151,7 +151,7 @@ between_ok( $$prof[-1], 125, 175 ); # exp. number of errors at last pos is 150
 between_ok( $mean     ,  97, 103 ); # exp. mean number of errors at each pos is 100
 
 SKIP: {
-   skip rfit_msg(), 7 if not can_rfit();
+   skip rfit_msg() if not can_rfit();
 
    #### TODO
    #TODO: {
@@ -191,7 +191,7 @@ between_ok( $$prof[-1],  419,  479 ); # mean number at last pos should be 449 (4
 between_ok( $mean     ,   80,  120 ); # mean number at each pos should be 100 (10.02%)
 
 SKIP: {
-   skip rfit_msg(), 7 if not can_rfit();
+   skip rfit_msg() if not can_rfit();
 
    #### TODO
    #TODO: {

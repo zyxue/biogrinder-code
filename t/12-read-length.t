@@ -52,7 +52,7 @@ $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
-   skip rfit_msg(), 5 if not can_rfit();
+   skip rfit_msg() if not can_rfit();
    test_uniform_dist(\@rlengths, 40, 60);
 }
 
@@ -78,7 +78,7 @@ $coeff = corr_coeff($hist, $ehist, $mean);
 cmp_ok $coeff, '>', 0.99;
 
 SKIP: {
-   skip rfit_msg(), 5 if not can_rfit();
+   skip rfit_msg() if not can_rfit();
    test_normal_dist(\@rlengths, 50, 5);
 }
 
