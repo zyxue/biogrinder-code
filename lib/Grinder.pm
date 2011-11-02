@@ -459,7 +459,7 @@ Advanced shotgun and amplicon parameters
 =item -rd <read_dist>... | -read_dist <read_dist>...
 
 Desired shotgun or amplicon read length distribution specified as:
-   average length, distribution ('uniform' or 'normal') and standard deviation
+   average length, distribution ('uniform' or 'normal') and standard deviation.
 
 Only the first element is required. Examples:
 
@@ -593,8 +593,10 @@ Introduce sequencing errors in the reads, under the form of mutations
 (substitutions, insertions and deletions) at positions that follow a specified
 distribution (with replacement): average probability (%), model (uniform, linear),
 value at 3' end (not applicable for uniform model). For example, for Sanger-type
-errors, use: 1.5 linear 2. Use the <mutation_ratio> option to alter how many of
-these mutations are substitutions or indels. Default: mutation_dist.default
+errors, use: 1.5 linear 2. To model Illumina errors using the 4th degree polynome
+3e-3 + 3.3e-8 * position^4 (Korbel et al 2009), use: 3e-3 poly4 3.3e-8. Use the
+<mutation_ratio> option to alter how many of these mutations are substitutions
+or indels. Default: mutation_dist.default
 
 =for Euclid:
    mutation_dist.type: string
@@ -2221,40 +2223,78 @@ sub rand_point_errors {
   # Do some random point sequencing errors on a sequence based on a model
   my ($self, $seq_str, $error_specs) = @_;
 
+  # Mutation cumulative density functions (cdf) for this sequence length
+  my $seq_len = length($seq_str);
+  if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
+    my $mut_pdf  = []; # probability density function
+    my $mut_freq =  0; # average
+
+    if ($self->{mutation_model} eq 'uniform') {
+      # Uniform error model
+      my $proba = 1 / $seq_len;
+      $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
+      $mut_freq = $self->{mutation_freq};
+
+    } elsif ($self->{mutation_model} eq 'linear') {
+      # Linear error model
+      my $start = (2 * $self->{mutation_freq} - $self->{mutation_end}) / ($seq_len * $self->{mutation_freq});
+      if ($start < 0) {
+        die "Error: A 3' end mutation frequency of ".$self->{mutation_end}.
+        " % is not possible in combination with an average mutation frequency".
+        " of ".$self->{mutation_freq}." %\n";
+      }
+      my $slope = 2 * ($self->{mutation_end} - $self->{mutation_freq}) / (($seq_len-1) * $seq_len * $self->{mutation_freq});
+      $mut_pdf  = [ map { $start + $_ * $slope } (@$mut_pdf) ];
+      $mut_freq = $self->{mutation_freq};
+
+    } elsif ($self->{mutation_model} eq 'poly4') {
+      # Fourth degree polynomial error model: e = a + b * i**4
+      #   a is $self->{mutation_freq}
+      #   b is $self->{mutation_end}
+      my $mut_dist = [ map { $self->{mutation_freq} + $self->{mutation_end} * $_**4 } (1 .. $seq_len) ];
+      my $mut_sum  = 0;
+      for my $val (@$mut_dist) {
+        $mut_sum += $val;
+      }
+      $mut_pdf  = [ map { $_/$mut_sum } (@$mut_dist) ];
+      $mut_freq = $mut_sum / $seq_len;
+
+    } else {
+      die "Error: '".$self->{mutation_model}."' is not a supported error distribution\n";
+    }
+
+    $self->{mutation_cdf}->{$seq_len} = $self->proba_cumul($mut_pdf);
+    $self->{mutation_avg}->{$seq_len} = $mut_freq;
+
+  }
+
+  my $mut_cdf = $self->{mutation_cdf}->{$seq_len};
+  my $mut_avg = $self->{mutation_avg}->{$seq_len};
+
+  ####
+  # TODO: Could store the PDF (or CDF) and the average for future reuse by sequences
+  # that have the same length
+  ####
+
+  ####
+  # Sanity checks? mut_pdf should have no values < 0 or > 100
+  ####
+
   # Number of mutations to make in this sequence is assumed to follow a Normal
   # distribution N( mutation_freq, 0.3 * mutation_freq )
-  my $seq_len = length($seq_str);
-  my $read_mutation_freq = $self->{mutation_freq} + 0.3 * $self->{mutation_freq} * randn();
+  my $read_mutation_freq = $mut_avg + 0.3 * $mut_avg * randn();
   my $nof_mutations = int( $seq_len*$read_mutation_freq/100 + 0.5 );
  
   # Exit without doing anything if there are no mutations to do
   return $error_specs if $nof_mutations == 0;
 
-  # Mutation cumulative density functions (cdf)
-  my $mut_pdf = [ 0 .. $seq_len - 1 ]; # probability density function
-  if ($self->{mutation_model} eq 'uniform') {
-    my $proba = 1 / $seq_len;
-    $mut_pdf = [ map { $proba } (@$mut_pdf) ];
-  } elsif ($self->{mutation_model} eq 'linear') {
-    my $start = (2 * $self->{mutation_freq} - $self->{mutation_end}) / ($seq_len * $self->{mutation_freq});
-    if ($start < 0) {
-      die "Error: A 3' end mutation frequency of ".$self->{mutation_end}.
-      " % is not possible in combination with an average mutation frequency".
-      " of ".$self->{mutation_freq}." %\n";
-    }
-    my $slope = 2 * ($self->{mutation_end} - $self->{mutation_freq}) / (($seq_len-1) * $seq_len * $self->{mutation_freq});
-    $mut_pdf = [ map { $start + $_ * $slope } (@$mut_pdf) ];
-  } else {
-    die "Error: '".$self->{mutation_model}."' is not a supported error distribution\n";
-  }
-  my $mut_cdf = $self->proba_cumul($mut_pdf);
-
   # Make as many mutations in read as needed based on model
+
   my $subst_frac = $self->{mutation_ratio}->[0] / 100;
   for ( 1 .. $nof_mutations ) {
 
     # Position to mutate
-    my $idx = rand_weighted($mut_cdf);
+    my $idx = rand_weighted( $mut_cdf );
 
     # Do a substitution or indel
     if ( rand() <= $subst_frac ) {

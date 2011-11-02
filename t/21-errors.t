@@ -146,9 +146,49 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-between_ok( $$prof[0] ,  30,  70 ); # mean number of errors at 1st position of reads should be 50
-between_ok( $$prof[-1], 125, 175 ); # mean number of errors at last position of read should be 150
-between_ok( $mean     ,  97, 103 ); # mean number of errors at each position should be 100
+between_ok( $$prof[0] ,  30,  70 ); # exp. number of errors at 1st  pos is 50
+between_ok( $$prof[-1], 125, 175 ); # exp. number of errors at last pos is 150
+between_ok( $mean     ,  97, 103 ); # exp. mean number of errors at each pos is 100
+
+SKIP: {
+   skip rfit_msg(), 7 if not can_rfit();
+
+   #### TODO
+   #TODO: {
+   #   $TODO = "Need to implement a linear density distribution in R";
+   #   test_linear_dist(\@epositions, 1, 50, 0.0000000001);
+   #}
+   ####
+}
+
+@epositions = ();
+
+
+# Fourth degree polynomial distribution
+
+ok $factory = Grinder->new(
+   -reference_file => data('single_seq_database.fa'),
+   -unidirectional => 1                             ,
+   -read_dist      => 100                           ,
+   -total_reads    => 1000                     ,
+   -mutation_ratio => (50, 50)                      ,
+   -mutation_dist  => (1, 'poly4', 4.4e-7)         ,
+), 'Polynomial';
+
+while ( $read = $factory->next_read ) {
+   my @positions = error_positions($read);
+   push @epositions, @positions if scalar @positions > 0;
+}
+
+$prof = hist(\@epositions, 1, 100);
+($min, $max, $mean, $stddev) = stats($prof);
+
+use Data::Dumper; print "prof: ".Dumper($prof);
+
+between_ok( $$prof[0] ,    1,   27 ); # mean number at 1st  pos should be 10 (1%)
+between_ok( $$prof[49],   16,   46 ); # mean number at 50th pos should be 37.4 (3.74%)
+between_ok( $$prof[-1],  419,  479 ); # mean number at last pos should be 449 (44.9%)
+between_ok( $mean     ,   80,  120 ); # mean number at each pos should be 100 (10.02%)
 
 SKIP: {
    skip rfit_msg(), 7 if not can_rfit();

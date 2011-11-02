@@ -1,6 +1,8 @@
 Revision history for Grinder
 
 0.x     
+        Speed improvement for position-specific error models
+        Illumina 4th degree polynomial model
         Galaxy GUI fix so that the output is fastqsanger, not just fastq
         Documentation updates (reported by Rob Schmieder)
         -reference_file is now a required argument, so that running grinder without
