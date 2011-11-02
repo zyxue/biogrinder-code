@@ -184,11 +184,11 @@ Part of the Bioperl package
 
 Bio::Seq::SimulatedRead
 
-Part of Bioperl but included here because it has not been released yet.
+Part of Bioperl but included here because it has not been released yet
 
 =item *
 
-Getopt::Euclid
+Getopt::Euclid (>= 0.2.8)
 
 =item *
 
@@ -196,7 +196,7 @@ Math::Random::MT
 
 =item *
 
-Math::Random::MT::Perl
+Math::Random::MT::Perl (>= 1.06)
 
 =back
 
@@ -263,10 +263,13 @@ contains over 180,000 16S rRNA clone sequences from various species which would
 be appropriate to produce a 16S rRNA amplicon dataset. A set of over 41,000 OTU
 representative sequences and their affiliation in seven different taxonomic
 sytems can also be used for the same purpose (L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/rep_set/gg_97_otus_6oct2010.fasta>
-and L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/>).
-While 16S rRNA is a popular gene, datasets containing any type of gene could be used
-in the same fashion to generate simulated amplicon datasets, provided appropriate
-primers are used.
+and L<http://greengenes.lbl.gov/Download/OTUs/gg_otus_6oct2010/taxonomies/>). The
+RDP (L<http://rdp.cme.msu.edu/download/release10_27_unaligned.fa.gz>) and Silva
+(L<http://www.arb-silva.de/no_cache/download/archive/release_108/Exports/>)
+databases also provide many 16S rRNA sequences and Silva includes eukaryotic
+sequences. While 16S rRNA is a popular gene, datasets containing any type of gene
+could be used in the same fashion to generate simulated amplicon datasets, provided
+appropriate primers are used.
 
 The >2,400 curated microbial genome sequences in the NCBI RefSeq collection
 (L<ftp://ftp.ncbi.nih.gov/refseq/release/microbial/>) would also be suitable for
@@ -329,30 +332,38 @@ Two DNA shotgun libraries that have 50% of the species in common
 
 =item 7.
 
+Two DNA shotgun library with no species in common and distributed according to a
+exponential rank-abundance model. Note that because the parameter value for the
+exponential model is omitted, each library uses a different randomly chosen value:
+
+   grinder -reference_file genomes.fna -num_libraries 2 -abundance_model exponential
+
+=item 8.
+
 A DNA shotgun library where species relative abundances are manually specified
 
    grinder -reference_file genomes.fna -abundance_file my_abundances.txt
 
-=item 8.
+=item 9.
 
 A DNA shotgun library with Sanger reads
 
    grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
 
-=item 9.
+=item 10.
 
 A DNA shotgun library with first-generation 454 reads
 
    grinder -reference_file genomes.fna -read_dist 100 normal 10 -homopolymer_dist balzer
 
-=item 10.
+=item 11.
 
 A paired-end DNA shotgun library, where the insert size is normally distributed
 around 2.5 kbp and has 0.2 kbp standard deviation
 
    grinder -reference_file genomes.fna -insert_dist 2500 normal 200
 
-=item 11.
+=item 12.
 
 A transcriptomic dataset
 
@@ -361,13 +372,13 @@ A transcriptomic dataset
 Note the use of -unidirectional 1 to prevent reads to be taken from the reverse-
 complement of the reference sequences.
 
-=item 12.
+=item 13.
 
 A proteomic dataset
 
    grinder -reference_file proteins.faa -unidirectional 1
 
-=item 13.
+=item 14.
 
 A 16S rRNA amplicon library
 
@@ -376,20 +387,20 @@ A 16S rRNA amplicon library
 Note the use of -length_bias 0 because reference sequence length should not affect
 the relative abundance of amplicons.
 
-=item 14.
+=item 15.
 
 The same amplicon library with 20% of chimeric reads
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
 
-=item 15.
+=item 16.
 
 Three 16S rRNA amplicon libraries with specified MIDs and no reference sequences
 in common
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
 
-=item 16.
+=item 17.
 
 Reading reference sequences from the standard input, which allows you to
 decompress FASTA files on the fly:
@@ -433,7 +444,7 @@ this if you specify the coverage. Default: total_reads.default
 =item -cf <coverage_fold> | -coverage_fold <coverage_fold>
 
 Desired fold coverage of the input reference sequences (the output FASTA length
-divided by the input FASTA length). Default: coverage_fold.default x
+divided by the input FASTA length).
 
 =for Euclid:
    coverage_fold.type: +number
@@ -452,10 +463,12 @@ Desired shotgun or amplicon read length distribution specified as:
 
 Only the first element is required. Examples:
 
-  All sequences exactly 250 bp long: 250
+  All sequences exactly 101 bp long (Illumina GA 2x): 101
   Uniform distribution around 100+-10 bp: 100 uniform 10
   Read normally distributed with an average of 800 and a standard deviation of 100
-    bp: 800 normal 100
+    bp (Sanger): 800 normal 100
+  Read normally distributed with an average of 450 and a standard deviation of 50
+    bp (454 GS-FLX Ti): 450 normal 50
 
 Genomes smaller than the specified length are not used. Default: read_dist.default
 
