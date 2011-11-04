@@ -1,6 +1,6 @@
 <tool id="grinder" name="Grinder" version="0.3.9">
 
-  <description>genomic, metagenomic and amplicon read simulator</description>
+  <description>versatile omic shotgun and amplicon read simulator</description>
 
   <requirements>
     <requirement type="binary">grinder</requirement>
@@ -110,7 +110,7 @@
         <option value="uploaded">Uploaded file</option>
       </param>
       <when value="builtin">
-        <param name="value" type="select" label="Reference sequences" help="Galaxy built-in FASTA file">
+        <param name="value" type="select" label="Reference sequences (genomes, genes, transcripts, proteins)" help="Galaxy built-in FASTA file">
           <options from_data_table="all_fasta" />
         </param>
       </when>
@@ -121,18 +121,21 @@
 
     <param name="total_reads" type="text" value="100" optional="true" label="Number of reads" help="Number of shotgun or amplicon reads to generate for each library. Do not specify this if you specify the fold coverage." />
 
-    <param name="coverage_fold" type="text" optional="true" label="Coverage fold" help="Generate the number of reads needed to achieve the specified fold coverage of the input reference sequences for each library (the output FASTA length divided by the input FASTA length). Do not specify this if you specify the number of reads directly" />
+    <param name="coverage_fold" type="text" optional="true" label="Coverage fold" help="Desired fold coverage of the input reference sequences (the output FASTA length divided by the input FASTA length). Do not specify this if you specify the number of reads directly." />
 
     <param name="read_dist" type="text" value="100" optional="true" label="Sequence length distribution" help="Desired sequence length distribution specified as:
   average length, distribution ('uniform' or 'normal') and standard deviation
 Only the first element is required.
 Examples:
-   1/ All sequences exactly 250 bp long: 250
-   2/ Uniform distribution around 100+-10 bp: 100 uniform 10
-   3/ Read normally distributed with an average of 800 and a standard deviation
-      of 100 bp: 800 normal 100" />
+   1/ All reads exactly 101 bp long (Illumina GA 2x): 101
+   2/ Uniform read distribution around 100+-10 bp: 100 uniform 10
+   3/ Reads normally distributed with an average of 800 and a standard deviation
+      of 100 bp (Sanger reads): 800 normal 100
+   4/ Reads normally distributed with an average of 450 and a standard deviation
+      of 50 bp (454 GS-FLX Ti): 450 normal 50
+Reference sequences smaller than the specified read length are not used." />
 
-    <param name="insert_dist" type="text" value="0" optional="true" label="Insert size distribution" help="Create shotgun paired end reads (mate pairs) spanning the given insert length (the reads are interior to the insert):
+    <param name="insert_dist" type="text" value="0" optional="true" label="Insert size distribution" help="Create paired-end or mate-pair reads spanning the given insert length. Important: the insert is defined in the biological sense, i.e. its length includes the length of both reads and of the stretch of DNA between them:
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
        distribution (a typical value is 2,500 bp)
@@ -144,54 +147,54 @@ Two distinct reads are generated whether or not the mate pair overlaps." />
 
     <param name="delete_chars" type="text" optional="true" label="Characters to delete" help="Remove the specified characters from the reference sequences (case insensitive), e.g. 'N-' to remove gaps (-) and ambiguities (N)." />
 
-    <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" help="Use amplicon sequencing using the given forward and reverse PCR primer sequences (in a FASTA file, in this order). The second sequence in the FASTA file (the reverse primer) is optional. The sequences should use the IUPAC convention for degenerate residues). Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers respectively (primers that target the v6 to v9 region of the 16S rRNA gene). Genome sequences that do not match the specified primers are excluded. It is recommended to use the unidirectional and no genome length bias options to generate amplicon reads." />
+    <param name="forward_reverse" type="data" format="fasta" optional="true" label="Amplicon primers" help="Use DNA amplicon sequencing using a forward and reverse PCR primer sequence provided in a FASTA file. The primer sequences should use the IUPAC convention for degenerate residues and the reference sequences that that do not match the specified primers are excluded. If your reference sequences are full genomes, it is recommended to turn the copy number bias option on and the length bias option off reads. To sequence from the forward strand, set the sequencing direction option to 1 and put the forward primer first and reverse primer second in the FASTA file. To sequence from the reverse strand, invert the primers in the FASTA file and use -1 for the sequencing direction option. The second primer sequence in the FASTA file is always optional. Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and 1392R primers that target the V6 to V9 region of the 16S rRNA gene." />
 
-    <param name="unidirectional" type="select" display="radio" value="0" label="Sequencing direction" help="Produce reads just from one strand, by opposition to the reference strand and its reverse complement.">
+    <param name="unidirectional" type="select" display="radio" value="0" label="Sequencing direction" help="Instead of producing reads bidirectionally, from the reference strand and its reverse complement, proceed unidirectionally, from one strand only (forward or reverse). Values: 0 (off, i.e. bidirectional), 1 (forward), -1 (reverse). Use the value 1 for strand specific transcriptomic or proteomic datasets.">
       <option value="0">both strands</option>
       <option value="1">forward strand only</option>
       <option value="-1">reverse strand only</option>
     </param>
 
-    <param name="length_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Length bias" help="In shotgun libraries, sample species proportionally to their genome length: at the same relative abundance, larger genomes contribute more reads than smaller genomes." />
+    <param name="length_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Length bias" help="In shotgun libraries, sample reference sequences proportionally to their length. For example, in simulated microbial datasets, this means that at the same relative abundance, larger genomes contribute more reads than smaller genomes. 0 = no, 1 = yes." />
 
-    <param name="copy_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Copy number bias" help="In amplicon libraries, sample species proportionally to the number of copies of the target gene: at equal relative abundance, genomes that have multiple copies of the target gene contribute more amplicon reads than genomes that have a single copy. Note: you should use full genomes in the reference file to make use of this option." />
+    <param name="copy_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Copy number bias" help="In amplicon libraries where full genomes are used as input, sample species proportionally to the number of copies of the target gene: at equal relative abundance, genomes that have multiple copies of the target gene contribute more amplicon reads than genomes that have a single copy. 0 = no, 1 = yes." />
 
-    <param name="mutation_dist" type="text" value="0" optional="true" label="Mutation distribution" help="Introduce sequencing errors in the reads, under the form of mutations (substitutions, insertions and deletions) using a specified frequency distribution:
-   average probability (%),
-   model (uniform, linear),
-   value at 3&apos; end (not applicable for uniform model).
-For example, for Sanger-type errors, use:
-   1.5 linear 2." />
+    <param name="mutation_dist" type="text" value="0" optional="true" label="Mutation distribution" help="Introduce sequencing errors in the reads, under the form of mutations (substitutions, insertions and deletions) at positions that follow a specified distribution (with replacement): model (uniform, linear, poly4), model parameters. For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger errors, use a linear model where the errror rate at the 3' end of the reads is 2% and the average is 1.5: linear 1.5 2. To model Illumina errors using the 4th degree polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8. Use the mutation ratio option to alter how many of these mutations are substitutions
+or indels." />
 
-    <param name="mutation_ratio" type="text" value="80 20" optional="true" label="Mutation ratio" help="Indicate the percentage of substitutions and indels (insertions and deletions). For example, use 80 20 (4 substitutions for each indel) for Sanger reads. Note that this parameter has no effect unless you specify the mutation distribution option." />
+    <param name="mutation_ratio" type="text" value="80 20" optional="true" label="Mutation ratio" help="Indicate the percentage of substitutions and the number of indels (insertions and deletions). For example, use '80 20' (4 substitutions for each indel) for Sanger reads. Note that this parameter has no effect unless you specify the mutation distribution option." />
 
-    <param name="homopolymer_dist" type="text" value="0" optional="true" label="Homopolymer distribution" help="Introduce sequencing errors in the reads under the form of homopolymeric stretches (e.g. AAA, CCCCC) using a specified model (n: homopolymer length).
+    <param name="homopolymer_dist" type="text" value="0" optional="true" label="Homopolymer distribution" help="Introduce sequencing errors in the reads under the form of homopolymeric stretches (e.g. AAA, CCCCC) using a specified model where the homopolymer length
+follows a normal distribution N(mean, standard deviation) that is function of
+the homopolymer length n.
    Margulies: N(n, 0.15 * n),               Margulies et al. 2005.
    Richter:   N(n, 0.15 * sqrt(n)),         Richter et al. 2008.
    Balzer:    N(n, 0.03494 + n * 0.06856),  Balzer et al. 2010." />
 
-    <param name="chimera_perc" type="text" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. A typical value is 10%." />
+    <param name="chimera_perc" type="text" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. The 'reference' field in the description of chimeric reads will
+contain the ID of all the reference sequences forming the chimeric template. A typical value is 10%." />
 
-    <param name="abundance_file" type="data" format="tabular" optional="true" label="Abundance file" help="Specify the relative abundance of the genomes manually in an input file. Each line of the file should contain a sequence name and its relative abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different communities." />
+    <param name="abundance_file" type="data" format="tabular" optional="true" label="Abundance file" help="Specify the relative abundance of the reference sequencse manually in an input file. Each line of the file should contain a sequence name and its relative abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying two different libraries." />
 
-    <param name="abundance_model" type="text" value="uniform 1" optional="true" label="Rank abundance model" help="Relative abundance model for the input genomes:
-   uniform, linear, powerlaw, logarithmic or exponential.
-Examples:
-   1/ uniform distribution: uniform,
-   2/ powerlaw distribution with parameter 0.1: powerlaw 0.1." />
+    <param name="abundance_model" type="text" value="uniform 1" optional="true" label="Rank abundance model" help="Relative abundance model for the input reference sequences: uniform, linear, powerlaw, logarithmic or exponential. The uniform and linear models do not require a parameter, but the other models take a parameter in the range [0, infinity). If this parameter is not specified, then it is randomly chosen. Examples:
 
-    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the options diversity, shared percent; and permuted percent. Assign them different MID tags with the multiplex mids option. Note that in Galaxy, the maximum number of libraries is 10." />
+  uniform distribution: uniform
+  powerlaw distribution with parameter 0.1: powerlaw 0.1
+  exponential distribution with automatically chosen parameter: exponential" />
 
-    <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one per library)."/>
+    <param name="num_libraries" type="text" value="1" optional="true" label="Number of libraries" help="Number of independent libraries to create. Specify how diverse and similar they should be using the diversity, shared percent and permuted percent options. Assign them different MID tags with the multiplex mids option. Note that in Galaxy, the maximum number of libraries is 10." />
+
+    <param name="multiplex_ids" type="data" format="fasta" optional="true" label="Specify MID tags file" help="Specify an optional FASTA file that contains sequence identifiers (a.k.a MIDs or barcodes) to add to the sequences (one sequence per library)."/>
 
     <!-- When Galaxy bug #661 is resolved, then we can really have optional parameters of type "integer" or "float" -->
     <!-- URL: https://bitbucket.org/galaxy/galaxy-central/issue/661/optional-arguments-problems#comment-655611      -->
     <!-- Affected params: diversity (int), shared_perc (float), permuted_perc (float), random_seed (int), num_libraries (int), chimera_perc (float)  -->
-    <param name="diversity" type="text" optional="true" label="Diversity (richness)" help="Richness, or number of genomes to include in the shotgun libraries. Use 0 for the maximum diversity possible, i.e. all the genomes from the input file when a single independent library is requested." />
+    <param name="diversity" type="text" optional="true" label="Diversity (richness)" help="Richness, or number of reference sequences to include in the shotgun libraries. Use 0 for the maximum diversity possible (based on the number of reference sequences
+available). Provide one value to make all libraries have the same diversity, or one diversity value per library otherwise." />
 
-    <param name="shared_perc" type="text" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of genomes they should have in common." />
+    <param name="shared_perc" type="text" value="0" optional="true" label="Percent shared" help="For multiple libraries, percent of reference sequences they should have in common (relative to the diversity of the least diverse library)." />
 
-    <param name="permuted_perc" type="text" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant genomes to permute in rank-abundance." />
+    <param name="permuted_perc" type="text" value="0" optional="true" label="Percent permuted" help="For multiple libraries, percent of the most-abundant reference sequences to permute in rank-abundance." />
 
     <param name="random_seed" type="text" optional="true" label="Random seed" help="Seed number to use for the pseudo-random number generator." />
 

@@ -41,11 +41,11 @@ Grinder features include:
 
 =item *
 
-shotgun library or amplicon library
+shotgun or amplicon read libraries
 
 =item *
 
-omics and meta-omics support to generate genomic, transcriptomic, proteomic,
+omics support to generate genomic, transcriptomic, proteomic,
 metagenomic, metatranscriptomic or metaproteomic datasets
 
 =item *
@@ -435,7 +435,7 @@ Basic parameters
 =item -tr <total_reads> | -total_reads <total_reads>
 
 Number of shotgun or amplicon reads to generate for each library. Do not specify
-this if you specify the coverage. Default: total_reads.default
+this if you specify the fold coverage. Default: total_reads.default
 
 =for Euclid:
    total_reads.type: +integer
@@ -444,7 +444,8 @@ this if you specify the coverage. Default: total_reads.default
 =item -cf <coverage_fold> | -coverage_fold <coverage_fold>
 
 Desired fold coverage of the input reference sequences (the output FASTA length
-divided by the input FASTA length).
+divided by the input FASTA length). Do not specify this if you specify the number
+of reads directly.
 
 =for Euclid:
    coverage_fold.type: +number
@@ -463,14 +464,15 @@ Desired shotgun or amplicon read length distribution specified as:
 
 Only the first element is required. Examples:
 
-  All sequences exactly 101 bp long (Illumina GA 2x): 101
-  Uniform distribution around 100+-10 bp: 100 uniform 10
-  Read normally distributed with an average of 800 and a standard deviation of 100
-    bp (Sanger): 800 normal 100
-  Read normally distributed with an average of 450 and a standard deviation of 50
+  All reads exactly 101 bp long (Illumina GA 2x): 101
+  Uniform read distribution around 100+-10 bp: 100 uniform 10
+  Reads normally distributed with an average of 800 and a standard deviation of 100
+    bp (Sanger reads): 800 normal 100
+  Reads normally distributed with an average of 450 and a standard deviation of 50
     bp (454 GS-FLX Ti): 450 normal 50
 
-Genomes smaller than the specified length are not used. Default: read_dist.default
+Reference sequences smaller than the specified read length are not used. Default:
+read_dist.default
 
 =for Euclid:
    read_dist.type: string
@@ -478,7 +480,7 @@ Genomes smaller than the specified length are not used. Default: read_dist.defau
 
 =item -id <insert_dist>... | -insert_dist <insert_dist>...
 
-Create shotgun paired-end or mate-pair reads spanning the given insert length.
+Create paired-end or mate-pair reads spanning the given insert length.
 Important: the insert is defined in the biological sense, i.e. its length includes
 the length of both reads and of the stretch of DNA between them:
    0 : off,
@@ -531,15 +533,15 @@ e.g. 'N-' to renove gaps (-) and ambiguities (N). Default: delete_chars.default
 
 Use DNA amplicon sequencing using a forward and reverse PCR primer sequence
 provided in a FASTA file. The primer sequences should use the IUPAC convention
-for degenerate residues. It is recommended to use <copy_bias> = 1 and 
-<length_bias> = 0 to generate amplicon reads. Also, to sequence from the forward
-strand, set <unidirectional> to 1 and put the forward primer first and reverse
-primer second in the FASTA file. To sequence from the reverse strand, invert the
-primers in the FASTA file and use <unidirectional> = -1. The second primer
-sequence in the FASTA file is always optional. Example: AAACTYAAAKGAATTGRCGG and
-ACGGGCGGTGTGTRC for the 926F and 1392R primers that target the V6 to V9 region
-of the 16S rRNA gene. Reference sequences that that do not match the specified
-primers are excluded.
+for degenerate residues and the reference sequences that that do not match the
+specified primers are excluded. If your reference sequences are full genomes, it
+is recommended to use <copy_bias> = 1 and <length_bias> = 0 to generate amplicon
+reads. To sequence from the forward strand, set <unidirectional> to 1 and
+put the forward primer first and reverse primer second in the FASTA file. To
+sequence from the reverse strand, invert the primers in the FASTA file and use
+<unidirectional> = -1. The second primer sequence in the FASTA file is always
+optional. Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and
+1392R primers that target the V6 to V9 region of the 16S rRNA gene.
 
 =for Euclid:
    forward_reverse.type: readable
@@ -559,9 +561,10 @@ Default: unidirectional.default
 
 =item -lb <length_bias> | -length_bias <length_bias>
 
-In shotgun libraries, sample species proportionally to their genome length:
-at the same relative abundance, larger genomes contribute more reads than smaller
-genomes. 0 = no, 1 = yes. Default: length_bias.default
+In shotgun libraries, sample reference sequences proportionally to their length.
+For example, in simulated microbial datasets, this means that at the same
+relative abundance, larger genomes contribute more reads than smaller genomes.
+0 = no, 1 = yes. Default: length_bias.default
 
 =for Euclid:
    length_bias.type: integer, length_bias == 0 || length_bias == 1
@@ -570,11 +573,11 @@ genomes. 0 = no, 1 = yes. Default: length_bias.default
 
 =item -cb <copy_bias> | -copy_bias <copy_bias>
 
-In amplicon libraries, sample species proportionally to the number of copies of
-the target gene: at equal relative abundance, genomes that have multiple copies
-of the target gene contribute more amplicon reads than genomes that have a
-single copy. Note: you should use full genomes in <reference_file> to make use
-of this option. 0 = no, 1 = yes. Default: copy_bias.default
+In amplicon libraries where full genomes are used as input, sample species
+proportionally to the number of copies of the target gene: at equal relative
+abundance, genomes that have multiple copies of the target gene contribute more
+amplicon reads than genomes that have a single copy. 0 = no, 1 = yes. Default:
+copy_bias.default
 
 =for Euclid:
    copy_bias.type: integer, copy_bias == 0 || copy_bias == 1
@@ -591,11 +594,12 @@ Aberrations and sequencing errors
 
 Introduce sequencing errors in the reads, under the form of mutations
 (substitutions, insertions and deletions) at positions that follow a specified
-distribution (with replacement): average probability (%), model (uniform, linear),
-value at 3' end (not applicable for uniform model). For example, for Sanger-type
-errors, use: 1.5 linear 2. To model Illumina errors using the 4th degree polynome
-3e-3 + 3.3e-8 * position^4 (Korbel et al 2009), use: 3e-3 poly4 3.3e-8. Use the
-<mutation_ratio> option to alter how many of these mutations are substitutions
+distribution (with replacement): model (uniform, linear, poly4), model parameters.
+For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger
+errors, use a linear model where the errror rate at the 3' end of the reads is 2%
+and the average is 1.5: linear 1.5 2. To model Illumina errors using the 4th
+degree polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8.
+Use the <mutation_ratio> option to alter how many of these mutations are substitutions
 or indels. Default: mutation_dist.default
 
 =for Euclid:
@@ -605,7 +609,7 @@ or indels. Default: mutation_dist.default
 =item -mr <mutation_ratio>... | -mutation_ratio <mutation_ratio>...
 
 Indicate the percentage of substitutions and the number of indels (insertions
-and deletions). For example, use 80 20 (4 substitutions for each indel) for
+and deletions). For example, use '80 20' (4 substitutions for each indel) for
 Sanger reads. Note that this parameter has no effect unless you specify the
 <mutation_dist> option. Default: mutation_ratio.default
 
@@ -650,20 +654,20 @@ Community structure and diversity
 
 =item -af <abundance_file> | -abundance_file <abundance_file>
 
-Specify the relative abundance of the genomes manually in an input file. Each
-line of the file should contain a sequence name and its relative abundance (%),
-e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying 2 different
-communities.
+Specify the relative abundance of the reference sequences manually in an input
+file. Each line of the file should contain a sequence name and its relative
+abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying two
+different libraries.
 
 =for Euclid:
    abundance_file.type: readable
 
 =item -am <abundance_model>... | -abundance_model <abundance_model>...
 
-Relative abundance model for the input genomes: uniform, linear, powerlaw,
+Relative abundance model for the input reference sequences: uniform, linear, powerlaw,
 logarithmic or exponential. The uniform and linear models do not require a
 parameter, but the other models take a parameter in the range [0, infinity). If
-this parameter is not specified, then it is randomly picked. Examples:
+this parameter is not specified, then it is randomly chosen. Examples:
 
   uniform distribution: uniform
   powerlaw distribution with parameter 0.1: powerlaw 0.1
@@ -688,7 +692,7 @@ different MID tags with <multiplex_mids>. Default: num_libraries.default
 =item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
 
 Specify an optional FASTA file that contains multiplex sequence identifiers
-(a.k.a MIDs or barcodes) to add to the sequences (one per library). The MIDs
+(a.k.a MIDs or barcodes) to add to the sequences (one sequence per library). The MIDs
 are included in the length specified with the -read_dist option.
 
 =for Euclid:
@@ -696,8 +700,8 @@ are included in the length specified with the -read_dist option.
 
 =item -di <diversity>... | -diversity <diversity>...
 
-Richness, or number of genomes to include in the shotgun libraries. Use 0 for
-the maximum diversity possible (based on the number of reference sequences
+Richness, or number of reference sequences to include in the shotgun libraries.
+Use 0 for the maximum diversity possible (based on the number of reference sequences
 available). Provide one value to make all libraries have the same diversity, or
 one diversity value per library otherwise. Default: diversity.default
 
@@ -707,8 +711,8 @@ one diversity value per library otherwise. Default: diversity.default
 
 =item -sp <shared_perc> | -shared_perc <shared_perc>
 
-For multiple libraries, percent of genomes they should have in common (relative
-to the diversity of the least diverse library). Default: shared_perc.default %
+For multiple libraries, percent of reference sequences they should have in common
+(relative to the diversity of the least diverse library). Default: shared_perc.default %
 
 =for Euclid:
    shared_perc.type: number, shared_perc >= 0 && shared_perc <= 100
@@ -717,8 +721,8 @@ to the diversity of the least diverse library). Default: shared_perc.default %
 
 =item -pp <permuted_perc> | -permuted_perc <permuted_perc>
 
-For multiple libraries, percent of the most-abundant genomes to permute in
-rank-abundance. Default: permuted_perc.default %
+For multiple libraries, percent of the most-abundant reference sequences to permute
+in rank-abundance. Default: permuted_perc.default %
 
 =for Euclid:
    permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
