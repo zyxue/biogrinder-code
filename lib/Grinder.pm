@@ -806,6 +806,37 @@ Note that the arguments specified in the profile should not be specified again o
 
 =back
 
+=head1 CLI OUTPUT
+
+For each shotgun or amplicon read library requested, the following files are
+generated:
+
+=over
+
+=item *
+
+A rank-abundance file, tab-delimited, that shows the relative abundance of the
+different reference sequences
+
+=item *
+
+A file containing the read sequences in FASTA format. The read headers
+contain information necessary to track from which reference sequence each read
+was taken and what errors it contains. This file is not generated if <fastq_output>
+option was provided.
+
+=item *
+
+If the <qual_levels> option was specified, a file containing the quality scores
+of the reads (in QUAL format).
+
+=item *
+
+If the <fastq_output> option was provided, a file containing the read sequences
+in FASTQ format.
+
+=back
+
 =head1 API EXAMPLES
 
 The Grinder API allows to conveniently use Grinder within Perl scripts. Here is
