@@ -115,10 +115,10 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-cmp_ok $min, '>=', 65;
-cmp_ok $max, '<=', 135;
-between_ok( $mean, 97, 103 ); # should be 100
-cmp_ok $stddev, '<', 12;
+between_ok( $$prof[0] , 70, 130 ); # exp. number of errors at 1st  pos is 100 (10%)
+between_ok( $$prof[24], 70, 130 ); # exp. number of errors at 25th pos is 100 (10%)
+between_ok( $$prof[-1], 70, 130 ); # exp. number of errors at last pos is 100 (10%)
+between_ok( $mean     , 97, 103 ); # exp. mean number is 100 (10%)
 
 SKIP: {
    skip rfit_msg() if not can_rfit();
@@ -146,9 +146,10 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-between_ok( $$prof[0] ,  30,  70 ); # exp. number of errors at 1st  pos is 50
-between_ok( $$prof[-1], 125, 175 ); # exp. number of errors at last pos is 150
-between_ok( $mean     ,  97, 103 ); # exp. mean number of errors at each pos is 100
+between_ok( $$prof[0] ,  30,   70 ); # exp. number of errors at 1st  pos is 50
+between_ok( $$prof[24],  70,  130 ); # exp. number of errors at 25th  pos is 100
+between_ok( $$prof[-1], 120,  180 ); # exp. number of errors at last pos is 150
+between_ok( $mean     ,  97,  103 ); # exp. mean number of errors is 100
 
 SKIP: {
    skip rfit_msg() if not can_rfit();
@@ -180,13 +181,10 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 100);
 ($min, $max, $mean, $stddev) = stats($prof);
-
-use Data::Dumper; print "prof: ".Dumper($prof);
-
-between_ok( $$prof[0] ,    1,   27 ); # mean number at 1st  pos should be 10 (1%)
-between_ok( $$prof[49],   16,   46 ); # mean number at 50th pos should be 37.4 (3.74%)
-between_ok( $$prof[-1],  419,  479 ); # mean number at last pos should be 449 (44.9%)
-between_ok( $mean     ,   80,  120 ); # mean number at each pos should be 100 (10.02%)
+between_ok( $$prof[0] ,    1,   27 ); # exp. number of errors at 1st  is 10 (1%)
+between_ok( $$prof[49],    7,   67 ); # exp. number of errors at 50th is 37.4 (3.74%)
+between_ok( $$prof[-1],  419,  479 ); # exp. number of errors at last is 449 (44.9%)
+between_ok( $mean     ,   97,  103 ); # exp. mean number of errors is 100 (10.02%)
 
 SKIP: {
    skip rfit_msg() if not can_rfit();

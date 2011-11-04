@@ -31,7 +31,6 @@ author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
 author_requires 'Module::Install::ReadmeFromPod';
 author_requires 'Module::Install::AutoManifest';
-###author_requires 'Module::Install::Debian::Perl';
 author_requires 'Statistics::R'  => '0.21';
 
 

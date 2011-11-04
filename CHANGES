@@ -31,7 +31,7 @@ Revision history for Grinder
 
 0.3.7   13-Sep-2011
         Fixed bug in richter and margulies homopolymer error models
-        Fixed bug so that uutput rank file now collapses amplicon by species
+        Fixed bug so that output rank file now collapses amplicon by species
         The Grinder CLI script is now called 'grinder' (all lowercase)
         Option mutation_ratio has changed so that it is possible to specify indels without substitutions
         Location of amplicon relative to the reference sequence is now recorded

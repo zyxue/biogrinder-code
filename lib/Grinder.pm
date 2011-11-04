@@ -2243,8 +2243,8 @@ sub rand_point_errors {
         " % is not possible in combination with an average mutation frequency".
         " of ".$self->{mutation_freq}." %\n";
       }
-      my $slope = 2 * ($self->{mutation_end} - $self->{mutation_freq}) / (($seq_len-1) * $seq_len * $self->{mutation_freq});
-      $mut_pdf  = [ map { $start + $_ * $slope } (@$mut_pdf) ];
+      my $slope = 2 * ($self->{mutation_end} - $self->{mutation_freq}) / ( ($seq_len-1) * $seq_len * $self->{mutation_freq});
+      $mut_pdf  = [ map { $start + $_ * $slope } (0 .. $seq_len-1) ];
       $mut_freq = $self->{mutation_freq};
 
     } elsif ($self->{mutation_model} eq 'poly4') {
@@ -2263,6 +2263,8 @@ sub rand_point_errors {
       die "Error: '".$self->{mutation_model}."' is not a supported error distribution\n";
     }
 
+    # TODO: Could have sanity checks so that mut_pdf should have no values < 0 or > 100
+
     $self->{mutation_cdf}->{$seq_len} = $self->proba_cumul($mut_pdf);
     $self->{mutation_avg}->{$seq_len} = $mut_freq;
 
@@ -2271,14 +2273,6 @@ sub rand_point_errors {
   my $mut_cdf = $self->{mutation_cdf}->{$seq_len};
   my $mut_avg = $self->{mutation_avg}->{$seq_len};
 
-  ####
-  # TODO: Could store the PDF (or CDF) and the average for future reuse by sequences
-  # that have the same length
-  ####
-
-  ####
-  # Sanity checks? mut_pdf should have no values < 0 or > 100
-  ####
 
   # Number of mutations to make in this sequence is assumed to follow a Normal
   # distribution N( mutation_freq, 0.3 * mutation_freq )
