@@ -55,7 +55,7 @@ ok $factory = Grinder->new(
    -read_dist       => 240                    ,
    -total_reads     => 100                    ,
    -mutation_ratio => (100, 0)                ,
-   -mutation_dist  => (20, 'uniform')         ,
+   -mutation_dist  => ('uniform', 20)         ,
 ), 'DNA';
 
 is $factory->{alphabet}, 'dna';
@@ -73,7 +73,7 @@ ok $factory = Grinder->new(
    -read_dist       => 240                    ,
    -total_reads     => 100                    ,
    -mutation_ratio => (100, 0)                ,
-   -mutation_dist  => (20, 'uniform')         ,
+   -mutation_dist  => ('uniform', 20)         ,
 ), 'RNA';
 
 is $factory->{alphabet}, 'rna';
@@ -91,7 +91,7 @@ ok $factory = Grinder->new(
    -total_reads     => 100                        ,
    -read_dist       => 240                        ,
    -mutation_ratio => (100, 0)                    ,
-   -mutation_dist  => (20, 'uniform')             ,
+   -mutation_dist  => ('uniform', 20)             ,
    -unidirectional  => +1                         ,
 ), 'Protein';
 

@@ -20,7 +20,7 @@ ok $factory = Grinder->new(
    -total_reads      => 1000                       ,
    -homopolymer_dist => 'balzer'                   ,
    -mutation_ratio   => (100, 0)                   ,
-   -mutation_dist    => (10, 'uniform')            ,
+   -mutation_dist    => ('uniform', 10)            ,
    -chimera_perc     => 10                         ,
 ), 'Combined errors';
 

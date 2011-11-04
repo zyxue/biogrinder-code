@@ -604,7 +604,7 @@ or indels. Default: mutation_dist.default
 
 =for Euclid:
    mutation_dist.type: string
-   mutation_dist.default: [0, 'uniform', 0]
+   mutation_dist.default: ['uniform', 0, 0]
 
 =item -mr <mutation_ratio>... | -mutation_ratio <mutation_ratio>...
 
@@ -1299,8 +1299,8 @@ sub initialize {
   if ( (not ref $self->{mutation_dist}) or (ref $self->{mutation_dist}  eq 'SCALAR') ) {
     $self->{mutation_dist} = [$self->{mutation_dist}];
   }
-  $self->{mutation_freq}  = $self->{mutation_dist}[0] || 0;
-  $self->{mutation_model} = $self->{mutation_dist}[1] || 'uniform';
+  $self->{mutation_model} = $self->{mutation_dist}[0] || 'uniform';
+  $self->{mutation_freq}  = $self->{mutation_dist}[1] || 0;
   $self->{mutation_end}   = $self->{mutation_dist}[2] || 0;
   delete $self->{mutation_dist};
 

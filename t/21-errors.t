@@ -35,7 +35,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (100, 0)                      ,
-   -mutation_dist  => (10, 'uniform')               ,
+   -mutation_dist  => ('uniform', 10)               ,
 ), 'Substitutions only';
 
 while ( $read = $factory->next_read ) {
@@ -58,7 +58,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (0, 100)                      ,
-   -mutation_dist  => (10, 'uniform')               ,
+   -mutation_dist  => ('uniform', 10)               ,
 ), 'Indels only';
 
 while ( $read = $factory->next_read ) {
@@ -81,7 +81,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => (10, 'uniform')               ,
+   -mutation_dist  => ('uniform', 10)               ,
 ), 'Indels and substitutions';
 
 while ( $read = $factory->next_read ) {
@@ -105,7 +105,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => (10, 'uniform')               ,
+   -mutation_dist  => ('uniform', 10)               ,
 ), 'Uniform';
 
 while ( $read = $factory->next_read ) {
@@ -136,7 +136,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => (10, 'linear', 15)            ,
+   -mutation_dist  => ('linear', 10, 15)            ,
 ), 'Linear';
 
 while ( $read = $factory->next_read ) {
@@ -169,9 +169,9 @@ ok $factory = Grinder->new(
    -reference_file => data('single_seq_database.fa'),
    -unidirectional => 1                             ,
    -read_dist      => 100                           ,
-   -total_reads    => 1000                     ,
+   -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => (1, 'poly4', 4.4e-7)         ,
+   -mutation_dist  => ('poly4', 1, 4.4e-7)          ,
 ), 'Polynomial';
 
 while ( $read = $factory->next_read ) {
