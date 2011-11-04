@@ -1300,8 +1300,8 @@ sub initialize {
     $self->{mutation_dist} = [$self->{mutation_dist}];
   }
   $self->{mutation_model} = $self->{mutation_dist}[0] || 'uniform';
-  $self->{mutation_freq}  = $self->{mutation_dist}[1] || 0;
-  $self->{mutation_end}   = $self->{mutation_dist}[2] || 0;
+  $self->{mutation_para1} = $self->{mutation_dist}[1] || 0;
+  $self->{mutation_para2} = $self->{mutation_dist}[2] || 0;
   delete $self->{mutation_dist};
 
   # Parameter processing: mutation ratio
@@ -1951,7 +1951,7 @@ sub next_single_read {
       $self->{qual_levels});
     # Simulate sequence aberrations and sequencing error if needed
     $shotgun_seq = $self->rand_seq_errors($shotgun_seq)
-      if ($self->{homopolymer_dist} || $self->{mutation_freq});
+      if ($self->{homopolymer_dist} || $self->{mutation_para1});
   } while (
     $self->{exclude_chars} && not is_valid($shotgun_seq, $self->{exclude_chars})
   );
@@ -2011,7 +2011,7 @@ sub next_mate_pair {
       $mate_orientation, $seq_start, $seq_end, $mid, '1', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
-      if ($self->{homopolymer_dist} || $self->{mutation_freq});
+      if ($self->{homopolymer_dist} || $self->{mutation_para1});
     if ($self->{exclude_chars} && not is_valid($shotgun_seq_1, $self->{exclude_chars})) {
       next;
     }
@@ -2025,7 +2025,7 @@ sub next_mate_pair {
       $mate_orientation, $seq_start, $seq_end, $mid, '2', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_2 = $self->rand_seq_errors($shotgun_seq_2)
-      if ($self->{homopolymer_dist} || $self->{mutation_freq});
+      if ($self->{homopolymer_dist} || $self->{mutation_para1});
     if ($self->{exclude_chars} && not is_valid($shotgun_seq_2, $self->{exclude_chars})) {
       next;
     }
@@ -2199,7 +2199,7 @@ sub rand_seq_errors {
 
   # Then, specify point sequencing errors: substitutions, insertions, deletions
   $error_specs = $self->rand_point_errors($seq_str, $error_specs) 
-    if $self->{mutation_freq};
+    if $self->{mutation_para1};
 
   # Finally, actually implement the errors as per the specifications
   $seq->errors($error_specs) if (scalar keys %$error_specs > 0);
@@ -2268,25 +2268,25 @@ sub rand_point_errors {
       # Uniform error model
       my $proba = 1 / $seq_len;
       $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
-      $mut_freq = $self->{mutation_freq};
+      $mut_freq = $self->{mutation_para1};
 
     } elsif ($self->{mutation_model} eq 'linear') {
       # Linear error model
-      my $start = (2 * $self->{mutation_freq} - $self->{mutation_end}) / ($seq_len * $self->{mutation_freq});
+      # para 1 is the average error rate
+      # para 2 is the error rate at the 3' end of the read
+      my $start = (2 * $self->{mutation_para1} - $self->{mutation_para2}) / ($seq_len * $self->{mutation_para1});
       if ($start < 0) {
-        die "Error: A 3' end mutation frequency of ".$self->{mutation_end}.
+        die "Error: A 3' end mutation frequency of ".$self->{mutation_para2}.
         " % is not possible in combination with an average mutation frequency".
-        " of ".$self->{mutation_freq}." %\n";
+        " of ".$self->{mutation_para1}." %\n";
       }
-      my $slope = 2 * ($self->{mutation_end} - $self->{mutation_freq}) / ( ($seq_len-1) * $seq_len * $self->{mutation_freq});
+      my $slope = 2 * ($self->{mutation_para2} - $self->{mutation_para1}) / ( ($seq_len-1) * $seq_len * $self->{mutation_para1});
       $mut_pdf  = [ map { $start + $_ * $slope } (0 .. $seq_len-1) ];
-      $mut_freq = $self->{mutation_freq};
+      $mut_freq = $self->{mutation_para1};
 
     } elsif ($self->{mutation_model} eq 'poly4') {
-      # Fourth degree polynomial error model: e = a + b * i**4
-      #   a is $self->{mutation_freq}
-      #   b is $self->{mutation_end}
-      my $mut_dist = [ map { $self->{mutation_freq} + $self->{mutation_end} * $_**4 } (1 .. $seq_len) ];
+      # Fourth degree polynomial error model: e = para1 + para2 * i**4
+      my $mut_dist = [ map { $self->{mutation_para1} + $self->{mutation_para2} * $_**4 } (1 .. $seq_len) ];
       my $mut_sum  = 0;
       for my $val (@$mut_dist) {
         $mut_sum += $val;
