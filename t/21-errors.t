@@ -136,7 +136,7 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => ('linear', 10, 15)            ,
+   -mutation_dist  => ('linear', 5, 15)             ,
 ), 'Linear';
 
 while ( $read = $factory->next_read ) {
@@ -146,9 +146,9 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-between_ok( $$prof[0] ,  30,   70 ); # exp. number of errors at 1st  pos is 50
-between_ok( $$prof[24],  70,  130 ); # exp. number of errors at 25th  pos is 100
-between_ok( $$prof[-1], 120,  180 ); # exp. number of errors at last pos is 150
+between_ok( $$prof[0] ,  30,   70 ); # exp. number of errors at 1st  pos is 50 (5%)
+between_ok( $$prof[24],  70,  130 ); # exp. number of errors at 25th pos is 100 (10%)
+between_ok( $$prof[-1], 120,  180 ); # exp. number of errors at last pos is 150 (15%)
 between_ok( $mean     ,  97,  103 ); # exp. mean number of errors is 100
 
 SKIP: {

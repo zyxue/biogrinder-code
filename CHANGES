@@ -3,6 +3,8 @@ Revision history for Grinder
 0.x     
         Change in position-specific error models. The syntax for the mutation_dist
           parameter is now: model name, model parameters...
+        Change in linear error model: first parameter is now error rate at 3' end
+          of read, and not the average error rate anymore
         Speed improvement for position-specific error models
         Illumina 4th degree polynomial model
         Galaxy GUI fix so that the output is fastqsanger, not just fastq

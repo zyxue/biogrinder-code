@@ -2266,32 +2266,35 @@ sub rand_point_errors {
 
     if ($self->{mutation_model} eq 'uniform') {
       # Uniform error model
+      # para1 is the average mutation frequency
       my $proba = 1 / $seq_len;
       $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
       $mut_freq = $self->{mutation_para1};
 
     } elsif ($self->{mutation_model} eq 'linear') {
       # Linear error model
-      # para 1 is the average error rate
-      # para 2 is the error rate at the 3' end of the read
-      my $start = (2 * $self->{mutation_para1} - $self->{mutation_para2}) / ($seq_len * $self->{mutation_para1});
-      if ($start < 0) {
-        die "Error: A 3' end mutation frequency of ".$self->{mutation_para2}.
-        " % is not possible in combination with an average mutation frequency".
-        " of ".$self->{mutation_para1}." %\n";
+      # para 1 is the error rate at the 5' end of the read
+      # para 2 is the error rate at the 3' end
+      my $slope = ($self->{mutation_para2} - $self->{mutation_para1}) / ($seq_len-1);
+      my $mut_sum = 0;
+      for my $i (0 .. $seq_len-1) {
+        my $val = $self->{mutation_para1} + $i * $slope;
+        $mut_sum += $val;
+        $$mut_pdf[$i] = $val;
       }
-      my $slope = 2 * ($self->{mutation_para2} - $self->{mutation_para1}) / ( ($seq_len-1) * $seq_len * $self->{mutation_para1});
-      $mut_pdf  = [ map { $start + $_ * $slope } (0 .. $seq_len-1) ];
-      $mut_freq = $self->{mutation_para1};
+      $mut_pdf = [ map { $_/$mut_sum } (@$mut_pdf) ];
+      $mut_freq = abs( $self->{mutation_para2} + $self->{mutation_para1} ) / 2;
+      
 
     } elsif ($self->{mutation_model} eq 'poly4') {
       # Fourth degree polynomial error model: e = para1 + para2 * i**4
-      my $mut_dist = [ map { $self->{mutation_para1} + $self->{mutation_para2} * $_**4 } (1 .. $seq_len) ];
       my $mut_sum  = 0;
-      for my $val (@$mut_dist) {
+      for my $i (0 .. $seq_len-1) {
+        my $val = $self->{mutation_para1} + $self->{mutation_para2} * ($i+1)**4;
         $mut_sum += $val;
+        $$mut_pdf[$i] = $val;
       }
-      $mut_pdf  = [ map { $_/$mut_sum } (@$mut_dist) ];
+      $mut_pdf  = [ map { $_/$mut_sum } (@$mut_pdf) ];
       $mut_freq = $mut_sum / $seq_len;
 
     } else {
