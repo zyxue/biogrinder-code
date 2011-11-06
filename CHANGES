@@ -1,22 +1,22 @@
 Revision history for Grinder
 
-0.x     
-        Change in position-specific error models. The syntax for the mutation_dist
-          parameter is now: model name, model parameters...
-        Change in linear error model: first parameter is now error rate at 3' end
-          of read, and not the average error rate anymore
+0.4.0   04-Nov-2011
+        Support for DNA, RNA and proteic reference sequences to produce genomic
+          metagenomic, transcriptomic, metatranscriptomic, proteomic and
+          metaproteomic datasets
+        New error model suitable to simulate Illumina reads: 4th degree polynome
+        Change in error model (mutation_distribution) parameter:
+          - general syntax is now model_name, model_parameters...
+          - the first parameter for the linear model is now the error rate at the
+            3' end of the reads, not the average error rate
         Speed improvement for position-specific error models
-        Illumina 4th degree polynomial model
         Galaxy GUI fix so that the output is fastqsanger, not just fastq
-        Documentation updates (reported by Rob Schmieder)
-        -reference_file is now a required argument, so that running grinder without
-          argument generated an error message and points the user to --help instead
-          of doing nothing (reported by Rob Schmieder).
-        Information displayed on screen now properly reports whether the library
-          is of type shotgun or amplicon
-        Tests use done_testing() instead of a fixed number of tests
+        The reference_file parameter is now a required argument, so that running
+          grinder without arguments displays the help (reported by Rob Schmieder)
         Fixed a bug that caused a crash when using an indel model and a homopolymer
           model simultaneously (reported by Robert Schmieder)
+        Information displayed on screen now reports whether the library is a
+          shotgun or amplicon library
 
 0.3.9   18-Oct-2011   
         New option <mate_orientation> to select orientation of mate pairs

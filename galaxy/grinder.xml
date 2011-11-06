@@ -1,4 +1,4 @@
-<tool id="grinder" name="Grinder" version="0.3.9">
+<tool id="grinder" name="Grinder" version="0.4.0">
 
   <description>versatile omic shotgun and amplicon read simulator</description>
 
@@ -159,7 +159,7 @@ Two distinct reads are generated whether or not the mate pair overlaps." />
 
     <param name="copy_bias" type="boolean" truevalue="1" falsevalue="0" checked="true" label="Copy number bias" help="In amplicon libraries where full genomes are used as input, sample species proportionally to the number of copies of the target gene: at equal relative abundance, genomes that have multiple copies of the target gene contribute more amplicon reads than genomes that have a single copy. 0 = no, 1 = yes." />
 
-    <param name="mutation_dist" type="text" value="0" optional="true" label="Mutation distribution" help="Introduce sequencing errors in the reads, under the form of mutations (substitutions, insertions and deletions) at positions that follow a specified distribution (with replacement): model (uniform, linear, poly4), model parameters. For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger errors, use a linear model where the errror rate at the 3' end of the reads is 2% and the average is 1.5: linear 1.5 2. To model Illumina errors using the 4th degree polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8. Use the mutation ratio option to alter how many of these mutations are substitutions
+    <param name="mutation_dist" type="text" value="0" optional="true" label="Mutation distribution" help="Introduce sequencing errors in the reads, under the form of mutations (substitutions, insertions and deletions) at positions that follow a specified distribution (with replacement): model (uniform, linear, poly4), model parameters. For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger errors, use a linear model where the errror rate is 1% at the 5' end of reads and 2% at the 3' end: linear 1 2. To model Illumina errors using the 4th degree polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8. Use the mutation ratio option to alter how many of these mutations are substitutions
 or indels." />
 
     <param name="mutation_ratio" type="text" value="80 20" optional="true" label="Mutation ratio" help="Indicate the percentage of substitutions and the number of indels (insertions and deletions). For example, use '80 20' (4 substitutions for each indel) for Sanger reads. Note that this parameter has no effect unless you specify the mutation distribution option." />
@@ -410,6 +410,8 @@ Note that the arguments specified in the profile should not be specified again o
 Grinder is a program to create random shotgun and amplicon sequence libraries
 based on reference sequences in a FASTA file. Features include:
 
+  * omic support: genomic, metagenomic, transcriptomic, metatranscriptomic,
+      proteomic and metaproteomic
   * shotgun library or amplicon library
   * arbitrary read length distribution and number of reads
   * simulation of PCR and sequencing errors (chimeras, point mutations, homopolymers)
@@ -426,7 +428,7 @@ based on reference sequences in a FASTA file. Features include:
 
 A variety of FASTA databases containing genes or genomes can be used as input
 for Grinder, such as the NCBI RefSeq collection (ftp://ftp.ncbi.nih.gov/refseq/release/microbial/),
-the GreenGenes 16S rRNA database (http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta), theh uman genome and transcriptome (ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/, ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz), ...
+the GreenGenes 16S rRNA database (http://greengenes.lbl.gov/Download/Sequence_Data/Fasta_data_files/Isolated_named_strains_16S_aligned.fasta), the human genome and transcriptome (ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/, ftp://ftp.ncbi.nih.gov/refseq/H_sapiens/mRNA_Prot/human.rna.fna.gz), ...
 
 These input files can either be provided as a Galaxy dataset, or can be uploaded
 by Galaxy users in their history.

@@ -12,13 +12,13 @@ use Math::Random::MT::Perl;          # create a seed
 use Math::Random::MT qw(srand rand); # seed and draw from the random generator
 
 
-our $VERSION = '0.3.9';
+our $VERSION = '0.4.0';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
 =head1 NAME
 
-Grinder - A versatile multi-omics shotgun and amplicon sequencing read simulator
+Grinder - A versatile omics shotgun and amplicon sequencing read simulator
 
 =head1 DESCRIPTION
 
@@ -140,7 +140,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.3.9
+0.4.0
 
 =head1 AUTHOR
 
@@ -348,7 +348,7 @@ A DNA shotgun library where species relative abundances are manually specified
 
 A DNA shotgun library with Sanger reads
 
-   grinder -reference_file genomes.fna -read_dist 800 -mutation_dist 1.5 linear 2 -mutation_ratio 80 20
+   grinder -reference_file genomes.fna -read_dist 800 -mutation_dist linear 1 2 -mutation_ratio 80 20
 
 =item 10.
 
@@ -596,11 +596,11 @@ Introduce sequencing errors in the reads, under the form of mutations
 (substitutions, insertions and deletions) at positions that follow a specified
 distribution (with replacement): model (uniform, linear, poly4), model parameters.
 For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger
-errors, use a linear model where the errror rate at the 3' end of the reads is 2%
-and the average is 1.5: linear 1.5 2. To model Illumina errors using the 4th
-degree polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8.
-Use the <mutation_ratio> option to alter how many of these mutations are substitutions
-or indels. Default: mutation_dist.default
+errors, use a linear model where the errror rate is 1% at the 5' end of reads and
+2% at the 3' end: linear 1 2. To model Illumina errors using the 4th degree
+polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8.
+Use the <mutation_ratio> option to alter how many of these mutations are
+substitutions or indels. Default: mutation_dist.default
 
 =for Euclid:
    mutation_dist.type: string
