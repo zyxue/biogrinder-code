@@ -21,7 +21,9 @@ ok $factory = Grinder->new(
 ), 'Shotgun tracking';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=.*position=(complement\()?\d+\.\.\d+(\))?/;
+}
 
 
 ok $factory = Grinder->new(
@@ -32,7 +34,9 @@ ok $factory = Grinder->new(
 ), 'Shotgun tracking';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=.*position=\d+\.\.\d+/;
+}
 
 
 ok $factory = Grinder->new(
@@ -43,7 +47,9 @@ ok $factory = Grinder->new(
 ), 'Shotgun tracking';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=.*position=complement\(\d+\.\.\d+\)/;
+}
 
 
 ok $factory = Grinder->new(
@@ -56,7 +62,9 @@ ok $factory = Grinder->new(
 ), 'Amplicon tracking';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=\S+.*amplicon=\d+-\d+.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=\S+.*amplicon=\d+-\d+.*position=.*/;
+}
 
 
 ok $factory = Grinder->new(
@@ -70,7 +78,9 @@ ok $factory = Grinder->new(
 ), 'Chimeric amplicon tracking';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*/;
+}
 
 
 ok $factory = Grinder->new(
@@ -80,7 +90,9 @@ ok $factory = Grinder->new(
 ), 'No tracking';
 
 ok $read = $factory->next_read;
-is $read->desc, undef;
+while ($factory->next_read) {
+   is $read->desc, undef;
+}
 
 
 ok $factory = Grinder->new(
@@ -89,6 +101,8 @@ ok $factory = Grinder->new(
 ), 'Tracking default';
 
 ok $read = $factory->next_read;
-like $read->desc, qr/reference=.*position=.*strand=.*/;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=.*position=.*(complement\()?\d+\.\.\d+(\))?/;
+}
 
 done_testing();

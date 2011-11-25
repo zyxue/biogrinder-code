@@ -2853,6 +2853,7 @@ sub new_subseq {
      -strand      => $orientation,
      -mid         => $mid,
      -track       => $tracking,
+     -coord_style => 'genbank',
      -qual_levels => $qual_levels,
   );
 
@@ -2865,20 +2866,31 @@ sub new_subseq {
     $newseq->desc($desc);
   }
 
-  # Database genomes were already reverse complemented if reverse sequencing was requested
+  # Database sequences were already reverse complemented if reverse sequencing
+  # was requested
   if ($unidirectional == -1) {
-    if ($orientation == -1) {
-      $orientation = '+1';
-    } else {
-      $orientation = '-1';
-    }
-    $newseq->strand($orientation);
-    my $new_desc = $newseq->desc;
-    $new_desc =~ s/strand=(\S+)/strand=$orientation/g;
-    $newseq->desc( $new_desc );
+    $orientation *= -1;
+    $newseq = set_read_orientation($newseq, $orientation);
   }
 
   return $newseq;
+}
+
+
+sub set_read_orientation {
+  # Set read orientation and change its description accordingly
+  my ($seq, $new_orientation) = @_;
+  $seq->strand($new_orientation);
+  my $desc = $seq->desc;
+  $desc =~ s/position=(complement\()?(\d+)\.\.(\d+)(\))?/position=/;
+  my ($start, $end) = ($2, $3);
+  if ($new_orientation == -1) {
+    $desc =~ s/position=/position=complement($start\.\.$end)/;
+  } else {
+    $desc =~ s/position=/position=$start\.\.$end/;
+  }
+  $seq->desc( $desc );
+  return $seq;
 }
 
 
