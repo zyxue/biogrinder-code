@@ -1,5 +1,13 @@
 Revision history for Grinder
 
+x.x.x   
+        Read 'strand' is not used anymore. Instead, read coordinates are reported
+          in their description Genbank-style, e.g. instead of: position=1-20
+          strand=-1, it it now position=complement(1..20)
+        Fixed bug reported by Dana Willner: when looking for full-length amplicon
+          matches based on PCR primers, need to check for matches in the reference
+          sequence but also in their reverse-complement
+
 0.4.0   04-Nov-2011
         Support for DNA, RNA and proteic reference sequences to produce genomic
           metagenomic, transcriptomic, metatranscriptomic, proteomic and

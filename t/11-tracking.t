@@ -63,7 +63,22 @@ ok $factory = Grinder->new(
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {
-   like $read->desc, qr/reference=\S+.*amplicon=\d+-\d+.*position=.*/;
+   like $read->desc, qr/reference=\S+.*amplicon=\d+\.\.\d+.*position=.*/;
+}
+
+
+ok $factory = Grinder->new(
+   -reference_file  => data('revcom_amplicon_database.fa'),
+   -forward_reverse => data('forward_primer.fa')          ,
+   -length_bias     => 0                                  ,
+   -unidirectional  => 1                                  ,
+   -total_reads     => 10                                 ,
+   -desc_track      => 1                                  ,
+), 'Reverse-complemented amplicon tracking';
+
+ok $read = $factory->next_read;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=\S+.*amplicon=complement\(\d+\.\.\d+\).*position=.*/;
 }
 
 
@@ -79,7 +94,7 @@ ok $factory = Grinder->new(
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {
-   like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+-\d+,\d+-\d+.*position=.*/;
+   like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+\.\.\d+,\d+\.\.\d+.*position=.*/;
 }
 
 

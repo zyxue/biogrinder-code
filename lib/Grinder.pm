@@ -532,16 +532,17 @@ e.g. 'N-' to renove gaps (-) and ambiguities (N). Default: delete_chars.default
 =item -fr <forward_reverse> | -forward_reverse <forward_reverse>
 
 Use DNA amplicon sequencing using a forward and reverse PCR primer sequence
-provided in a FASTA file. The primer sequences should use the IUPAC convention
-for degenerate residues and the reference sequences that that do not match the
-specified primers are excluded. If your reference sequences are full genomes, it
-is recommended to use <copy_bias> = 1 and <length_bias> = 0 to generate amplicon
-reads. To sequence from the forward strand, set <unidirectional> to 1 and
-put the forward primer first and reverse primer second in the FASTA file. To
-sequence from the reverse strand, invert the primers in the FASTA file and use
-<unidirectional> = -1. The second primer sequence in the FASTA file is always
-optional. Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F and
-1392R primers that target the V6 to V9 region of the 16S rRNA gene.
+provided in a FASTA file. The reference sequences and their reverse complement
+will be searched for PCR primer matches. The primer sequences should use the
+IUPAC convention for degenerate residues and the reference sequences that that
+do not match the specified primers are excluded. If your reference sequences are
+full genomes, it is recommended to use <copy_bias> = 1 and <length_bias> = 0 to
+generate amplicon reads. To sequence from the forward strand, set <unidirectional>
+to 1 and put the forward primer first and reverse primer second in the FASTA
+file. To sequence from the reverse strand, invert the primers in the FASTA file
+and use <unidirectional> = -1. The second primer sequence in the FASTA file is
+always optional. Example: AAACTYAAAKGAATTGRCGG and ACGGGCGGTGTGTRC for the 926F
+and 1392R primers that target the V6 to V9 region of the 16S rRNA gene.
 
 =for Euclid:
    forward_reverse.type: readable
@@ -2165,7 +2166,7 @@ sub rand_seq_chimera {
     my $t2_start = $t1_end - $diff + 1;
 
     # Join chimera fragments
-    $chimera      = $t1_seq->trunc($t1_start, $t1_end);
+    $chimera = $t1_seq->trunc($t1_start, $t1_end);
     $chimera->seq( $chimera->seq . $t2_seq->subseq($t2_start, $t2_end) );
     $chimera->id( $chimera->id . ',' . $t2_seq->id );
     if (defined $t1_seq->{_amplicon} && defined $t2_seq->{_amplicon}) {
@@ -2646,44 +2647,87 @@ sub database_get_mol_type {
 sub database_extract_amplicons {
   my ($self, $seq, $forward_regexp, $reverse_regexp, $ids_to_keep) = @_;
   # A database sequence can have several amplicons, e.g. a genome can have 
-  # several 16S rRNA genes. Extract all amplicons from a sequence but take only
-  # the shortest when amplicons are nested.
-  my $seqstr = $seq->seq;
-  my $seqid  = $seq->id;
+  # several 16S rRNA genes. Extract all amplicons from a sequence (both strands)
+  # but take only the shortest when amplicons are nested.
+  # Fetch amplicons from both strands
   my @amplicons;
+  for my $orientation (1, -1) {
+    my $strand_amplicons = database_extract_amplicons_from_strand($seq,
+      $forward_regexp, $reverse_regexp, $orientation);  
+    push @amplicons, @$strand_amplicons if defined $strand_amplicons;
+  }
+  # Complain if primers did not match explicitly specified reference sequence
+  my $seqid = $seq->id;
+  if ( (scalar keys %{$ids_to_keep} > 0) &&
+       (exists $$ids_to_keep{$seqid}   ) &&
+       (scalar @amplicons == 0         ) ) {
+    die "Error: Requested sequence $seqid did not match the specified forward primer.\n";
+  }
+  return \@amplicons;
+}
+
+
+sub database_extract_amplicons_from_strand {
+  # Get amplicons from the given strand (orientation) of the given sequence
+  my ($seq, $forward_regexp, $reverse_regexp, $orientation) = @_;
+
+  # Reverse-complement sequence if looking at a -1 orientation
+  my $seqstr;
+  if ($orientation == 1) {
+    $seqstr = $seq->seq;
+  } elsif ($orientation == -1) {
+    $seqstr = $seq->revcom->seq;
+  } else {
+    die "Error: Invalid orientation '$orientation'\n";
+  }
+
+  # Get amplicons from sequence string
+  my $amplicons;
   if ( (defined $forward_regexp) && (not defined $reverse_regexp) ) {
     while ( $seqstr =~ m/($forward_regexp)/g ) {
-      my $start    = pos($seqstr) - length($1) + 1;
-      my $end      = $seq->length;
-      my $amplicon = $seq->trunc($start, $end);
-      $amplicon->{_amplicon} = $start.'-'.$end;
-      push @amplicons, $amplicon;
+      my $start = pos($seqstr) - length($1) + 1;
+      my $end   = $seq->length;
+      push @$amplicons, database_create_amplicon($seq, $start, $end, $orientation);
     }
   } elsif ( (defined $forward_regexp) && (defined $reverse_regexp) ) {
     while ( $seqstr =~ m/($forward_regexp.*?$reverse_regexp)/g ) {
-      my $end      = pos($seqstr);
-      my $start    = $end - length($1) + 1;
-
+      my $end   = pos($seqstr);
+      my $start = $end - length($1) + 1;
       # Now trim the left end to obtain the shortest amplicon
       my $ampliconstr = substr $seqstr, $start - 1, $end - $start + 1;
       if ($ampliconstr =~ m/$forward_regexp.*($forward_regexp)/g) {
          $start += pos($ampliconstr) - length($1);
       }
-
-      my $amplicon = $seq->trunc($start, $end);
-      $amplicon->{_amplicon} = $start.'-'.$end;
-      push @amplicons, $amplicon;
+      push @$amplicons, database_create_amplicon($seq, $start, $end, $orientation);
     }
   } else {
     die "Error: Need to provide at least a forward primer\n";
   }
-  # Complain if primers did not match explicitly specified database sequence
-  if ( (scalar keys %{$ids_to_keep} > 0) &&
-       (exists $$ids_to_keep{$seqid}   ) &&
-       (scalar @amplicons == 0         ) ) {
-    die "Error: Requested sequence $seqid does not match the specified forward primer.\n";
+
+  return $amplicons;
+}
+
+
+sub database_create_amplicon {
+  # Create an amplicon sequence and register its coordinates
+  my ($seq, $start, $end, $orientation) = @_;
+  my $amplicon;
+  my $coord;
+  if ($orientation == -1) {
+    # Calculate coordinates relative to forward strand. For example, given a
+    # read starting at 10 and ending at 23 on the reverse complement of a 100 bp
+    # sequence, return complement(77..90).
+    $amplicon = $seq->trunc($start, $end)->revcom;
+    $start = $seq->length - $start + 1;
+    $end   = $seq->length - $end + 1;
+    ($start, $end) = ($end, $start);
+    $coord = "complement($start..$end)";
+  } else {
+    $amplicon = $seq->trunc($start, $end);
+    $coord = "$start..$end";
   }
-  return \@amplicons;
+  $amplicon->{_amplicon} = $coord;
+  return $amplicon
 }
 
 
