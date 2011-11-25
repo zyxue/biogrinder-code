@@ -12,7 +12,7 @@ use Math::Random::MT::Perl;          # create a seed
 use Math::Random::MT qw(srand rand); # seed and draw from the random generator
 
 
-our $VERSION = '0.4.0';
+our $VERSION = '0.4.1';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -140,7 +140,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.4.0
+0.4.1
 
 =head1 AUTHOR
 

@@ -1,12 +1,12 @@
 Revision history for Grinder
 
-x.x.x   
-        Read 'strand' is not used anymore. Instead, read coordinates are reported
-          in their description Genbank-style, e.g. instead of: position=1-20
-          strand=-1, it it now position=complement(1..20)
+0.4.1   
+        The keyword 'strand' is not used anymore in the description of reads.
+        Read coordinates are now reported like in the Genbank format:
+          "position=complement(1..20)" instead of "position=1-20 strand=-1"
         Fixed bug reported by Dana Willner: when looking for full-length amplicon
-          matches based on PCR primers, need to check for matches in the reference
-          sequence but also in their reverse-complement
+          matches based on PCR primers, matches are now sought in the reference
+          sequences but also in their reverse-complement
         Better handling of discrepancies between the number of libraries specified
           with the num_libraries option and in the abundance_file (reported by
           Dana Willner).
