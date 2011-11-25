@@ -1472,13 +1472,21 @@ sub community_structures {
     if ( $perc_shared || $perc_permuted ) {
       warn "Warning: Percent shared and percent permuted cannot be specified when an abundance file is specified. Ignoring them...\n";
     }
-    if ( $nof_indep != 1 ) { # 1 is the default value
-      warn "Warning: The number of libraries cannot be specified when an abundance file is specified. Ignoring it...\n";
-    }
     # One or several communities with specified rank-abundances
     $c_structs = community_given_abundances($abundance_file, $seq_ids);
     # Calculate number of libraries
-    $nof_indep = scalar @$c_structs;
+    my $got_indep = scalar @$c_structs;
+    if ($nof_indep != 1) { # 1 is the default value
+      if ($nof_indep > $got_indep) {
+        die "Error: $nof_indep communities were requested but the abundance file".
+          " specified the abundances for only $got_indep.\n";
+      } elsif ($nof_indep < $got_indep) {
+        warn "Warning: $nof_indep communities were requested by the abundance ".
+          "file specified the abundances for $got_indep. Ignoring extraneous ".
+          "communities specified in the file.\n";
+      }
+    }
+    $nof_indep = $got_indep;
     $self->{num_libraries} = $nof_indep;
     # Calculate diversities based on given community abundances
     ($self->{diversity}, $self->{overall_diversity}, $self->{shared_perc},
