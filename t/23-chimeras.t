@@ -85,7 +85,8 @@ sub nof_references {
    my ($desc) = @_;
    $desc =~ m/reference=(\S+)/;
    my $refs = $1;
-   my $nof_refs = scalar split ',', $refs;
+   my @refs = split(',', $refs);
+   my $nof_refs = scalar @refs;
    return $nof_refs;
 }
 
