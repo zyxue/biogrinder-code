@@ -1,6 +1,10 @@
 Revision history for Grinder
 
-0.4.1   
+0.4.2   15-Dec-2011
+        Fixed incorrectly calculated relative abundances when using length bias
+          (reported by Mike Imelfort and Mohamed Fauzi Haroon).
+
+0.4.1   25-Nov-2011
         The keyword 'strand' is not used anymore in the description of reads.
         Read coordinates are now reported like in the Genbank format:
           "position=complement(1..20)" instead of "position=1-20 strand=-1"

@@ -12,7 +12,7 @@ use Math::Random::MT::Perl;          # create a seed
 use Math::Random::MT qw(srand rand); # seed and draw from the random generator
 
 
-our $VERSION = '0.4.1';
+our $VERSION = '0.4.2';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -101,7 +101,7 @@ reference PCR amplicons using the provided degenerate PCR primers.
 Determine the community structure based on the provided alpha diversity (number
 of reference sequences in the library), beta diversity (number of reference
 sequences in common between several independent libraries) and specified rank-
-abundance model. 
+abundance model.
 
 =item 3.
 
@@ -140,7 +140,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.4.1
+0.4.2
 
 =head1 AUTHOR
 
