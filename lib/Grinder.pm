@@ -564,7 +564,8 @@ Default: unidirectional.default
 
 In shotgun libraries, sample reference sequences proportionally to their length.
 For example, in simulated microbial datasets, this means that at the same
-relative abundance, larger genomes contribute more reads than smaller genomes.
+relative abundance, larger genomes contribute more reads than smaller genomes
+(and all genomes have the same fold coverage).
 0 = no, 1 = yes. Default: length_bias.default
 
 =for Euclid:
@@ -2101,7 +2102,7 @@ sub proba_bias_dependency {
         my $id  = $c_struct->{'ids'}[$i];
         my $seq = $self->database_get_seq($id);
         my $len = $seq->length;
-        $proba /= $len;
+        $proba *= $len;
       }
     }
 

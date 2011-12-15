@@ -38,9 +38,9 @@ ok exists $sources{'seq5'};
 
 
 # These tests are quite sensitive to the seed used
-between_ok( $sources{'seq1'}, 67 , 127 ); # avg = 97
-between_ok( $sources{'seq2'}, 99 , 159 ); # avg = 129
-between_ok( $sources{'seq4'}, 357, 417 ); # avg = 387
-between_ok( $sources{'seq5'}, 357, 417 ); # avg = 387
+between_ok( $sources{'seq1'}, 414, 477 ); # avg = 444
+between_ok( $sources{'seq2'}, 303, 363 ); # avg = 333
+between_ok( $sources{'seq4'},  81, 141 ); # avg = 111
+between_ok( $sources{'seq5'},  81, 141 ); # avg = 111
 
 done_testing();
