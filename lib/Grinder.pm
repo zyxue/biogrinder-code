@@ -216,11 +216,18 @@ And finally, with administrator privileges:
 
 On Windows, run the same commands but with nmake instead of make.
 
-If you do not have administrator rights and want to install the module locally,
-try something along these lines:
+=head2 No administrator privileges?
 
-   perl Makefile.PL INSTALL_BASE=/home/fangly/bin/perl
+If you do not have administrator privileges, Grinder needs to be installed in
+your home directory.
 
+First, follow the instructions to install local::lib
+at L<http://search.cpan.org/~apeiron/local-lib-1.008004/lib/local/lib.pm#The_bootstrapping_technique>. After local::lib is installed, every Perl
+module that you install manually or through the CPAN command-line application
+will be installed in your home directory.
+
+Then, install Grinder by following the instructions detailed in the "Procedure"
+section.
 
 =head1 RUNNING GRINDER
 
