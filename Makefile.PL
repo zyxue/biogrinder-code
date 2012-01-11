@@ -34,6 +34,13 @@ author_requires 'Module::Install::AutoManifest';
 author_requires 'Statistics::R'  => '0.21';
 
 
+# Bundle dependencies
+# This system does not support Build.PL based dependencies
+
+#perl_version( '5.005' );
+#auto_bundle_deps();
+
+
 # Install dependencies
 
 auto_install;
