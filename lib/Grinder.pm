@@ -2174,31 +2174,45 @@ sub rand_seq_chimera {
   }
   # Fate now decides to produce a chimera or not
   if ( rand(100) <= $chimera_perc ) {
-    my $t1_seq = $sequence; # first template sequence
-    my $t2_seq;             # second template sequence
-    do {
-      $t2_seq = $self->rand_seq($positions, $oids);
-    } while ($t2_seq->id eq $t1_seq->id);
 
-    my $t1_start = 1;
-    my $t2_end   = $t2_seq->length;
-
-    my $diff = $end - $t2_end;
-    $start = $diff if $diff > 0;
-
-    my $t1_end   = $start + int( rand($end-$start) ); # start <= t1_end < end
-    my $t2_start = $t1_end - $diff + 1;
+    # Pick chimera fragments
+    my @pos = $self->rand_chimera_fragments($sequence, $start, $end, $positions,
+      $oids);
 
     # Join chimera fragments
-    my @pos = ($t1_seq, $t1_start, $t1_end, $t2_seq, $t2_start, $t2_end);
     $chimera = assemble_chimera(@pos);
-
 
   } else {
     # No chimera needed
     $chimera = $sequence;
   }
   return $chimera;
+}
+
+
+sub rand_chimera_fragments {
+  # Pick which sequences and breakpoints to use to form a chimera
+  my ($self, $sequence, $start, $end, $positions, $oids) = @_;
+
+  my $t1_seq = $sequence; # first template sequence
+
+  my $t2_seq;             # second template sequence, different from first one
+  do {
+    $t2_seq = $self->rand_seq($positions, $oids);
+  } while ($t2_seq->id eq $t1_seq->id);
+
+  my $t1_start = 1;
+  my $t2_end   = $t2_seq->length;
+
+  my $diff = $end - $t2_end;
+  $start = $diff if $diff > 0;
+
+  my $t1_end   = $start + int( rand($end-$start) ); # start <= t1_end < end
+  my $t2_start = $t1_end - $diff + 1;
+
+  my @pos = ($t1_seq, $t1_start, $t1_end, $t2_seq, $t2_start, $t2_end);
+
+  return @pos;
 }
 
 
