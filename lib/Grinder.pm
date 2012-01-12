@@ -1959,9 +1959,13 @@ sub next_single_read {
     # Read position on genome or amplicon
     my ($start, $end) = rand_seq_pos($genome, $length, $self->{forward_reverse},
       $mid);
+
+    ######
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc}, $start,
       $end, $self->{positions}, $oids) if $self->{chimera_perc};
+    ######
+
     # New sequence object
     $shotgun_seq = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
       $orientation, $start, $end, $mid, undef, $lib_num, $self->{desc_track},
@@ -2015,9 +2019,13 @@ sub next_mate_pair {
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
+
+    ######
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
       $mate_start, $mate_end, $self->{positions}, $oids) if $self->{chimera_perc};
+    ######
+
     # First mate read
     my $read_length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
@@ -2165,7 +2173,7 @@ sub rand_seq_chimera {
     die "Error: Not enough sequences to produce chimeras\n";
   }
   # Fate now decides to produce a chimera or not
-  if ( rand(100) <= $chimera_perc ) { 
+  if ( rand(100) <= $chimera_perc ) {
     my $t1_seq = $sequence; # first template sequence
     my $t2_seq;             # second template sequence
     do {
@@ -2182,16 +2190,37 @@ sub rand_seq_chimera {
     my $t2_start = $t1_end - $diff + 1;
 
     # Join chimera fragments
-    $chimera = $t1_seq->trunc($t1_start, $t1_end);
-    $chimera->seq( $chimera->seq . $t2_seq->subseq($t2_start, $t2_end) );
-    $chimera->id( $chimera->id . ',' . $t2_seq->id );
-    if (defined $t1_seq->{_amplicon} && defined $t2_seq->{_amplicon}) {
-      $chimera->{_amplicon} = $t1_seq->{_amplicon}.','.$t2_seq->{_amplicon};
-    }
+    my @pos = ($t1_seq, $t1_start, $t1_end, $t2_seq, $t2_start, $t2_end);
+    $chimera = assemble_chimera(@pos);
+
 
   } else {
     # No chimera needed
     $chimera = $sequence;
+  }
+  return $chimera;
+}
+
+
+sub assemble_chimera {
+  # Create a chimera sequence object based on positional information:
+  #   seq1, start1, end1, seq2, start2, end2, ...
+  my (@pos) = @_;
+
+  # Initialize the chimera sequence object with the first sequence
+  my ($seq, $start, $end) = splice @pos, 0, 3;
+  my $chimera = $seq->trunc($start, $end);
+  if (defined $seq->{_amplicon}) {
+    $chimera->{_amplicon} = $seq->{_amplicon};
+  }
+
+  # Append other sequence fragments to the chimera
+  while ( ($seq, $start, $end) = splice @pos, 0, 3 ) {
+    $chimera->seq( $chimera->seq . $seq->subseq($start, $end) );
+    $chimera->id( $chimera->id . ',' . $seq->id );
+    if (defined $chimera->{_amplicon} && defined $seq->{_amplicon}) {
+      $chimera->{_amplicon} = $chimera->{_amplicon}.','.$seq->{_amplicon};
+    }
   }
   return $chimera;
 }
