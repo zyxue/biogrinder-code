@@ -1,6 +1,5 @@
 
 #### todo:
-# case-insensitive
 # revcom
 # weights
 
@@ -18,8 +17,8 @@ KmerCollection - A collection of kmers from sequences
 
 =head1 DESCRIPTION
 
-Manage a collection of kmers and from what position of what sequence they come
-from.
+Manage a collection of kmers found in various sequences. Store information about
+what sequence a kmer was found in and its starting position on the sequence.
 
 #=head1 FEEDBACK
 
@@ -73,13 +72,13 @@ use base qw(Bio::Root::Root);
  Title   : new
  Usage   : my $col = KmerCollection->new( -k => 10, -file => 'seqs.fa', -revcom => 1 );
  Function: Build a new kmer collection
- Returns : KmerCollection object
  Args    : -k       set the kmer length (default: 10 bp)
            -revcom  count kmers before and after reverse-complementing sequences
                     (default: 0)
            -seqs    count kmers in the provided arrayref of sequences (Bio::Seq
                     objects)
            -file    count kmers in the provided file of sequences
+ Returns : KmerCollection object
 
 =cut
 
@@ -102,8 +101,8 @@ sub new {
 
  Usage   : $col->k;
  Function: Get the length of the kmers
- Returns : Positive integer
  Args    : None
+ Returns : Positive integer
 
 =cut
 
@@ -119,13 +118,15 @@ sub k {
 }
 
 
+### TODO
+
 =head2 revcom
 
  Usage   : $col->revcom;
  Function: Get whether or not the kmers are calculated from the sequence and
            their reverse-complement
- Returns : 1 (yes), 0 (no)
  Args    : None
+ Returns : 1 (yes), 0 (no)
 
 =cut
 
@@ -138,21 +139,41 @@ sub revcom {
 }
 
 
-=head2 collection
+=head2 collection_by_kmer
 
- Usage   : $col->collection;
- Function: Get the collection of kmers.
- Returns : A hashref of hashref of ...
+ Usage   : $col->collection_by_kmer;
+ Function: Get the collection of kmers, indexed by kmer
  Args    : None
+ Returns : A hashref of hashref of arrayref:
+              hash->{kmer}->{ID of sequences with this kmer}->[starts of kmer on sequence]
 
 =cut
 
-sub collection {
+sub collection_by_kmer {
    my ($self, $val) = @_;
    if ($val) {
-      $self->{'collection'} = $val;
+      $self->{'collection_by_kmer'} = $val;
    }
-   return $self->{'collection'};
+   return $self->{'collection_by_kmer'};
+}
+
+
+=head2 collection_by_seq
+
+ Usage   : $col->collection_by_seq;
+ Function: Get the collection of kmers, indexed by sequence ID
+ Args    : None
+ Returns : A hashref of hashref of arrayref:
+              hash->{ID of sequences with this kmer}->{kmer}->[starts of kmer on sequence]
+
+=cut
+
+sub collection_by_seq {
+   my ($self, $val) = @_;
+   if ($val) {
+      $self->{'collection_by_seq'} = $val;
+   }
+   return $self->{'collection_by_seq'};
 }
 
 
@@ -163,8 +184,8 @@ sub collection {
 
  Usage   : $col->add_file( 'seqs.fa' );
  Function: Process the kmers in the given file of sequences.
- Returns : 1
- Args    : string
+ Args    : filename
+ Returns : KmerCollection object
 
 =cut
 
@@ -183,21 +204,25 @@ sub add_file {
 
  Usage   : $col->add_seqs( [$seq1, $seq2] );
  Function: Process the kmers in the given sequences.
- Returns : 1
  Args    : arrayref of Bio::Seq objects
+ Returns : KmerCollection object
 
 =cut
 
 sub add_seqs {
    my ($self, $seqs) = @_;
-   my $kmer_col = $self->collection || {};
+   my $col_by_kmer = $self->collection_by_kmer || {};
+   my $col_by_seq  = $self->collection_by_seq  || {};
    for my $seq (@$seqs) {
       my $kmer_counts = $self->_count_kmers($seq);
       while ( my ($kmer, $positions) = each %$kmer_counts ) {
-         $kmer_col->{$kmer}->{$seq->id} = $positions;
+         my $seq_id = $seq->id;
+         $col_by_kmer->{$kmer}->{$seq_id} = $positions;
+         $col_by_seq->{$seq_id}->{$kmer}  = $positions;
       }
    }
-   $self->collection($kmer_col);
+   $self->collection_by_kmer($col_by_kmer);
+   $self->collection_by_seq($col_by_seq);
    return $self;
 }
 
@@ -206,19 +231,19 @@ sub add_seqs {
 
  Usage   : $col->filter_rare( 2 );
  Function: Remove kmers occurring less than the number of times specified
- Returns : 1
  Args    : integer
+ Returns : KmerCollection object
 
 =cut
 
 sub filter_rare {
    my ($self, $min_num) = @_;
-   my $collection = $self->collection;
-   while ( my ($kmer, $sources) = each %$collection ) {
+   my $col_by_kmer = $self->collection_by_kmer;
+   while ( my ($kmer, $sources) = each %$col_by_kmer ) {
       my $count = _sum_from_sources( $sources );
-      delete $collection->{$kmer} if $count < $min_num;
+      delete $col_by_kmer->{$kmer} if $count < $min_num;
    }
-   $self->collection( $collection );
+   $self->collection_by_kmer( $col_by_kmer );
    return $self;
 }
 
@@ -227,30 +252,32 @@ sub filter_rare {
 
  Usage   : $col->filter_shared( 2 );
  Function: Remove kmers occurring in less than the number of sequences specified
- Returns : 1
  Args    : integer
+ Returns : KmerCollection object
 
 =cut
 
 sub filter_shared {
    my ($self, $min_num) = @_;
-   my $collection = $self->collection;
-   while ( my ($kmer, $sources) = each %$collection ) {
+   my $col_by_kmer = $self->collection_by_kmer;
+   while ( my ($kmer, $sources) = each %$col_by_kmer ) {
       my $count = scalar keys %$sources;
-      delete $collection->{$kmer} if $count < $min_num;
+      delete $col_by_kmer->{$kmer} if $count < $min_num;
    }
-   $self->collection( $collection );
+   $self->collection_by_kmer( $col_by_kmer );
    return $self;
 }
 
+
+##### should be able to specify a single kmer to get the count of
 
 =head2 counts
 
  Usage   : $col->counts
  Function: Calculate the total count of each kmer
+ Args    : 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of the different kmers
            * arrayref of the corresponding total counts
- Args    : 0 to report counts (default), 1 to report frequencies (normalize to 1)
 
 =cut
 
@@ -259,8 +286,8 @@ sub counts {
    my $kmers;
    my $counts;
    my $total = 0;
-   my $collection = $self->collection;
-   while ( my ($kmer, $sources) = each %$collection ) {
+   my $col_by_kmer = $self->collection_by_kmer;
+   while ( my ($kmer, $sources) = each %$col_by_kmer ) {
       push @$kmers, $kmer;
       my $count = _sum_from_sources( $sources );
       push @$counts, $count;
@@ -276,10 +303,10 @@ sub counts {
  Usage   : $col->sources()
  Function: Return the sources of a kmer and their abundance. An error is reported
            if the kmer requested does not exist
- Returns : * arrayref of the different sources
-           * arrayref of the corresponding total counts
  Args    : * kmer to get the sources of
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
+ Returns : * arrayref of the different sources
+           * arrayref of the corresponding total counts
 
 =cut
 
@@ -288,10 +315,10 @@ sub sources {
    my $sources;
    my $counts;
    my $total = 0;
-   my $kmer_sources = $self->collection->{$kmer};
+   my $kmer_sources = $self->collection_by_kmer->{$kmer};
   
    if (not defined $kmer_sources) {
-      $self->throw("Error: This kmer ($kmer) was not found.\n");
+      $self->throw("Error: kmer $kmer was not found in the collection.\n");
    }
 
    while ( my ($source, $positions) = each %$kmer_sources ) {
@@ -306,37 +333,76 @@ sub sources {
 }
 
 
+=head2 kmers
+
+ Usage   : $col->kmers()
+ Function: This is the inverse of sources(). Return the kmers found in a sequence
+           (given its ID). An error is reported if the sequence ID requested does
+           not exist.
+ Args    : * sequence ID to get the kmers of
+           * 0 to report counts (default), 1 to report frequencies (normalize to 1)
+ Returns : * arrayref of sequence IDs
+           * arrayref of the corresponding total counts
+
+=cut
+
+sub kmers {
+   my ($self, $seq_id, $freq) = @_;
+   my $kmers;
+   my $counts;
+   my $total = 0;
+   my $seq_kmers = $self->collection_by_seq->{$seq_id};
+  
+   if (not defined $seq_kmers) {
+      $self->throw("Error: Sequence $seq_id was not found in the collection.\n");
+   }
+
+   while ( my ($kmer, $positions) = each %$seq_kmers ) {
+      push @$kmers, $kmer;
+      my $count = scalar @$positions;
+      push @$counts, $count;
+      $total += $count;
+   }
+
+   $counts = _normalize($counts, $total) if $freq;
+   return $kmers, $counts;
+}
+
+
 =head2 positions
 
  Usage   : $col->positions()
  Function: Return the positions of the given kmer on a given sequence. An error
            is reported if the kmer requested does not exist
- Returns : arrayref of the different positions
  Args    : * desired kmer
            * desired sequence with this kmer
+ Returns : arrayref of the different positions
 
 =cut
 
 sub positions {
    my ($self, $kmer, $source) = @_;
-   my $kmer_sources = $self->collection->{$kmer};
+   my $kmer_sources = $self->collection_by_kmer->{$kmer};
    if (not defined $kmer_sources) {
-      $self->throw("Error: This kmer ($kmer) was not found in the collection.\n");
+      $self->throw("Error: kmer $kmer was not found in the collection.\n");
    }
    my $kmer_positions = $kmer_sources->{$source};
    if (not defined $kmer_sources) {
-      $self->throw("Error: This kmer ($kmer) was not found in sequence $source.\n");
+      $self->throw("Error: kmer $kmer was not found in sequence $source.\n");
    }
    return $kmer_positions;
 }
 
 
 
+#======== Internals ===========================================================#
+
+
 sub _count_kmers {
-   # Count the kmers of size k in a sequence (Bio::Seq) and return a hash
+   # Count the kmers of size k in a sequence (Bio::Seq) and return a hashref.
    my ($self, $seq) = @_;
    my $k = $self->k;
-   my $seq_str = $seq->seq;
+   my $seq_str = uc $seq->seq; # case-insensitive
    my $seq_len = length $seq_str;
    my $hash = {};
    for (my $i = 0; $i <= $seq_len - $k ; $i++) {
@@ -348,6 +414,7 @@ sub _count_kmers {
 
 
 sub _sum_from_sources {
+   # Calculate the number of occurences of a kmer.
    my ($sources) = @_;
    my $count = 0;
    while ( my ($source, $positions) = each %$sources ) {
@@ -358,6 +425,7 @@ sub _sum_from_sources {
 
 
 sub _normalize {
+   # Normalize an arrayref to 1.
    my ($arr, $total) = @_;
    if (not $total) { # total undef or 0
       die "Error: Need to provide a valid total\n";

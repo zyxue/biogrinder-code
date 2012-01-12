@@ -25,7 +25,7 @@ sub main {
    my $self = Grinder->new( -reference_file => $file );
    my @seqs = values %{$self->{database}->{db}};
    my $kmer_col = KmerCollection->new(-k=>$k,-seqs=>\@seqs)->filter_shared(2);
-   #print Dumper($kmer_col->collection);
+   #print Dumper($kmer_col->collection_by_kmer);
    my ($kmers, $freqs) = $kmer_col->counts(1);
    #_dump_arrays($kmers, $freqs);
    my $cdf = $self->proba_cumul($freqs);
@@ -35,7 +35,7 @@ sub main {
       # Size of multimera
       my $max_m = 3;
 
-      my $multimera = rand_multimera($self, $max_m, $k, $kmers, $cdf, $kmer_col );
+      my $multimera = rand_kmer_multimera($self, $max_m, $k, $kmers, $cdf, $kmer_col );
 
    }
 
@@ -43,27 +43,66 @@ sub main {
 }
 
 
-sub rand_multimera {
-   
+sub rand_kmer_multimera {
+   # Multimera where breakpoints are located on shared kmers
    my ($self, $max_m, $k, $kmers, $cdf, $kmer_col) = @_;
 
-   # Pick a random kmer
-   my $kmer = $$kmers[Grinder::rand_weighted($cdf)];
-   print "Got random kmer $kmer\n";
-
-   # Pick two sequences with that kmer
-   my ($seq1, $pos1, $seq2, $pos2) = rand_bimera( $self, $k, $kmer, $kmer_col );
-
-   for (my $m = 3; $m <= $max_m; $m++) {
-        # Given a starting sequence, find another one (with a matching kmer) to
-        # add to the multimera
-        
+   my @seqs = ();
+   my @starts = ();
+   for (my $m = 2; $m <= $max_m; $m++) {
+      if (not defined $seqs[-1]) {
+         # first pass
+         #push @seqs, 
+         #push @starts, 
+      } else {
+         # add a sequence
+      }
    }
+
+   ## Pick a random kmer
+   #my $kmer = $$kmers[Grinder::rand_weighted($cdf)];
+   #print "Got random kmer $kmer\n";
+
+   ## Pick two sequences with that kmer
+   #my ($seq1, $pos1, $seq2, $pos2) = rand_bimera( $self, $k, $kmer, $kmer_col );
+
+   #for (my $m = 3; $m <= $max_m; $m++) {
+   #     # Given a starting sequence, pick a suitable kmer
+   #     # Pick another sequence to add to the multimera
+   #}
   
    ### sort positions in order
    ### join sequences
    ###return $seq;
 }
+
+
+sub rand_kmer_bimera {
+   # Pick two sequences and start points to assemble a kmer-based bimera.
+   # An optional starting sequence can be provided
+
+   my ($self, $k, $kmer, $kmer_col, $seq1) = @_;
+
+   # Pick a kmer
+   if (defined $seq1) {
+      #### Randomly pick a kmer contained in this sequence
+   } else {
+      #### Pick a totally random kmer
+   }
+
+   # Pick a first sequence and position
+   if (not defined $seq1) {
+      $seq1 = rand_kmer_source( $self, $kmer, $kmer_col );
+   }
+   my $pos1 = rand_kmer_start( $self, $kmer, $seq1, $kmer_col );
+
+   # Pick a second sequence and position
+   my $seq2 = rand_kmer_source( $self, $kmer, $kmer_col );
+   my $pos2 = rand_kmer_start( $self, $kmer, $seq2, $kmer_col ) + $k;
+
+   return $seq1, $pos1, $seq2, $pos2;
+}
+
 
 
 sub rand_kmer_source {
@@ -84,18 +123,6 @@ sub rand_kmer_start {
 }
 
 
-sub rand_bimera {
-   my ($self, $k, $kmer, $kmer_col) = @_;
-
-   # Pick two sequences with that kmer
-   my $seq1 = rand_kmer_source( $self, $kmer, $kmer_col );
-   my $pos1 = rand_kmer_start( $self, $kmer, $seq1, $kmer_col );
-
-   my $seq2 = rand_kmer_source( $self, $kmer, $kmer_col );
-   my $pos2 = rand_kmer_start( $self, $kmer, $seq2, $kmer_col ) + $k;
-
-   return $seq1, $pos1, $seq2, $pos2;
-}
 
 
 sub _dump_arrays {
