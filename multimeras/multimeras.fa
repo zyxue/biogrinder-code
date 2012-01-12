@@ -1,0 +1,12 @@
+>seq1 1 kmer shared with seq2 (x10), 0 kmer shared with seq3, 1 kmer shared with seq4 (x10/8)
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+>seq2 1 kmer shared with seq1 (x1/10), 1 kmer shared with seq3 (x1/3), 2 kmers shared with seq4 (x1, x1/8)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCAAAAAAAACCCCCCCCCCCCCCCCCCCCCCCGGGGGGGGCCCCCCCC
+
+>seq3 0 kmer shared with seq1, 1 kmer shared with seq2 (x3), 2 kmers shared with seq4 (x7, x3)
+TTTTTTTTGGGGGGGGTTTTTTTTGGGGGGGGTTTTTTTTGGGGGGGGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+
+>seq4 1 kmer shared with seq1 (x8/10), 2 kmers shared with seq2 (x1, x8), 2 kmers shared with seq3 (x1/7, x1/3)
+AAAAAAAAGGGGGGGGAAAAAAAATTTTTTTTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
