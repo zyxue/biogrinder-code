@@ -2275,21 +2275,33 @@ sub kmer_chimera_fragments {
   # Multimera where breakpoints are located on shared kmers
   my ($self, $max_m, $sequence) = @_;
 
-  my $kmers = $self->{chimera_kmer_arr};
+  my $kmer_arr = $self->{chimera_kmer_arr};
   my $cdf = $self->{chimera_kmer_cdf};
   my $kmer_col = $self->{chimera_kmer_col};
 
-  #my @seqs = ();
-  #my @starts = ();
-  #for (my $m = 2; $m <= $max_m; $m++) {
-  #  if (not defined $seqs[-1]) {
-  #    # first pass
-  #    #push @seqs, 
-  #    #push @starts, 
-  #  } else {
-  #    # add a sequence
-  #  }
-  #}
+  
+
+  my ($kmers, $counts) = $kmer_col->kmers($sequence->id);
+  
+  print "k-mers of sequence ".$sequence->id."\n";
+  use Data::Dumper;
+  print Dumper($kmers, $counts);
+
+
+  #my @seqs = ($sequence);
+  #my @breaks = ();
+
+  
+
+#  for (my $m = 2; $m <= $max_m; $m++) {
+#    if (not defined $seqs[-1]) {
+#      # first pass
+#      #push @seqs, 
+#      #push @starts, 
+#    } else {
+#      # add a sequence
+#    }
+#  }
 
   ## Pick a random kmer
   #my $kmer = $$kmers[Grinder::rand_weighted($cdf)];

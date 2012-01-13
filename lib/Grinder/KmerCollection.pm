@@ -89,7 +89,6 @@ sub new {
    my($k, $revcom, $seqs, $file) = $self->_rearrange([qw(K REVCOM SEQS FILE)], @args);
 
    $self->k( defined $k ? $k : 10 );
-   $self->revcom( defined $revcom ? $revcom : 0 );
 
    $self->add_seqs($seqs) if defined $seqs;
    $self->add_file($file) if defined $file;
