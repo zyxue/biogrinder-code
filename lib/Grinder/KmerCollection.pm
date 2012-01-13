@@ -1,5 +1,5 @@
 
-#### todo:
+#### TODO:
 # revcom
 # weights
 
@@ -116,27 +116,6 @@ sub k {
       $self->{'k'} = $val;
    }
    return $self->{'k'};
-}
-
-
-### TODO
-
-=head2 revcom
-
- Usage   : $col->revcom;
- Function: Get whether or not the kmers are calculated from the sequence and
-           their reverse-complement
- Args    : None
- Returns : 1 (yes), 0 (no)
-
-=cut
-
-sub revcom {
-   my ($self, $val) = @_;
-   if ($val) {
-      $self->{'revcom'} = $val;
-   }
-   return $self->{'revcom'};
 }
 
 
