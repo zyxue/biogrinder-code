@@ -64,6 +64,7 @@ methods. Internal methods are usually preceded with a _
 
 use strict;
 use warnings;
+use Bio::SeqIO;
 
 use base qw(Bio::Root::Root);
 
@@ -238,12 +239,25 @@ sub add_seqs {
 
 sub filter_rare {
    my ($self, $min_num) = @_;
+   my $changed = 0;
    my $col_by_kmer = $self->collection_by_kmer;
+   my $col_by_seq  = $self->collection_by_seq;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
       my $count = _sum_from_sources( $sources );
-      delete $col_by_kmer->{$kmer} if $count < $min_num;
+      if ($count < $min_num) {
+        # Remove this kmer
+        $changed = 1;
+        delete $col_by_kmer->{$kmer};
+        while ( my ($seq, $seq_kmers) = each %$col_by_seq ) {
+          delete $seq_kmers->{$kmer};
+          delete $col_by_seq->{$seq} if keys %{$seq_kmers} == 0;
+        }
+      }
    }
-   $self->collection_by_kmer( $col_by_kmer );
+   if ($changed) {
+     $self->collection_by_kmer( $col_by_kmer );
+     $self->collection_by_seq( $col_by_seq );
+   }
    return $self;
 }
 
@@ -259,12 +273,24 @@ sub filter_rare {
 
 sub filter_shared {
    my ($self, $min_num) = @_;
+   my $changed = 0;
    my $col_by_kmer = $self->collection_by_kmer;
+   my $col_by_seq  = $self->collection_by_seq;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
       my $count = scalar keys %$sources;
-      delete $col_by_kmer->{$kmer} if $count < $min_num;
+      if ($count < $min_num) {
+        $changed = 1;
+        delete $col_by_kmer->{$kmer};
+        while ( my ($seq, $seq_kmers) = each %$col_by_seq ) {
+          delete $seq_kmers->{$kmer};
+          delete $col_by_seq->{$seq} if keys %{$seq_kmers} == 0;
+        }
+      }
    }
-   $self->collection_by_kmer( $col_by_kmer );
+   if ($changed) {
+     $self->collection_by_kmer( $col_by_kmer );
+     $self->collection_by_seq( $col_by_seq );
+   }
    return $self;
 }
 
@@ -301,70 +327,65 @@ sub counts {
 =head2 sources
 
  Usage   : $col->sources()
- Function: Return the sources of a kmer and their abundance. An error is reported
-           if the kmer requested does not exist
+ Function: Return the sources of a kmer and their abundance.
  Args    : * kmer to get the sources of
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of the different sources
            * arrayref of the corresponding total counts
+           If the kmer requested does not exist, the array will be empty.
 
 =cut
 
 sub sources {
    my ($self, $kmer, $freq) = @_;
-   my $sources;
-   my $counts;
+   my $sources = [];
+   my $counts = [];
    my $total = 0;
    my $kmer_sources = $self->collection_by_kmer->{$kmer};
-  
-   if (not defined $kmer_sources) {
-      $self->throw("Error: kmer $kmer was not found in the collection.\n");
+
+   if (defined $kmer_sources) {
+      while ( my ($source, $positions) = each %$kmer_sources ) {
+         push @$sources, $source;
+         my $count = scalar @$positions;
+         push @$counts, $count;
+         $total += $count;
+      }
+      $counts = _normalize($counts, $total) if $freq; 
    }
 
-   while ( my ($source, $positions) = each %$kmer_sources ) {
-      push @$sources, $source;
-      my $count = scalar @$positions;
-      push @$counts, $count;
-      $total += $count;
-   }
-
-   $counts = _normalize($counts, $total) if $freq;
    return $sources, $counts;
 }
 
 
 =head2 kmers
 
- Usage   : $col->kmers()
+ Usage   : $col->kmers('seq1');
  Function: This is the inverse of sources(). Return the kmers found in a sequence
-           (given its ID). An error is reported if the sequence ID requested does
-           not exist.
+           (given its ID).
  Args    : * sequence ID to get the kmers of
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of sequence IDs
            * arrayref of the corresponding total counts
-
+           If the sequence ID requested does not exist, the arrays will be empty.
 =cut
 
 sub kmers {
    my ($self, $seq_id, $freq) = @_;
-   my $kmers;
-   my $counts;
+   my $kmers = [];
+   my $counts = [];
    my $total = 0;
    my $seq_kmers = $self->collection_by_seq->{$seq_id};
-  
-   if (not defined $seq_kmers) {
-      $self->throw("Error: Sequence $seq_id was not found in the collection.\n");
+
+   if (defined $seq_kmers) {
+      while ( my ($kmer, $positions) = each %$seq_kmers ) {
+         push @$kmers, $kmer;
+         my $count = scalar @$positions;
+         push @$counts, $count;
+         $total += $count;
+      }
+      $counts = _normalize($counts, $total) if $freq;
    }
 
-   while ( my ($kmer, $positions) = each %$seq_kmers ) {
-      push @$kmers, $kmer;
-      my $count = scalar @$positions;
-      push @$counts, $count;
-      $total += $count;
-   }
-
-   $counts = _normalize($counts, $total) if $freq;
    return $kmers, $counts;
 }
 
@@ -376,19 +397,17 @@ sub kmers {
            is reported if the kmer requested does not exist
  Args    : * desired kmer
            * desired sequence with this kmer
- Returns : arrayref of the different positions
+ Returns : Arrayref of the different positions. The arrays will be empty if the
+           desired combination of kmer and sequence was not found.
 
 =cut
 
 sub positions {
    my ($self, $kmer, $source) = @_;
+   my $kmer_positions = [];
    my $kmer_sources = $self->collection_by_kmer->{$kmer};
-   if (not defined $kmer_sources) {
-      $self->throw("Error: kmer $kmer was not found in the collection.\n");
-   }
-   my $kmer_positions = $kmer_sources->{$source};
-   if (not defined $kmer_sources) {
-      $self->throw("Error: kmer $kmer was not found in sequence $source.\n");
+   if (defined $kmer_sources) {
+      $kmer_positions = $kmer_sources->{$source} || [];
    }
    return $kmer_positions;
 }
