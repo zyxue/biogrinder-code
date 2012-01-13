@@ -1993,13 +1993,9 @@ sub next_single_read {
     # Read position on genome or amplicon
     my ($start, $end) = rand_seq_pos($genome, $length, $self->{forward_reverse},
       $mid);
-
-    ######
     # Chimerize the template sequence if needed
-    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc}, $start,
-      $end, $self->{positions}, $oids) if $self->{chimera_perc};
-    ######
-
+    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
+      $self->{positions}, $oids) if $self->{chimera_perc};
     # New sequence object
     $shotgun_seq = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
       $orientation, $start, $end, $mid, undef, $lib_num, $self->{desc_track},
@@ -2053,13 +2049,9 @@ sub next_mate_pair {
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
-
-    ######
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
-      $mate_start, $mate_end, $self->{positions}, $oids) if $self->{chimera_perc};
-    ######
-
+      $self->{positions}, $oids) if $self->{chimera_perc};
     # First mate read
     my $read_length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
@@ -2196,13 +2188,8 @@ sub rand_seq {
 
 
 sub rand_seq_chimera {
-  my ($self, $sequence, $chimera_perc, $start, $end, $positions, $oids) = @_;
-  # Produce an amplicon that is a chimera of two sequences, starting with the
-  # input sequence until a random position between the given start and end, and
-  # ending with the end of another sequence taken at random from the database
-  # and going at least as far as the specified end
-
-  #### No need to get $start and $end in input
+  my ($self, $sequence, $chimera_perc, $positions, $oids) = @_;
+  # Produce an amplicon that is a chimera of multiple sequences
 
   my $chimera;
   # Sanity check
