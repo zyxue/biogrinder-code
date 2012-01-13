@@ -2167,6 +2167,9 @@ sub rand_seq_chimera {
   # input sequence until a random position between the given start and end, and
   # ending with the end of another sequence taken at random from the database
   # and going at least as far as the specified end
+
+  #### No need to get $start and $end in input
+
   my $chimera;
   # Sanity check
   if ( (scalar @$oids < 2) && ($chimera_perc > 0) ) {
@@ -2176,8 +2179,9 @@ sub rand_seq_chimera {
   if ( rand(100) <= $chimera_perc ) {
 
     # Pick chimera fragments
-    my @pos = $self->rand_chimera_fragments($sequence, $start, $end, $positions,
-      $oids);
+    my $m = 2; # bimera
+    ####my @pos = $self->rand_chimera_fragments($m, $sequence, $start, $end, $positions, $oids);
+    my @pos = $self->rand_chimera_fragments_new($m, $sequence, $positions, $oids);
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2190,9 +2194,12 @@ sub rand_seq_chimera {
 }
 
 
-sub rand_chimera_fragments {
+#### Remove this
+sub rand_chimera_fragments_old {
   # Pick which sequences and breakpoints to use to form a chimera
-  my ($self, $sequence, $start, $end, $positions, $oids) = @_;
+  my ($self, $m, $sequence, $start, $end, $positions, $oids) = @_;
+
+  #### use m to form multimeras!
 
   my $t1_seq = $sequence; # first template sequence
 
@@ -2211,6 +2218,66 @@ sub rand_chimera_fragments {
   my $t2_start = $t1_end - $diff + 1;
 
   my @pos = ($t1_seq, $t1_start, $t1_end, $t2_seq, $t2_start, $t2_end);
+
+  return @pos;
+}
+
+
+sub rand_chimera_fragments {
+  # Pick which sequences and breakpoints to use to form a chimera
+  my ($self, $m, $sequence, $positions, $oids) = @_;
+
+  ####
+  $m = 6;
+  ####
+
+  ####
+  # Need to check that all sequences in database are larger than m: skip if ($m < $min_len)
+  # Need to process kmer cdf after database creation
+  ####
+
+  # Pick random sequences
+  my @seqs = ($sequence);
+  my $min_len;
+  for (my $i = 2; $i <= $m; $i++) {
+     my $prev_seq = $seqs[-1];
+     my $seq;
+     do {
+       $seq = $self->rand_seq($positions, $oids);
+     } while ($seq->id eq $prev_seq->id);
+     push @seqs, $seq;
+     my $seq_len = $seq->length;
+     if ( (not defined $min_len) || ($seq_len < $min_len) ) {
+       $min_len = $seq_len;
+     }
+  }
+
+  # Pick random breakpoints
+  my $nof_breaks = $m - 1;
+  my %breaks = ();
+  while ( scalar keys %breaks < $nof_breaks ) {
+    # pick a random break
+    my $rand_pos = 1 + int( rand($min_len - 1) );
+    $breaks{$rand_pos} = undef;
+  }
+  my @breaks = (1, sort {$a <=> $b} (keys %breaks));
+  undef %breaks;
+
+  # Assemble the positional array
+  my @pos;
+  for (my $i = 1; $i <= $m; $i++) {
+    my $seq   = $seqs[$i-1];
+    my $start = shift @breaks;
+    my $end   = $breaks[0] || $seq->length;
+    $breaks[0]++;
+    push @pos, ($seq, $start, $end);
+  }
+
+  ####
+  #use Data::Dumper;
+  #$Data::Dumper::Maxdepth = 2;
+  #print Dumper(\@pos);
+  ####
 
   return @pos;
 }
