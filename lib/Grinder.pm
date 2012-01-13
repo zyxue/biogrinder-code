@@ -668,6 +668,24 @@ generation of chimeras with the <chimera_perc> option. Default: chimera_dist.def
    chimera_dist.type.error: <chimera_dist> must be a positive number (not chimera_dist)
    chimera_dist.default: [314, 38, 1]
 
+=item -ck <chimera_kmer> | -chimera_kmer <chimera_kmer>
+
+Activate a method to form chimeras by picking breakpoints at places where k-mers
+are shared between sequences. <chimera_kmer> represents k, the length of the
+k-mers (in bp). The longer the kmer, the more similar the sequences have to be
+to be eligible to form chimeras. The more frequent a k-mer is in the pool of
+reference sequences (taking into accounting their relative abundance), the more
+often this k-mer will be chosen. For example, CHSIM (Edgar et al. 2011) uses
+a k-mer length of 10 bp. If you do not want to use k-mer information to form
+chimeras, use 0, which will result in the reference sequences and breakpoints
+to be taken randomly. Note that this option only takes effect when you request
+the generation of chimeras with the <chimera_perc> option. Default: chimera_kmer.default bp
+
+=for Euclid:
+   chimera_kmer.type: number, chimera_kmer >= 0
+   chimera_kmer.type.error: <chimera_kmer> must be a positive number (not chimera_kmer)
+   chimera_kmer.default: 10
+
 =back
 
 Community structure and diversity
@@ -1357,7 +1375,7 @@ sub initialize {
     }
     # Calculate cdf
     if ($self->{chimera_perc}) {
-      $self->{chimera_cdf} = $self->proba_cumul( $self->{chimera_dist} );
+      $self->{chimera_dist_cdf} = $self->proba_cumul( $self->{chimera_dist} );
     }
   }
 
@@ -2202,8 +2220,16 @@ sub rand_seq_chimera {
     # Pick multimera size
     my $m = $self->rand_chimera_size();
 
+    ####
     # Pick chimera fragments
-    my @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
+    my $k = $self->{chimera_kmer};
+    my @pos;
+    if ($k) {
+      @pos = $self->kmer_chimera_fragments($m, $k);
+    } else {
+      @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
+    }
+    ####
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2220,7 +2246,15 @@ sub rand_chimera_size {
   # Decide of the number of sequences that the chimera will have, based on the
   # user-defined chimera distribution
   my ($self) = @_;
-  return rand_weighted( $self->{chimera_cdf} ) + 2;
+  return rand_weighted( $self->{chimera_dist_cdf} ) + 2;
+}
+
+
+sub kmer_chimera_fragments {
+  #########
+  # 
+  #my ($self, $m, $k, $sequence, $positions, $oids) = @_;
+  #########
 }
 
 

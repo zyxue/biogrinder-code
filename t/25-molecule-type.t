@@ -8,7 +8,7 @@ use Grinder;
 
 
 
-my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);
+my ($factory, $read);
 
 my $dna_want_chars = {
    'A' => undef,

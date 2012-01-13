@@ -22,6 +22,8 @@ ok $factory = Grinder->new(
    -mutation_ratio   => (100, 0)                   ,
    -mutation_dist    => ('uniform', 10)            ,
    -chimera_perc     => 10                         ,
+   -chimera_dist     => (100)                      ,
+   -chimera_kmer     => 0                          ,
 ), 'Combined errors';
 
 $nof_reads = 0;

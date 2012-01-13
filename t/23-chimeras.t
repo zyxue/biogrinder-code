@@ -21,6 +21,7 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 0                                 ,
    -chimera_dist    => (1)                               ,
+   -chimera_kmer    => 0                                 ,
    -total_reads     => 100                               ,
 ), 'No chimeras';
 
@@ -43,6 +44,7 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 50                                ,
    -chimera_dist    => (1)                               ,
+   -chimera_kmer    => 0                                 ,
    -total_reads     => 100                               ,
 ), '50% chimeras (bimeras)';
 
@@ -63,6 +65,7 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 100                               ,
    -chimera_dist    => (1)                               ,
+   -chimera_kmer    => 0                                 ,
    -total_reads     => 100                               ,
 ), '100% chimeras (bimeras)';
 
@@ -81,6 +84,7 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 100                               ,
    -chimera_dist    => (0, 1)                            ,
+   -chimera_kmer    => 0                                 ,
    -total_reads     => 100                               ,
 ), '100% chimeras (trimeras)';
 
@@ -99,6 +103,7 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 100                               ,
    -chimera_dist    => (0, 0, 1)                         ,
+   -chimera_kmer    => 0                                 ,
    -total_reads     => 100                               ,
 ), '100% chimeras (quadrameras)';
 
@@ -117,7 +122,8 @@ ok $factory = Grinder->new(
    -unidirectional  => 1                                 ,
    -chimera_perc    => 100                               ,
    -chimera_dist    => (1, 1, 1)                         ,
-   -total_reads     => 1000                               ,
+   -chimera_kmer    => 0                                 ,
+   -total_reads     => 1000                              ,
 ), '100% chimeras (bimeras, trimeras, quadrameras)';
 
 while ( $read = $factory->next_read ) {

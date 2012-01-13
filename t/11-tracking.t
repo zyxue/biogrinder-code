@@ -90,6 +90,8 @@ ok $factory = Grinder->new(
    -total_reads     => 10                          ,
    -desc_track      => 1                           ,
    -chimera_perc    => 100                         ,
+   -chimera_dist    => (1)                         ,
+   -chimera_kmer    => 0                           ,
 ), 'Chimeric amplicon tracking';
 
 ok $read = $factory->next_read;
