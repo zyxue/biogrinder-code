@@ -1387,10 +1387,11 @@ sub initialize {
   $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
-  # Import genome sequences, skipping genomes too short
+  # Import genome sequences
+  my $max_chimera_size = scalar @{$self->{chimera_dist}} + 1; # nof seqs in largest chimera
   $self->{database} = $self->database_create( $self->{reference_file},
     $self->{unidirectional}, $self->{forward_reverse}, $self->{abundance_file},
-    $self->{delete_chars} );
+    $self->{delete_chars}, $max_chimera_size );
 
   $self->initialize_alphabet;
   if ( ($self->{alphabet} eq 'protein')     &&
@@ -2240,11 +2241,6 @@ sub rand_chimera_fragments {
   # Pick which sequences and breakpoints to use to form a chimera
   my ($self, $m, $sequence, $positions, $oids) = @_;
 
-  ####
-  # Need to check that all sequences in database are larger than m: skip if ($m < $min_len)
-  # Need to process kmer cdf after database creation
-  ####
-
   # Pick random sequences
   my @seqs = ($sequence);
   my $min_len = $sequence->length;
@@ -2451,7 +2447,6 @@ sub rand_point_errors {
   return $error_specs if $nof_mutations == 0;
 
   # Make as many mutations in read as needed based on model
-
   my $subst_frac = $self->{mutation_ratio}->[0] / 100;
   for ( 1 .. $nof_mutations ) {
 
@@ -2620,8 +2615,10 @@ sub database_create {
   #   * Abundance file (optional): To avoid registering sequences in the database
   #     unless they are needed
   #   * Delete chars (optional): Characters to delete form the sequences.
+  #   * Minimum sequence size: Skip sequences smaller than that
   my ($self, $fasta_file, $unidirectional, $forward_reverse_primers,
-    $abundance_file, $delete_chars) = @_;
+    $abundance_file, $delete_chars, $min_len) = @_;
+  $min_len = 1 if not defined $min_len;
   # Input filehandle
   if (not defined $fasta_file) {
     die "Error: No reference sequences provided\n";
@@ -2707,6 +2704,8 @@ sub database_create {
         $clean_seq =~ s/[$delete_chars]//gi;
         $amp_seq->seq($clean_seq);
       }
+      # Skip the sequence if it is too small
+      next if $amp_seq->length < $min_len;
       # Save amplicon sequence and identify them by their unique object reference
       $seq_db{$amp_seq} = $amp_seq;
       $seq_ids{$ref_seq_id}{$amp_seq} = undef;
