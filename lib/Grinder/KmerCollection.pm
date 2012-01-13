@@ -4,15 +4,15 @@
 # weights
 
 
-package KmerCollection;
+package Grinder::KmerCollection;
 
 =head1 NAME
 
-KmerCollection - A collection of kmers from sequences
+Grinder::KmerCollection - A collection of kmers from sequences
 
 =head1 SYNOPSIS
 
-    my $col = KmerCollection->new( -k    => 10,
+    my $col = Grinder::KmerCollection->new( -k    => 10,
                                    -file => 'seqs.fa' );
 
 =head1 DESCRIPTION
@@ -70,7 +70,7 @@ use base qw(Bio::Root::Root);
 =head2 new
 
  Title   : new
- Usage   : my $col = KmerCollection->new( -k => 10, -file => 'seqs.fa', -revcom => 1 );
+ Usage   : my $col = Grinder::KmerCollection->new( -k => 10, -file => 'seqs.fa', -revcom => 1 );
  Function: Build a new kmer collection
  Args    : -k       set the kmer length (default: 10 bp)
            -revcom  count kmers before and after reverse-complementing sequences
@@ -78,7 +78,7 @@ use base qw(Bio::Root::Root);
            -seqs    count kmers in the provided arrayref of sequences (Bio::Seq
                     objects)
            -file    count kmers in the provided file of sequences
- Returns : KmerCollection object
+ Returns : Grinder::KmerCollection object
 
 =cut
 
@@ -185,7 +185,7 @@ sub collection_by_seq {
  Usage   : $col->add_file( 'seqs.fa' );
  Function: Process the kmers in the given file of sequences.
  Args    : filename
- Returns : KmerCollection object
+ Returns : Grinder::KmerCollection object
 
 =cut
 
@@ -205,7 +205,7 @@ sub add_file {
  Usage   : $col->add_seqs( [$seq1, $seq2] );
  Function: Process the kmers in the given sequences.
  Args    : arrayref of Bio::Seq objects
- Returns : KmerCollection object
+ Returns : Grinder::KmerCollection object
 
 =cut
 
@@ -232,7 +232,7 @@ sub add_seqs {
  Usage   : $col->filter_rare( 2 );
  Function: Remove kmers occurring less than the number of times specified
  Args    : integer
- Returns : KmerCollection object
+ Returns : Grinder::KmerCollection object
 
 =cut
 
@@ -253,7 +253,7 @@ sub filter_rare {
  Usage   : $col->filter_shared( 2 );
  Function: Remove kmers occurring in less than the number of sequences specified
  Args    : integer
- Returns : KmerCollection object
+ Returns : Grinder::KmerCollection object
 
 =cut
 

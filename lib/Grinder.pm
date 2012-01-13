@@ -6,10 +6,11 @@ use warnings;
 use File::Spec;
 use List::Util qw(max);
 use Bio::SeqIO;
+use Grinder::KmerCollection;
 use Bio::Seq::SimulatedRead;
-use Getopt::Euclid qw( :minimal_keys :defer );
 use Math::Random::MT::Perl;          # create a seed
 use Math::Random::MT qw(srand rand); # seed and draw from the random generator
+use Getopt::Euclid qw( :minimal_keys :defer );
 
 
 our $VERSION = '0.4.2';
@@ -1202,6 +1203,17 @@ sub next_lib {
     # Calculate needed number of sequences based on desired coverage
     ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
   }
+
+  ####
+  # Update kmer collection with weight (relative abundance) of each reference sequence
+  my $kmer_col = $self->{chimera_kmer_col};
+  if ($kmer_col) {
+    my ($kmers, $freqs) = $kmer_col->counts(1);
+    $self->{chimera_kmer_arr} = $kmers;
+    $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
+  }
+  ####
+
   return $c_struct;
 }
 
@@ -1423,6 +1435,14 @@ sub initialize {
     $self->{abundance_file}, $self->{distrib}, $self->{param},
     $self->{num_libraries}, $self->{shared_perc}, $self->{permuted_perc},
     $self->{diversity}, $self->{forward_reverse} );
+
+  # Count kmers in the database if we need to form kmer-based chimeras
+  my $k = $self->{chimera_kmer};
+  if ($k) {
+    $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
+      -k => $k, -seqs=> $self->database_get_all_seqs(),
+    )->filter_shared(2);
+  }
 
   # Markers to keep track of computation progress
   $self->{cur_lib}  = 0;
@@ -2225,7 +2245,7 @@ sub rand_seq_chimera {
     my $k = $self->{chimera_kmer};
     my @pos;
     if ($k) {
-      @pos = $self->kmer_chimera_fragments($m, $k);
+      @pos = $self->kmer_chimera_fragments($m, $sequence);
     } else {
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
@@ -2252,9 +2272,88 @@ sub rand_chimera_size {
 
 sub kmer_chimera_fragments {
   #########
-  # 
-  #my ($self, $m, $k, $sequence, $positions, $oids) = @_;
+  # Multimera where breakpoints are located on shared kmers
+  my ($self, $max_m, $sequence) = @_;
+
+  my $kmers = $self->{chimera_kmer_arr};
+  my $cdf = $self->{chimera_kmer_cdf};
+  my $kmer_col = $self->{chimera_kmer_col};
+
+  #my @seqs = ();
+  #my @starts = ();
+  #for (my $m = 2; $m <= $max_m; $m++) {
+  #  if (not defined $seqs[-1]) {
+  #    # first pass
+  #    #push @seqs, 
+  #    #push @starts, 
+  #  } else {
+  #    # add a sequence
+  #  }
+  #}
+
+  ## Pick a random kmer
+  #my $kmer = $$kmers[Grinder::rand_weighted($cdf)];
+  #print "Got random kmer $kmer\n";
+
+  ## Pick two sequences with that kmer
+  #my ($seq1, $pos1, $seq2, $pos2) = rand_bimera( $self, $k, $kmer, $kmer_col );
+
+  #for (my $m = 3; $m <= $max_m; $m++) {
+  #     # Given a starting sequence, pick a suitable kmer
+  #     # Pick another sequence to add to the multimera
+  #}
+  
+  ### sort positions in order
+  ### join sequences
+  ###return $seq;
+
+  die "Temp exit\n";
   #########
+}
+
+
+sub rand_kmer_bimera {
+   # Pick two sequences and start points to assemble a kmer-based bimera.
+   # An optional starting sequence can be provided
+
+   my ($self, $k, $kmer, $kmer_col, $seq1) = @_;
+
+   # Pick a kmer
+   if (defined $seq1) {
+      #### Randomly pick a kmer contained in this sequence
+   } else {
+      #### Pick a totally random kmer
+   }
+
+   # Pick a first sequence and position
+   if (not defined $seq1) {
+      $seq1 = rand_kmer_source( $self, $kmer, $kmer_col );
+   }
+   my $pos1 = rand_kmer_start( $self, $kmer, $seq1, $kmer_col );
+
+   # Pick a second sequence and position
+   my $seq2 = rand_kmer_source( $self, $kmer, $kmer_col );
+   my $pos2 = rand_kmer_start( $self, $kmer, $seq2, $kmer_col ) + $k;
+
+   return $seq1, $pos1, $seq2, $pos2;
+}
+
+
+sub rand_kmer_source {
+   # 
+   my ($self, $kmer, $kmer_col) = @_;
+   my ($sources, $freqs) = $kmer_col->sources($kmer, 1);
+   my $cdf = $self->proba_cumul($freqs);
+   my $source = $$sources[Grinder::rand_weighted($cdf)];
+   
+}
+
+
+sub rand_kmer_start {
+   #
+   my ($self, $kmer, $source, $kmer_col) = @_;
+   my $kmer_starts = $kmer_col->positions($kmer, $source);
+   return $kmer_starts->[ int rand scalar @$kmer_starts ];
 }
 
 
@@ -2877,6 +2976,14 @@ sub database_create_amplicon {
   }
   $amplicon->{_amplicon} = $coord;
   return $amplicon
+}
+
+
+sub database_get_all_seqs {
+  # Retrieve a sequence object from the database based on its object ID
+  my ($self)  = @_;
+  my @seqs = values %{$self->{database}->{db}};
+  return \@seqs;
 }
 
 
