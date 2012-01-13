@@ -655,6 +655,19 @@ typical value is 10%. Default: chimera_perc.default %
    chimera_perc.type.error: <chimera_perc> must be a number between 0 and 100 (not chimera_perc)
    chimera_perc.default: 0
 
+=item -cd <chimera_dist>... | -chimera_dist <chimera_dist>...
+
+Specify the distribution of chimeras: bimeras, trimeras, quadrameras and
+multimeras of higher order. The default is the average values from Quince et al.
+2011: '314 38 1', which corresponds to 89% of bimeras, 11% of trimeras and 0.3%
+of quadrameras. Note that this option only takes effect when you request the
+generation of chimeras with the <chimera_perc> option. Default: chimera_dist.default
+
+=for Euclid:
+   chimera_dist.type: number, chimera_dist >= 0
+   chimera_dist.type.error: <chimera_dist> must be a positive number (not chimera_dist)
+   chimera_dist.default: [314, 38, 1]
+
 =back
 
 Community structure and diversity
@@ -1327,6 +1340,26 @@ sub initialize {
 
   # Parameter processing: homopolymer model
   $self->{homopolymer_dist} = lc $self->{homopolymer_dist} if defined $self->{homopolymer_dist};
+  
+  # Parameter processing: chimera_distribution
+  if ( (not ref $self->{chimera_dist}) or (ref $self->{chimera_dist}  eq 'SCALAR') ) {
+    $self->{chimera_dist} = [$self->{chimera_dist}];
+  }
+  if ($self->{chimera_dist}) {
+    # Normalize to 1
+    my $total = 0;
+    for my $multimera_abundance (@{$self->{chimera_dist}}) {
+      $total += $multimera_abundance;
+    }
+    $self->{chimera_dist} = undef if $total == 0;
+    for (my $i = 0; $i < scalar @{$self->{chimera_dist}}; $i++) {
+      $self->{chimera_dist}->[$i] /= $total;
+    }
+    # Calculate cdf
+    if ($self->{chimera_perc}) {
+      $self->{chimera_cdf} = $self->proba_cumul( $self->{chimera_dist} );
+    }
+  }
 
   # Parameter processing: fastq_output requires qual_levels
   if ( ($self->{fastq_output}) &&
@@ -2178,10 +2211,11 @@ sub rand_seq_chimera {
   # Fate now decides to produce a chimera or not
   if ( rand(100) <= $chimera_perc ) {
 
+    # Pick multimera size
+    my $m = $self->rand_chimera_size();
+
     # Pick chimera fragments
-    my $m = 2; # bimera
-    ####my @pos = $self->rand_chimera_fragments($m, $sequence, $start, $end, $positions, $oids);
-    my @pos = $self->rand_chimera_fragments_new($m, $sequence, $positions, $oids);
+    my @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2194,32 +2228,11 @@ sub rand_seq_chimera {
 }
 
 
-#### Remove this
-sub rand_chimera_fragments_old {
-  # Pick which sequences and breakpoints to use to form a chimera
-  my ($self, $m, $sequence, $start, $end, $positions, $oids) = @_;
-
-  #### use m to form multimeras!
-
-  my $t1_seq = $sequence; # first template sequence
-
-  my $t2_seq;             # second template sequence, different from first one
-  do {
-    $t2_seq = $self->rand_seq($positions, $oids);
-  } while ($t2_seq->id eq $t1_seq->id);
-
-  my $t1_start = 1;
-  my $t2_end   = $t2_seq->length;
-
-  my $diff = $end - $t2_end;
-  $start = $diff if $diff > 0;
-
-  my $t1_end   = $start + int( rand($end-$start) ); # start <= t1_end < end
-  my $t2_start = $t1_end - $diff + 1;
-
-  my @pos = ($t1_seq, $t1_start, $t1_end, $t2_seq, $t2_start, $t2_end);
-
-  return @pos;
+sub rand_chimera_size {
+  # Decide of the number of sequences that the chimera will have, based on the
+  # user-defined chimera distribution
+  my ($self) = @_;
+  return rand_weighted( $self->{chimera_cdf} ) + 2;
 }
 
 
@@ -2228,28 +2241,24 @@ sub rand_chimera_fragments {
   my ($self, $m, $sequence, $positions, $oids) = @_;
 
   ####
-  $m = 6;
-  ####
-
-  ####
   # Need to check that all sequences in database are larger than m: skip if ($m < $min_len)
   # Need to process kmer cdf after database creation
   ####
 
   # Pick random sequences
   my @seqs = ($sequence);
-  my $min_len;
+  my $min_len = $sequence->length;
   for (my $i = 2; $i <= $m; $i++) {
-     my $prev_seq = $seqs[-1];
-     my $seq;
-     do {
-       $seq = $self->rand_seq($positions, $oids);
-     } while ($seq->id eq $prev_seq->id);
-     push @seqs, $seq;
-     my $seq_len = $seq->length;
-     if ( (not defined $min_len) || ($seq_len < $min_len) ) {
-       $min_len = $seq_len;
-     }
+    my $prev_seq = $seqs[-1];
+    my $seq;
+    do {
+      $seq = $self->rand_seq($positions, $oids);
+    } while ($seq->id eq $prev_seq->id);
+    push @seqs, $seq;
+    my $seq_len = $seq->length;
+    if ( (not defined $min_len) || ($seq_len < $min_len) ) {
+      $min_len = $seq_len;
+    }
   }
 
   # Pick random breakpoints
@@ -2272,12 +2281,6 @@ sub rand_chimera_fragments {
     $breaks[0]++;
     push @pos, ($seq, $start, $end);
   }
-
-  ####
-  #use Data::Dumper;
-  #$Data::Dumper::Maxdepth = 2;
-  #print Dumper(\@pos);
-  ####
 
   return @pos;
 }
