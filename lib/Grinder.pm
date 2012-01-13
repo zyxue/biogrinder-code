@@ -396,9 +396,9 @@ the relative abundance of amplicons.
 
 =item 15.
 
-The same amplicon library with 20% of chimeric reads
+The same amplicon library with 20% of chimeric reads (90% bimera, 10% trimera)
 
-   grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20
+   grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20 -chimera_dist 90 10
 
 =item 16.
 
