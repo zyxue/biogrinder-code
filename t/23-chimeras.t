@@ -9,6 +9,7 @@ use Grinder;
 
 
 my ($factory, $read, $nof_reads, $nof_chimeras, $nof_regulars);
+my %chim_sizes;
 
 
 # No Chimeras
@@ -19,6 +20,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,
    -chimera_perc    => 0                                 ,
+   -chimera_dist    => (1)                               ,
    -total_reads     => 100                               ,
 ), 'No chimeras';
 
@@ -32,7 +34,7 @@ while ( $read = $factory->next_read ) {
 }
 
 
-# 50% chimeras
+# 50% chimeras (bimeras)
 
 ok $factory = Grinder->new(
    -reference_file  => data('amplicon_database.fa')      ,
@@ -40,8 +42,9 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,
    -chimera_perc    => 50                                ,
+   -chimera_dist    => (1)                               ,
    -total_reads     => 100                               ,
-), '50% chimeras';
+), '50% chimeras (bimeras)';
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
@@ -51,7 +54,7 @@ while ( $read = $factory->next_read ) {
 between_ok( $nof_chimeras / $nof_regulars, 0.9, 1.1 );
 
 
-# 100% chimeras
+# 100% chimeras (bimeras)
 
 ok $factory = Grinder->new(
    -reference_file  => data('amplicon_database.fa')      ,
@@ -59,13 +62,74 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                 ,
    -unidirectional  => 1                                 ,
    -chimera_perc    => 100                               ,
+   -chimera_dist    => (1)                               ,
    -total_reads     => 100                               ,
-), '100% chimeras';
+), '100% chimeras (bimeras)';
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
    is nof_references($read->desc), 2;
 }
+
+
+# 100% chimeras (trimeras)
+
+ok $factory = Grinder->new(
+   -reference_file  => data('amplicon_database.fa')      ,
+   -forward_reverse => data('forward_reverse_primers.fa'),
+   -length_bias     => 0                                 ,
+   -unidirectional  => 1                                 ,
+   -chimera_perc    => 100                               ,
+   -chimera_dist    => (0, 1)                            ,
+   -total_reads     => 100                               ,
+), '100% chimeras (trimeras)';
+
+while ( $read = $factory->next_read ) {
+   # Remove forward and reverse primer
+   is nof_references($read->desc), 3;
+}
+
+
+# 100% chimeras (quadrameras)
+
+ok $factory = Grinder->new(
+   -reference_file  => data('amplicon_database.fa')      ,
+   -forward_reverse => data('forward_reverse_primers.fa'),
+   -length_bias     => 0                                 ,
+   -unidirectional  => 1                                 ,
+   -chimera_perc    => 100                               ,
+   -chimera_dist    => (0, 0, 1)                         ,
+   -total_reads     => 100                               ,
+), '100% chimeras (quadrameras)';
+
+while ( $read = $factory->next_read ) {
+   # Remove forward and reverse primer
+   is nof_references($read->desc), 4;
+}
+
+
+# 100% chimeras (bimeras, trimeras, quadrameras)
+
+ok $factory = Grinder->new(
+   -reference_file  => data('amplicon_database.fa')      ,
+   -forward_reverse => data('forward_reverse_primers.fa'),
+   -length_bias     => 0                                 ,
+   -unidirectional  => 1                                 ,
+   -chimera_perc    => 100                               ,
+   -chimera_dist    => (1, 1, 1)                         ,
+   -total_reads     => 1000                               ,
+), '100% chimeras (bimeras, trimeras, quadrameras)';
+
+while ( $read = $factory->next_read ) {
+   # Remove forward and reverse primer
+   my $nof_refs = nof_references($read->desc);
+   $chim_sizes{$nof_refs}++;
+   between_ok( $nof_refs, 2, 4 );
+}
+between_ok( $chim_sizes{2}, 333.3 * 0.9, 333.3 * 1.1 );
+between_ok( $chim_sizes{3}, 333.3 * 0.9, 333.3 * 1.1 );
+between_ok( $chim_sizes{4}, 333.3 * 0.9, 333.3 * 1.1 );
+
 
 done_testing();
 
