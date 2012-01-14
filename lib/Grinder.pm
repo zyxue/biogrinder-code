@@ -2245,7 +2245,7 @@ sub rand_seq_chimera {
     my $k = $self->{chimera_kmer};
     my @pos;
     if ($k) {
-      @pos = $self->kmer_chimera_fragments($m, $sequence);
+      @pos = $self->kmer_chimera_fragments($m);
     } else {
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
@@ -2273,47 +2273,26 @@ sub rand_chimera_size {
 sub kmer_chimera_fragments {
   #########
   # Multimera where breakpoints are located on shared kmers
-  my ($self, $max_m, $sequence) = @_;
+  my ($self, $max_m) = @_;
 
-  my $kmer_arr = $self->{chimera_kmer_arr};
-  my $cdf = $self->{chimera_kmer_cdf};
-  my $kmer_col = $self->{chimera_kmer_col};
+  # Initial pair of fragments
+  my @frags = $self->rand_kmer_bimera();
 
-  
+  print "Multimera with m = $max_m\n";
+  print "FRAGS: ".join(' ', @frags)."\n";
+ 
+  # Append sequence to chimera
+  for (3 .. $max_m) {
+    my $prev_seqid = $frags[-2];
+    my @more_frags = $self->rand_kmer_bimera($prev_seqid);
 
-  my ($kmers, $counts) = $kmer_col->kmers($sequence->id);
-  
-  print "k-mers of sequence ".$sequence->id."\n";
-  use Data::Dumper;
-  print Dumper($kmers, $counts);
+    print "MORE: ".join(' ', @more_frags)."\n";
+ 
+    splice @more_frags, 0, 2;
+    push @frags, @more_frags;
+  }
 
-
-  #my @seqs = ($sequence);
-  #my @breaks = ();
-
-  
-
-#  for (my $m = 2; $m <= $max_m; $m++) {
-#    if (not defined $seqs[-1]) {
-#      # first pass
-#      #push @seqs, 
-#      #push @starts, 
-#    } else {
-#      # add a sequence
-#    }
-#  }
-
-  ## Pick a random kmer
-  #my $kmer = $$kmers[Grinder::rand_weighted($cdf)];
-  #print "Got random kmer $kmer\n";
-
-  ## Pick two sequences with that kmer
-  #my ($seq1, $pos1, $seq2, $pos2) = rand_bimera( $self, $k, $kmer, $kmer_col );
-
-  #for (my $m = 3; $m <= $max_m; $m++) {
-  #     # Given a starting sequence, pick a suitable kmer
-  #     # Pick another sequence to add to the multimera
-  #}
+  print "FRAGS: ".join(' ', @frags)."\n";
   
   ### sort positions in order
   ### join sequences
@@ -2326,46 +2305,90 @@ sub kmer_chimera_fragments {
 
 sub rand_kmer_bimera {
    # Pick two sequences and start points to assemble a kmer-based bimera.
-   # An optional starting sequence can be provided
+   # An optional starting sequence can be provided.
+   my ($self, $seqid1) = @_;
 
-   my ($self, $k, $kmer, $kmer_col, $seq1) = @_;
-
-   # Pick a kmer
-   if (defined $seq1) {
-      #### Randomly pick a kmer contained in this sequence
+   my $kmer;
+   if (defined $seqid1) {
+     # Try to pick a kmer from the requested sequence
+     $kmer = $self->rand_kmer_of_seq( $seqid1 );
+     if (not defined $kmer) {
+       die "Error: Sequence $seqid1 did not contain a suitable kmer\n";
+     }
    } else {
-      #### Pick a totally random kmer
+     # Pick a random kmer and sequence containing that kmer
+     $kmer   = $self->rand_kmer_from_collection();
+     $seqid1 = $self->rand_seq_with_kmer( $kmer );
    }
 
-   # Pick a first sequence and position
-   if (not defined $seq1) {
-      $seq1 = rand_kmer_source( $self, $kmer, $kmer_col );
+   # Get a second sequence that has the same kmer as the first sequence
+   my $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
+   if (not defined $seqid2) {
+     die "Error: Could not find another sequence that contains kmer $kmer\n";
    }
-   my $pos1 = rand_kmer_start( $self, $kmer, $seq1, $kmer_col );
 
-   # Pick a second sequence and position
-   my $seq2 = rand_kmer_source( $self, $kmer, $kmer_col );
-   my $pos2 = rand_kmer_start( $self, $kmer, $seq2, $kmer_col ) + $k;
+   # Pick random breakpoint positions
+   my $pos1 = $self->rand_kmer_start( $kmer, $seqid1 );
+   my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
 
-   return $seq1, $pos1, $seq2, $pos2;
+#####
+#   # Swap sequences so that pos1 < pos2
+#   if ($pos1 > $pos2) {
+#      ($seqid1, $seqid2) = ($seqid2, $seqid1);
+#      ($pos1, $pos2) = ($pos2, $pos1);
+#   }
+#   my $k = $self->{chimera_kmer};
+#   $pos2 += $k;
+#####
+
+   return $seqid1, $pos1, $seqid2, $pos2;
 }
 
 
-sub rand_kmer_source {
-   # 
-   my ($self, $kmer, $kmer_col) = @_;
-   my ($sources, $freqs) = $kmer_col->sources($kmer, 1);
-   my $cdf = $self->proba_cumul($freqs);
-   my $source = $$sources[Grinder::rand_weighted($cdf)];
-   
+sub rand_kmer_from_collection {
+  # Pick a kmer at random amongst all possible kmers in the collection
+  my ($self) = @_;
+  my $kmers = $self->{chimera_kmer_arr};
+  my $cdf   = $self->{chimera_kmer_cdf};
+  my $kmer  = $$kmers[rand_weighted($cdf)];
+  return $kmer;
+}
+
+
+sub rand_seq_with_kmer {
+   # Pick a random sequence ID that contains the given kmer. An optional sequence
+   # ID to exclude can be provided.
+   my ($self, $kmer, $excl) = @_;
+   my $source;
+   my ($sources, $freqs) = $self->{chimera_kmer_col}->sources($kmer, $excl, 1);
+   my $num_sources = scalar @$sources;
+   if ($num_sources > 0) {
+     my $cdf = $self->proba_cumul($freqs);
+     $source = $$sources[rand_weighted($cdf)];
+   }
+   return $source;
+}
+
+
+sub rand_kmer_of_seq {
+  # Pick a kmer amongst the possible kmers of the given sequence
+  my ($self, $seqid) = @_;
+  my $kmer;
+  my ($kmers, $freqs) = $self->{chimera_kmer_col}->kmers($seqid, 1);
+  if (scalar @$kmers > 0) {
+    my $cdf = $self->proba_cumul($freqs);
+    $kmer = $$kmers[rand_weighted($cdf)];
+  }
+  return $kmer;
 }
 
 
 sub rand_kmer_start {
-   #
-   my ($self, $kmer, $source, $kmer_col) = @_;
-   my $kmer_starts = $kmer_col->positions($kmer, $source);
-   return $kmer_starts->[ int rand scalar @$kmer_starts ];
+   # Pick a kmer starting position at random for the given kmer and sequence ID
+   my ($self, $kmer, $source) = @_;
+   my $kmer_starts = $self->{chimera_kmer_col}->positions($kmer, $source);
+   my $start = $kmer_starts->[ int rand scalar @$kmer_starts ];
+   return $start;
 }
 
 
