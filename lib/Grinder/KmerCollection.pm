@@ -324,7 +324,9 @@ sub sources {
 
    if (defined $kmer_sources) {
       while ( my ($source, $positions) = each %$kmer_sources ) {
-         next if $source eq $excl;
+         if ( (defined $excl) && ($source eq $excl) ) {
+           next;
+         }
          push @$sources, $source;
          my $count = scalar @$positions;
          push @$counts, $count;
