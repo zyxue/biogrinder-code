@@ -78,7 +78,10 @@ use base qw(Bio::Root::Root);
                     (default: 0)
            -seqs    count kmers in the provided arrayref of sequences (Bio::Seq
                     objects)
+           -ids     instead of indexing the sequences provided to -seqs based on
+                    their $seq->id(), use the IDs provided in this arrayref
            -file    count kmers in the provided file of sequences
+
  Returns : Grinder::KmerCollection object
 
 =cut
@@ -86,11 +89,12 @@ use base qw(Bio::Root::Root);
 sub new {
    my ($class, @args) = @_;
    my $self = $class->SUPER::new(@args);
-   my($k, $revcom, $seqs, $file) = $self->_rearrange([qw(K REVCOM SEQS FILE)], @args);
+   my($k, $revcom, $seqs, $ids, $file) =
+     $self->_rearrange([qw(K REVCOM SEQS IDS FILE)], @args);
 
    $self->k( defined $k ? $k : 10 );
 
-   $self->add_seqs($seqs) if defined $seqs;
+   $self->add_seqs($seqs, $ids) if defined $seqs;
    $self->add_file($file) if defined $file;
 
    return $self;
@@ -183,22 +187,34 @@ sub add_file {
 
  Usage   : $col->add_seqs( [$seq1, $seq2] );
  Function: Process the kmers in the given sequences.
- Args    : arrayref of Bio::Seq objects
+ Args    : * arrayref of Bio::Seq objects
+           * arrayref of IDs to use for the indexing of the sequences
  Returns : Grinder::KmerCollection object
 
 =cut
 
 sub add_seqs {
-   my ($self, $seqs) = @_;
+   my ($self, $seqs, $ids) = @_;
    my $col_by_kmer = $self->collection_by_kmer || {};
    my $col_by_seq  = $self->collection_by_seq  || {};
+   my $i = 0;
    for my $seq (@$seqs) {
       my $kmer_counts = $self->_count_kmers($seq);
       while ( my ($kmer, $positions) = each %$kmer_counts ) {
-         my $seq_id = $seq->id;
+
+         ##### USE THE IDS ARRAYREF AND IMPLEMENT TESTS
+         my $seq_id;
+         if (defined $ids) {
+           $seq_id = $$ids[$i];
+         } else {
+           $seq_id = $seq->id;
+         }
+         #####
+
          $col_by_kmer->{$kmer}->{$seq_id} = $positions;
          $col_by_seq->{$seq_id}->{$kmer}  = $positions;
       }
+      $i++;
    }
    $self->collection_by_kmer($col_by_kmer);
    $self->collection_by_seq($col_by_seq);

@@ -123,11 +123,36 @@ is_deeply $pos, [];
 $pos = $col->positions('AAAAAAAA', 'seq3');
 is_deeply $pos, [];
 
+
+ok $col = Grinder::KmerCollection->new(
+   -k    => 8,
+   -seqs => [$seq1, $seq2], 
+   -ids  => ['abc', '123'],
+)->filter_rare(2);
+
+isa_ok $col, 'Grinder::KmerCollection';
+
+ok $by_kmer = $col->collection_by_kmer;
+ok exists $by_kmer->{'AAAAAAAA'}->{'abc'};
+ok exists $by_kmer->{'AAAAAAAA'}->{'123'};
+
+ok $by_kmer = $col->collection_by_seq;
+ok exists $by_kmer->{'abc'}->{'AAAAAAAA'};
+ok exists $by_kmer->{'123'}->{'AAAAAAAA'};
+
+($sources, $counts) = $col->sources('AAAAAAAA');
+is_deeply $sources, ['123', 'abc'];
+is_deeply $counts , [    1 ,    73 ];
+
+($sources, $counts) = $col->sources('AAAAAAAA', 'abc');
+is_deeply $sources, ['123'];
+is_deeply $counts , [    1 ];
+
+
 $file = data('kmers.fa');
 ok $col = Grinder::KmerCollection->new( -k => 8, -file => $file );
 
-ok $col = Grinder::KmerCollection->new( -k => 8, -file => $file )->filter_rare(2);
-isa_ok $col, 'Grinder::KmerCollection';
+
 
 
 done_testing;
