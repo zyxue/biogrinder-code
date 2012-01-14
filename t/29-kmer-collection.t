@@ -11,7 +11,8 @@ use_ok 'Grinder::KmerCollection';
 my ($col, $seq1, $seq2, $by_kmer, $by_seq, $file, $sources, $counts, $kmers, $pos);
 
 
-# 
+# Test the Grinder::KmerCollection module
+
 $seq1 = Bio::PrimarySeq->new(
   -id => 'seq1',
   -seq => 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -89,6 +90,10 @@ is_deeply $counts, [       74 ];
 ($sources, $counts) = $col->sources('AAAAAAAA');
 is_deeply $sources, ['seq4', 'seq1'];
 is_deeply $counts , [    1 ,    73 ];
+
+($sources, $counts) = $col->sources('AAAAAAAA', 'seq1');
+is_deeply $sources, ['seq4'];
+is_deeply $counts , [    1 ];
 
 ($sources, $counts) = $col->sources('ZZZZZZZZ');
 is_deeply $sources, [];

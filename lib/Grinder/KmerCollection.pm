@@ -307,6 +307,7 @@ sub counts {
  Usage   : $col->sources()
  Function: Return the sources of a kmer and their abundance.
  Args    : * kmer to get the sources of
+           * sources to exclude from the results
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of the different sources
            * arrayref of the corresponding total counts
@@ -315,7 +316,7 @@ sub counts {
 =cut
 
 sub sources {
-   my ($self, $kmer, $freq) = @_;
+   my ($self, $kmer, $excl, $freq) = @_;
    my $sources = [];
    my $counts = [];
    my $total = 0;
@@ -323,6 +324,7 @@ sub sources {
 
    if (defined $kmer_sources) {
       while ( my ($source, $positions) = each %$kmer_sources ) {
+         next if $source eq $excl;
          push @$sources, $source;
          my $count = scalar @$positions;
          push @$counts, $count;
