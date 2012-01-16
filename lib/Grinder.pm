@@ -2253,6 +2253,10 @@ sub rand_seq_chimera {
     } else {
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
+
+    #
+    
+
     ####
 
     # Join chimera fragments
@@ -2275,77 +2279,118 @@ sub rand_chimera_size {
 
 
 sub kmer_chimera_fragments {
-  #########
   # Multimera where breakpoints are located on shared kmers
   my ($self, $max_m) = @_;
 
   # Initial pair of fragments
-  my @frags = $self->rand_kmer_chimera_initial();
+  my @pos = $self->rand_kmer_chimera_initial();
 
+  #########
   print "Multimera with m = $max_m\n";
-  print "FRAGS: ".join(' ', @frags)."\n";
- 
-  # Append sequence to chimera
-  for (3 .. $max_m) {
-    my ($prev_seqid, $prev_pos) = ($frags[-2], $frags[-1]);
-    my ($seqid, $pos) = $self->rand_kmer_chimera_extend($prev_seqid, $prev_pos);
-    
-    if (not defined $seqid) {
-      # Could not find a sequence that shared a suitable kmer      
-      
-      print "MORE: none\n";
+  print "INI: ".$self->_pos_dumper(\@pos)."\n";
+  #########
 
+  # Append sequence to chimera
+  for my $m (3 .. $max_m) {
+    my ($seqid1, $start1, $end1, $seqid2, $start2, $end2) =
+      $self->rand_kmer_chimera_extend($pos[-3], $pos[-2], $pos[-1]);
+
+    if (not defined $seqid2) {
+      # Could not find a sequence that shared a suitable kmer      
+      warn "Warning: Should have made a chimera with $max_m sequences, but stopped at ".($m-1)."\n";
       last;
     }
 
-    print "MORE: $seqid $pos\n";
+    ########
+    print "MORE: ".$self->_pos_dumper([$seqid1, $start1, $end1, $seqid2, $start2, $end2])."\n";
+    ########
  
-    push @frags, ($seqid, $pos);
+    @pos[-3..-1] = ($seqid1, $start1, $end1);
+    push @pos, ($seqid2, $start2, $end2);
   }
 
-  print "FRAGS: ".join(' ', @frags)."\n";
-  
-  ### sort positions in order
-  ### join sequences
-  ###return $seq;
+  ########
+  print "POS: ".$self->_pos_dumper(\@pos)."\n";
+  ########
 
-  die "Temp exit\n";
-  #########
+  # Put sequence objects instead of sequence IDs
+  for (my $i = 0; $i < scalar @pos; $i = $i+3) {
+     my $seqid = $pos[$i];
+     my $seq   = $self->database_get_seq($seqid);
+     $pos[$i]  = $seq;
+  }
+
+  return @pos;
 }
+
+
+#####
+sub _pos_dumper {
+  my ($self, $pos) = @_;
+  my $string;
+  my @arr = @$pos;
+  for my $element (@arr) {
+    my $to_add;
+    if (defined $string) {
+      $to_add .= " ";
+    }
+    if ($element =~ m/^Bio/) {
+      my $oid = $element;
+      my $seqid = $self->database_get_parent_id($oid);
+      $element = $seqid;
+    }
+    $to_add .= $element;
+    $string .= $to_add;
+  }
+  return $string;
+}
+#####
 
 
 sub rand_kmer_chimera_extend {
   # Pick another fragment to add to a kmer-based chimera. Return undef if none
   # can be found
-  my ($self, $seqid1, $pos1) = @_;  
-  my ($seqid2, $pos2);
+  my ($self, $seqid1, $start1, $end1) = @_;  
+  my ($seqid2, $start2, $end2);
 
-  # Get the previous sequence and get its end part
-  my $seq    = $self->database_get_seq($seqid1);
-  my $subseq = $seq->trunc($pos1, $seq->length);
+  # Get the end part of the previous sequence
+  my $subseq = $self->database_get_seq($seqid1)->trunc($start1, $end1);
 
   # Calculate kmers if the subsequence is long enough
   my $k = $self->{chimera_kmer};
   if ($subseq->length >= $k) {
 
     # Pick a kmer after from the subsequence
-    my $seq_kmer_col = Grinder::KmerCollection->new( -k => $k, -seqs => [$subseq] );
-    my ($kmer_arr, $freqs) = $seq_kmer_col->counts(1);
+    my $subseq_kc = Grinder::KmerCollection->new( -k    => $k       ,
+                                                  -seqs => [$subseq],
+                                                  -ids  => [$seqid1], );
+
+    my ($kmer_arr, $freqs) = $subseq_kc->counts(1);
     my $kmer_cdf = $self->proba_cumul($freqs);
     my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
 
     # Get a sequence that has the same kmer as the first but is not the first
-    my $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
- 
+    $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
+
     # Pick a suitable kmer start on that sequence
-    my $pos2;
     if (defined $seqid2) {
+
+      # Pick a random breakpoint
       #### TODO: can we prefer a position not too crazy?
-      $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+      my $pos1 = $start1 + $self->rand_kmer_start( $kmer, $seqid1, $subseq_kc );
+      my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+
+      # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
+      my $middle = int($self->{chimera_kmer} / 2);
+      #$start1 = $start1;
+      $end1    = $pos1 + $middle;
+      $start2  = $pos2 + $middle + 1;
+      $end2    = $self->database_get_seq($seqid2)->length;
+
     }
   }
   
-  return $seqid2, $pos2;
+  return $seqid1, $start1, $end1, $seqid2, $start2, $end2;
 }
 
 
@@ -2383,13 +2428,14 @@ sub rand_kmer_chimera_initial {
     ($pos1, $pos2) = ($pos2, $pos1);
   }
 
-  # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long)
-  my $k = $self->{chimera_kmer};
-  my $middle = int($k / 2);
-  $pos1 += $middle;
-  $pos2 += $middle + 1;
+  # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
+  my $middle = int($self->{chimera_kmer} / 2);
+  my $start1 = 1;
+  my $end1   = $pos1 + $middle;
+  my $start2 = $pos2 + $middle + 1;
+  my $end2   = $self->database_get_seq($seqid2)->length;
 
-  return $seqid1, $pos1, $seqid2, $pos2;
+  return $seqid1, $start1, $end1, $seqid2, $start2, $end2;
 }
 
 
@@ -2432,9 +2478,10 @@ sub rand_kmer_of_seq {
 
 
 sub rand_kmer_start {
-   # Pick a kmer starting position at random for the given kmer and sequence ID
-   my ($self, $kmer, $source) = @_;
-   my $kmer_starts = $self->{chimera_kmer_col}->positions($kmer, $source);
+   # Pick a kmer starting position at random for the given kmer and sequence ID.
+   my ($self, $kmer, $source, $kmer_col) = @_;
+   $kmer_col = defined $kmer_col ? $kmer_col : $self->{chimera_kmer_col};
+   my $kmer_starts = $kmer_col->positions($kmer, $source);
    my $start = $kmer_starts->[ int rand scalar @$kmer_starts ];
    return $start;
 }
