@@ -1,3 +1,5 @@
+# This file is part of the Grinder package, copyright 2009,2010,2011
+# Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 #### TODO:
 # revcom

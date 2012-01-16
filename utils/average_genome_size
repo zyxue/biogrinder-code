@@ -1,9 +1,7 @@
 #! /usr/bin/env perl
 
-# Copyright Florent Angly <florent.angly@gmail.com> 2010
-# GNU General Public License v3
-# average_genome_size is a Perl script part of the Grinder package
-
+# This file is part of the Grinder package, copyright 2009,2010,2011
+# Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 use strict;
 use warnings;

@@ -1,6 +1,7 @@
 #! /usr/bin/env perl
 
-# Copyright 2009,2010,2011 Florent Angly <florent.angly@gmail.com> under GNU GPLv3 license
+# This file is part of the Grinder package, copyright 2009,2010,2011
+# Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 # Grinder is a program to create artificial random shotgun and amplicon sequence
 # libraries based on reference genomes in a FASTA file.
