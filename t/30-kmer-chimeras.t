@@ -98,17 +98,16 @@ ok not exists $refs{'seq5'};
 
 ok $factory = Grinder->new(
    -reference_file  => data('kmers.fa'),
-   -length_bias     => 0                                 ,
-   -unidirectional  => 1                                 ,
-   -chimera_perc    => 100                               ,
-   -chimera_dist    => (1, 1, 1)                         ,
-   -chimera_kmer    => 8                                 ,
-   -total_reads     => 1000                              ,
+   -length_bias     => 0               ,
+   -unidirectional  => 1               ,
+   -chimera_perc    => 100             ,
+   -chimera_dist    => (1, 1, 1)       ,
+   -chimera_kmer    => 8               ,
+   -total_reads     => 1000            ,
 ), '100% chimeras (bimeras, trimeras, quadrameras)';
 
 %refs = ();
 while ( $read = $factory->next_read ) {
-   # Remove forward and reverse primer
    my @refs = get_references($read);
    my $nof_refs = scalar @refs;
    $chim_sizes{$nof_refs}++;
@@ -127,9 +126,33 @@ ok exists $refs{'seq4'};
 ok not exists $refs{'seq5'};
 
 
+## With sequences sharing a unique kmer
+
+#ok $factory = Grinder->new(
+#   -reference_file  => data('kmers2.fa'),
+#   -length_bias     => 0                ,
+#   -unidirectional  => 1                ,
+#   -chimera_perc    => 100              ,
+#   -chimera_dist    => (0, 0, 1)        ,
+#   -chimera_kmer    => 8                ,
+#   -total_reads     => 1000             ,
+#), 'Equal sequence abundance';
+
+#%refs = ();
+#while ( $read = $factory->next_read ) {
+#   my @refs = get_references($read);
+#   my $nof_refs = scalar @refs;
+#   between_ok( $nof_refs, 2, 4 );
+#   for my $ref (@refs) {
+#     $refs{$ref}++;
+#   }
+#}
+#ok not exists $refs{'seq1'};
+#between_ok $refs{'seq2'},  667 * 0.9,  667 * 1.1; # 667
+#between_ok $refs{'seq3'}, 2000 * 0.9, 2000 * 1.1; # 2000
+#between_ok $refs{'seq4'}, 1333 * 0.9, 1333 * 1.1; # 1333
+#ok not exists $refs{'seq5'};
 
 
-
-# using sequence 2, 3, 4, 
 
 done_testing();
