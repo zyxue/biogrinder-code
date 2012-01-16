@@ -278,29 +278,31 @@ sub filter_shared {
 }
 
 
-##### should be able to specify a single kmer to get the count of?
-
 =head2 counts
 
  Usage   : $col->counts
  Function: Calculate the total count of each kmer
- Args    : 0 to report counts (default), 1 to report frequencies (normalize to 1)
+ Args    : * restrict sequences to search to specified sequence ID (optional)
+           * starting position from which counting should start (optional)
+           * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of the different kmers
            * arrayref of the corresponding total counts
 
 =cut
 
 sub counts {
-   my ($self, $freq) = @_;
+   my ($self, $id, $start, $freq) = @_;
    my $kmers;
    my $counts;
    my $total = 0;
    my $col_by_kmer = $self->collection_by_kmer;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
-      push @$kmers, $kmer;
-      my $count = _sum_from_sources( $sources );
-      push @$counts, $count;
-      $total += $count;
+      my $count = _sum_from_sources( $sources, $id, $start );
+      if ($count > 0) {
+         push @$kmers, $kmer;
+         push @$counts, $count;
+         $total += $count;
+      }
    }
    if ($freq && $total) {
      $counts = _normalize($counts, $total);
@@ -314,7 +316,7 @@ sub counts {
  Usage   : $col->sources()
  Function: Return the sources of a kmer and their abundance.
  Args    : * kmer to get the sources of
-           * sources to exclude from the results
+           * sources to exclude from the results (optional)
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of the different sources
            * arrayref of the corresponding total counts
@@ -324,6 +326,11 @@ sub counts {
 
 sub sources {
    my ($self, $kmer, $excl, $freq) = @_;
+
+   if (not defined $kmer) {
+      die "Error: Need to provide a kmer to sources().\n";
+   }
+
    my $sources = [];
    my $counts = [];
    my $total = 0;
@@ -422,11 +429,24 @@ sub _count_kmers {
 
 
 sub _sum_from_sources {
-   # Calculate the number of occurences of a kmer.
-   my ($sources) = @_;
+   # Calculate the number of occurences of a kmer. An optional sequence ID and 
+   # start position to restrict the kmers can be specified
+   my ($sources, $id, $start) = @_;
+   $start ||= 1;
    my $count = 0;
+
+   if (defined $id) {
+      my $new_sources;
+      $new_sources->{$id} = $sources->{$id};
+      $sources = $new_sources;
+   }
+
    while ( my ($source, $positions) = each %$sources ) {
-      $count += scalar @$positions;
+      for my $position (@$positions) {
+         if ($position >= $start) {
+           $count++;
+         }
+      }
    }
    return $count;
 }

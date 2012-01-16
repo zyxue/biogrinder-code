@@ -8,7 +8,7 @@ use Bio::PrimarySeq;
 
 
 use_ok 'Grinder::KmerCollection';
-my ($col, $seq1, $seq2, $by_kmer, $by_seq, $file, $sources, $counts, $kmers, $pos);
+my ($col, $seq1, $seq2, $by_kmer, $by_seq, $file, $sources, $counts, $freqs, $kmers, $pos);
 
 
 # Test the Grinder::KmerCollection module
@@ -66,8 +66,178 @@ ok not exists $by_kmer->{'seq4'}->{'ACCCCCCC'};
 
 ok $col = Grinder::KmerCollection->new( -k => 8, -seqs => [$seq1, $seq2] );
 
+# Count of all kmers
+($kmers, $counts) = $col->counts();
+$kmers  = [sort @$kmers];
+$counts = [sort {$a <=> $b} @$counts];
+is_deeply $kmers , [
+          'AAAAAAAA',
+          'AAAAAAAC',
+          'AAAAAACC',
+          'AAAAACCC',
+          'AAAACCCC',
+          'AAACCCCC',
+          'AACCCCCC',
+          'ACCCCCCC',
+          'CAAAAAAA',
+          'CCAAAAAA',
+          'CCCAAAAA',
+          'CCCCAAAA',
+          'CCCCCAAA',
+          'CCCCCCAA',
+          'CCCCCCCA',
+          'CCCCCCCC',
+          'CCCCCCCG',
+          'CCCCCCGG',
+          'CCCCCGGG',
+          'CCCCGGGG',
+          'CCCGGGGG',
+          'CCGGGGGG',
+          'CGGGGGGG',
+          'GCCCCCCC',
+          'GGCCCCCC',
+          'GGGCCCCC',
+          'GGGGCCCC',
+          'GGGGGCCC',
+          'GGGGGGCC',
+          'GGGGGGGC',
+          'GGGGGGGG'
+];
+is_deeply $counts, [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          43,
+          74,
+];
+
+# Frequency of kmers from position >= 40
+($kmers, $freqs) = $col->counts(undef, 40, 1); 
+$kmers = [sort @$kmers];
+$freqs = [sort {$a <=> $b} @$freqs];
+is_deeply $kmers , [
+          'AAAAAAAA',
+          'AACCCCCC',
+          'ACCCCCCC',
+          'CCCCCCCC',
+          'CCCCCCCG',
+          'CCCCCCGG',
+          'CCCCCGGG',
+          'CCCCGGGG',
+          'CCCGGGGG',
+          'CCGGGGGG',
+          'CGGGGGGG',
+          'GCCCCCCC',
+          'GGCCCCCC',
+          'GGGCCCCC',
+          'GGGGCCCC',
+          'GGGGGCCC',
+          'GGGGGGCC',
+          'GGGGGGGC',
+          'GGGGGGGG'
+];
+is_deeply $freqs, [
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.0147058823529412',
+          '0.25',
+          '0.5',
+];
+
+($kmers, $freqs) = $col->counts('seq1', 40, 1); 
+is_deeply $kmers, [ 'AAAAAAAA' ];
+is_deeply $freqs, [ 1 ];
+
+($kmers, $freqs) = $col->counts('seq4', 40, 1); 
+$kmers = [sort @$kmers];
+$freqs = [sort {$a <=> $b} @$freqs];
+is_deeply $kmers , [
+          'AACCCCCC',
+          'ACCCCCCC',
+          'CCCCCCCC',
+          'CCCCCCCG',
+          'CCCCCCGG',
+          'CCCCCGGG',
+          'CCCCGGGG',
+          'CCCGGGGG',
+          'CCGGGGGG',
+          'CGGGGGGG',
+          'GCCCCCCC',
+          'GGCCCCCC',
+          'GGGCCCCC',
+          'GGGGCCCC',
+          'GGGGGCCC',
+          'GGGGGGCC',
+          'GGGGGGGC',
+          'GGGGGGGG'
+];
+is_deeply $freqs, [
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.0294117647058824',
+          '0.5',
+];
+
 ok $col = $col->filter_shared(2);
 isa_ok $col, 'Grinder::KmerCollection';
+
+($kmers, $counts) = $col->counts();
+is_deeply $kmers , ['AAAAAAAA'];
+is_deeply $counts, [       74 ];
 
 ok $by_kmer = $col->collection_by_kmer;
 ok exists $by_kmer->{'AAAAAAAA'}->{'seq1'};
@@ -82,10 +252,6 @@ ok exists $by_kmer->{'seq4'}->{'AAAAAAAA'};
 ok not exists $by_kmer->{'seq4'}->{'CCCCCCCC'};
 ok not exists $by_kmer->{'seq4'}->{'CCCCGGGG'};
 ok not exists $by_kmer->{'seq4'}->{'ACCCCCCC'};
-
-($kmers, $counts) = $col->counts();
-is_deeply $kmers , ['AAAAAAAA'];
-is_deeply $counts, [       74 ];
 
 ($sources, $counts) = $col->sources('AAAAAAAA');
 is_deeply $sources, ['seq4', 'seq1'];
@@ -151,7 +317,6 @@ is_deeply $counts , [    1 ];
 
 $file = data('kmers.fa');
 ok $col = Grinder::KmerCollection->new( -k => 8, -file => $file );
-
 
 
 
