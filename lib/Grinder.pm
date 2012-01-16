@@ -683,8 +683,8 @@ to be taken randomly. Note that this option only takes effect when you request
 the generation of chimeras with the <chimera_perc> option. Default: chimera_kmer.default bp
 
 =for Euclid:
-   chimera_kmer.type: number, chimera_kmer >= 0
-   chimera_kmer.type.error: <chimera_kmer> must be a positive number (not chimera_kmer)
+   chimera_kmer.type: number, chimera_kmer == 0 || chimera_kmer >= 2
+   chimera_kmer.type.error: <chimera_kmer> must be 0 or an integer larger than 1 (not chimera_kmer)
    chimera_kmer.default: 10
 
 =back
@@ -1104,11 +1104,11 @@ sub Grinder {
     while ( my $read = $factory->next_read ) {
       $out_fastq->write_seq($read) if defined $out_fastq;
       $out_fasta->write_seq($read) if defined $out_fasta;
-      $out_qual->write_seq($read) if defined $out_qual
+      $out_qual->write_seq($read)  if defined $out_qual
     }
     $out_fastq->close if defined $out_fastq;
     $out_fasta->close if defined $out_fasta;
-    $out_qual->close if defined $out_qual;
+    $out_qual->close  if defined $out_qual;
   }
 
   return 1;
@@ -1436,13 +1436,17 @@ sub initialize {
     $self->{num_libraries}, $self->{shared_perc}, $self->{permuted_perc},
     $self->{diversity}, $self->{forward_reverse} );
 
+  #####
   # Count kmers in the database if we need to form kmer-based chimeras
   my $k = $self->{chimera_kmer};
   if ($k) {
     $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
-      -k => $k, -seqs=> $self->database_get_all_seqs(),
+      -k    => $k,
+      -seqs => $self->database_get_all_seqs(),
+      -ids  => $self->database_get_all_oids(),
     )->filter_shared(2);
   }
+  #####
 
   # Markers to keep track of computation progress
   $self->{cur_lib}  = 0;
@@ -2276,20 +2280,27 @@ sub kmer_chimera_fragments {
   my ($self, $max_m) = @_;
 
   # Initial pair of fragments
-  my @frags = $self->rand_kmer_bimera();
+  my @frags = $self->rand_kmer_chimera_initial();
 
   print "Multimera with m = $max_m\n";
   print "FRAGS: ".join(' ', @frags)."\n";
  
   # Append sequence to chimera
   for (3 .. $max_m) {
-    my $prev_seqid = $frags[-2];
-    my @more_frags = $self->rand_kmer_bimera($prev_seqid);
+    my ($prev_seqid, $prev_pos) = ($frags[-2], $frags[-1]);
+    my ($seqid, $pos) = $self->rand_kmer_chimera_extend($prev_seqid, $prev_pos);
+    
+    if (not defined $seqid) {
+      # Could not find a sequence that shared a suitable kmer      
+      
+      print "MORE: none\n";
 
-    print "MORE: ".join(' ', @more_frags)."\n";
+      last;
+    }
+
+    print "MORE: $seqid $pos\n";
  
-    splice @more_frags, 0, 2;
-    push @frags, @more_frags;
+    push @frags, ($seqid, $pos);
   }
 
   print "FRAGS: ".join(' ', @frags)."\n";
@@ -2303,53 +2314,90 @@ sub kmer_chimera_fragments {
 }
 
 
-sub rand_kmer_bimera {
-   # Pick two sequences and start points to assemble a kmer-based bimera.
-   # An optional starting sequence can be provided.
-   my ($self, $seqid1) = @_;
+sub rand_kmer_chimera_extend {
+  # Pick another fragment to add to a kmer-based chimera. Return undef if none
+  # can be found
+  my ($self, $seqid1, $pos1) = @_;  
+  my ($seqid2, $pos2);
 
-   my $kmer;
-   if (defined $seqid1) {
-     # Try to pick a kmer from the requested sequence
-     $kmer = $self->rand_kmer_of_seq( $seqid1 );
-     if (not defined $kmer) {
-       die "Error: Sequence $seqid1 did not contain a suitable kmer\n";
-     }
-   } else {
-     # Pick a random kmer and sequence containing that kmer
-     $kmer   = $self->rand_kmer_from_collection();
-     $seqid1 = $self->rand_seq_with_kmer( $kmer );
-   }
+  # Get the previous sequence and get its end part
+  my $seq    = $self->database_get_seq($seqid1);
+  my $subseq = $seq->trunc($pos1, $seq->length);
 
-   # Get a second sequence that has the same kmer as the first sequence
-   my $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
-   if (not defined $seqid2) {
-     die "Error: Could not find another sequence that contains kmer $kmer\n";
-   }
+  # Calculate kmers if the subsequence is long enough
+  my $k = $self->{chimera_kmer};
+  if ($subseq->length >= $k) {
 
-   # Pick random breakpoint positions
-   my $pos1 = $self->rand_kmer_start( $kmer, $seqid1 );
-   my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+    # Pick a kmer after from the subsequence
+    my $seq_kmer_col = Grinder::KmerCollection->new( -k => $k, -seqs => [$subseq] );
+    my ($kmer_arr, $freqs) = $seq_kmer_col->counts(1);
+    my $kmer_cdf = $self->proba_cumul($freqs);
+    my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
 
-#####
-#   # Swap sequences so that pos1 < pos2
-#   if ($pos1 > $pos2) {
-#      ($seqid1, $seqid2) = ($seqid2, $seqid1);
-#      ($pos1, $pos2) = ($pos2, $pos1);
-#   }
-#   my $k = $self->{chimera_kmer};
-#   $pos2 += $k;
-#####
+    # Get a sequence that has the same kmer as the first but is not the first
+    my $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
+ 
+    # Pick a suitable kmer start on that sequence
+    my $pos2;
+    if (defined $seqid2) {
+      #### TODO: can we prefer a position not too crazy?
+      $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+    }
+  }
+  
+  return $seqid2, $pos2;
+}
 
-   return $seqid1, $pos1, $seqid2, $pos2;
+
+sub rand_kmer_chimera_initial {
+  # Pick two sequences and start points to assemble a kmer-based bimera.
+  # An optional starting sequence can be provided.
+  my ($self, $seqid1) = @_;
+
+  my $kmer;
+  if (defined $seqid1) {
+    # Try to pick a kmer from the requested sequence
+    $kmer = $self->rand_kmer_of_seq( $seqid1 );
+    if (not defined $kmer) {
+      die "Error: Sequence $seqid1 did not contain a suitable kmer\n";
+    }
+  } else {
+    # Pick a random kmer and sequence containing that kmer
+    $kmer   = $self->rand_kmer_from_collection();
+    $seqid1 = $self->rand_seq_with_kmer( $kmer );
+  }
+
+  # Get a sequence that has the same kmer as the first but is not the first
+  my $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
+  if (not defined $seqid2) {
+    die "Error: Could not find another sequence that contains kmer $kmer\n";
+  }
+
+  # Pick random breakpoint positions
+  my $pos1 = $self->rand_kmer_start( $kmer, $seqid1 );
+  my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+
+  # Swap sequences so that pos1 < pos2
+  if ($pos1 > $pos2) {
+    ($seqid1, $seqid2) = ($seqid2, $seqid1);
+    ($pos1, $pos2) = ($pos2, $pos1);
+  }
+
+  # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long)
+  my $k = $self->{chimera_kmer};
+  my $middle = int($k / 2);
+  $pos1 += $middle;
+  $pos2 += $middle + 1;
+
+  return $seqid1, $pos1, $seqid2, $pos2;
 }
 
 
 sub rand_kmer_from_collection {
   # Pick a kmer at random amongst all possible kmers in the collection
-  my ($self) = @_;
-  my $kmers = $self->{chimera_kmer_arr};
-  my $cdf   = $self->{chimera_kmer_cdf};
+  my ($self, $kmer_arr, $kmer_cdf) = @_;
+  my $kmers = defined $kmer_arr ? $kmer_arr : $self->{chimera_kmer_arr};
+  my $cdf   = defined $kmer_cdf ? $kmer_cdf : $self->{chimera_kmer_cdf};
   my $kmer  = $$kmers[rand_weighted($cdf)];
   return $kmer;
 }
@@ -3014,10 +3062,26 @@ sub database_create_amplicon {
 }
 
 
+sub database_get_all_oids {
+  # Retrieve all object IDs from the database. These OIDs match the output of
+  # the database_get_all_seqs method.
+  my ($self) = @_;
+  my @oids;
+  while ( my ($oid, undef) = each %{$self->{database}->{db}} ) {
+    push @oids, $oid;
+  }
+  return \@oids;
+}
+
+
 sub database_get_all_seqs {
-  # Retrieve a sequence object from the database based on its object ID
+  # Retrieve all sequence objects from the database. These sequenc objects match
+  # the output of the database_get_all_oids method.
   my ($self)  = @_;
-  my @seqs = values %{$self->{database}->{db}};
+  my @seqs;
+  while ( my (undef, $seq) = each %{$self->{database}->{db}} ) {
+    push @seqs, $seq;
+  }
   return \@seqs;
 }
 

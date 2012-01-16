@@ -201,16 +201,12 @@ sub add_seqs {
    for my $seq (@$seqs) {
       my $kmer_counts = $self->_count_kmers($seq);
       while ( my ($kmer, $positions) = each %$kmer_counts ) {
-
-         ##### USE THE IDS ARRAYREF AND IMPLEMENT TESTS
          my $seq_id;
          if (defined $ids) {
            $seq_id = $$ids[$i];
          } else {
            $seq_id = $seq->id;
          }
-         #####
-
          $col_by_kmer->{$kmer}->{$seq_id} = $positions;
          $col_by_seq->{$seq_id}->{$kmer}  = $positions;
       }
