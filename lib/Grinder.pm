@@ -1,4 +1,4 @@
-# This file is part of the Grinder package, copyright 2009,2010,2011
+# This file is part of the Grinder package, copyright 2009,2010,2011,2012
 # Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 package Grinder;
@@ -1211,7 +1211,7 @@ sub next_lib {
   # Update kmer collection with weight (relative abundance) of each reference sequence
   my $kmer_col = $self->{chimera_kmer_col};
   if ($kmer_col) {
-    my ($kmers, $freqs) = $kmer_col->counts(1);
+    my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
     $self->{chimera_kmer_arr} = $kmers;
     $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
   }
@@ -2284,6 +2284,7 @@ sub kmer_chimera_fragments {
     # Pick a chimera from the pool if possible
     $frags = shift @$pool;
 
+
   } else {
     # Attempt multiple times to generate a suitable chimera
     my $actual_m = 0;
@@ -2293,6 +2294,10 @@ sub kmer_chimera_fragments {
       $nof_tries++;
       $frags = [ $self->kmer_chimera_fragments_backend($m) ];
       my $actual_m = scalar @$frags / 3;
+
+      ####
+      print "actual_m = $actual_m\n";
+      ####
 
       if ($nof_tries >= $max_nof_tries) {
         # Could not make a suitable chimera, accept the current chimera
@@ -2341,9 +2346,6 @@ sub kmer_chimera_fragments_backend {
 
     if (not defined $seqid2) {
       # Could not find a sequence that shared a suitable kmer      
-      ####
-      #warn "Warning: Should have made a chimera with $m sequences, but stopped at ".($i-1)."\n";
-      ####
       last;
     }
 
@@ -2399,36 +2401,42 @@ sub rand_kmer_chimera_extend {
   my ($self, $seqid1, $start1, $end1) = @_;  
   my ($seqid2, $start2, $end2);
 
-  # Get the end part of the previous sequence
-  my $subseq = $self->database_get_seq($seqid1)->trunc($start1, $end1);
+  ####
+  print "Trying to extend sequence ".$self->database_get_parent_id($seqid1)." $start1-$end1\n";
+  ####
 
-  # Calculate kmers if the subsequence is long enough
-  my $k = $self->{chimera_kmer};
-  if ($subseq->length >= $k) {
+  # Get kmer frequencies in the end part of sequence 1
+  my ($kmer_arr, $freqs) = $self->{chimera_kmer_col}->counts($seqid1, $start1, 1);
 
-    # Pick a kmer after from the subsequence
-    my $subseq_kc = Grinder::KmerCollection->new( -k    => $k       ,
-                                                  -seqs => [$subseq],
-                                                  -ids  => [$seqid1], );
+  if (defined $kmer_arr) {
 
-    my ($kmer_arr, $freqs) = $subseq_kc->counts(1);
+    # Pick a random kmer
     my $kmer_cdf = $self->proba_cumul($freqs);
     my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
+
+    ####
+    print "Got kmer $kmer...\n";
+    ####
 
     # Get a sequence that has the same kmer as the first but is not the first
     $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
 
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
-
+  
       ####
-      #print "kmer $kmer links $seqid1 to $seqid2\n";
+      print "Got sequences ".$self->database_get_parent_id($seqid2)."\n";
       ####
 
       # Pick a random breakpoint
       #### TODO: can we prefer a position not too crazy?
-      my $pos1 = $start1 + $self->rand_kmer_start( $kmer, $seqid1, $subseq_kc );
+
+      my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
+
+      ####
+      print "pos1 $pos1 and pos2 $pos2\n";
+      ####
 
       # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
       my $middle = int($self->{chimera_kmer} / 2);
@@ -2439,7 +2447,7 @@ sub rand_kmer_chimera_extend {
 
     }
   }
-  
+
   return $seqid1, $start1, $end1, $seqid2, $start2, $end2;
 }
 
@@ -2495,6 +2503,7 @@ sub rand_kmer_from_collection {
   my $kmers = defined $kmer_arr ? $kmer_arr : $self->{chimera_kmer_arr};
   my $cdf   = defined $kmer_cdf ? $kmer_cdf : $self->{chimera_kmer_cdf};
   my $kmer  = $$kmers[rand_weighted($cdf)];
+
   return $kmer;
 }
 
@@ -2528,12 +2537,23 @@ sub rand_kmer_of_seq {
 
 
 sub rand_kmer_start {
-   # Pick a kmer starting position at random for the given kmer and sequence ID.
-   my ($self, $kmer, $source, $kmer_col) = @_;
-   $kmer_col = defined $kmer_col ? $kmer_col : $self->{chimera_kmer_col};
-   my $kmer_starts = $kmer_col->positions($kmer, $source);
-   my $start = $kmer_starts->[ int rand scalar @$kmer_starts ];
-   return $start;
+  # Pick a kmer starting position at random for the given kmer and sequence ID.
+  # An optional minimum start position can be given.
+  my ($self, $kmer, $source, $min_start) = @_;
+  $min_start ||= 1;
+  my $kmer_col = $self->{chimera_kmer_col};
+  my $kmer_starts = $kmer_col->positions($kmer, $source);
+
+  for (my $i = 0; $i < scalar @$kmer_starts; $i++) {
+    my $start = $kmer_starts->[$i];
+    if ($start < $min_start) {
+      splice @$kmer_starts, $i, 1;
+      $i--;
+    }
+  }
+
+  my $start = $kmer_starts->[ int rand scalar @$kmer_starts ];
+  return $start;
 }
 
 
