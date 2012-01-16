@@ -1441,10 +1441,9 @@ sub initialize {
 
   #####
   # Count kmers in the database if we need to form kmer-based chimeras
-  my $k = $self->{chimera_kmer};
-  if ($k) {
+  if ($self->{chimera_perc} && $self->{chimera_kmer}) {
     $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
-      -k    => $k,
+      -k    => $self->{chimera_kmer},
       -seqs => $self->database_get_all_seqs(),
       -ids  => $self->database_get_all_oids(),
     )->filter_shared(2);
@@ -2377,6 +2376,10 @@ sub rand_kmer_chimera_extend {
 
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
+
+      ####
+      print "kmer $kmer links $seqid1 to $seqid2\n";
+      ####
 
       # Pick a random breakpoint
       #### TODO: can we prefer a position not too crazy?

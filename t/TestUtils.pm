@@ -16,6 +16,7 @@ BEGIN {
       round
       between_ok
       data
+      nof_references
       get_chars
       stats
       hist
@@ -58,6 +59,18 @@ sub between_ok {
 sub data {
    # Get the complete filename of a test data file
    return catfile('t', 'data', @_);
+}
+
+
+sub nof_references {
+   # Get the number of references that a read comes from
+   my ($read) = @_;
+   my $desc = $read->desc;
+   $desc =~ m/reference=(\S+)/;
+   my $refs = $1;
+   my @refs = split(',', $refs);
+   my $nof_refs = scalar @refs;
+   return $nof_refs;
 }
 
 

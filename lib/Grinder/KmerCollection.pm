@@ -1,10 +1,6 @@
 # This file is part of the Grinder package, copyright 2009,2010,2011
 # Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
-#### TODO:
-# revcom
-# weights
-
 
 package Grinder::KmerCollection;
 
@@ -45,14 +41,17 @@ use base qw(Bio::Root::Root);
  Title   : new
  Usage   : my $col = Grinder::KmerCollection->new( -k => 10, -file => 'seqs.fa', -revcom => 1 );
  Function: Build a new kmer collection
- Args    : -k       set the kmer length (default: 10 bp)
-           -revcom  count kmers before and after reverse-complementing sequences
-                    (default: 0)
-           -seqs    count kmers in the provided arrayref of sequences (Bio::Seq
-                    objects)
-           -ids     instead of indexing the sequences provided to -seqs based on
-                    their $seq->id(), use the IDs provided in this arrayref
-           -file    count kmers in the provided file of sequences
+ Args    : -k        set the kmer length (default: 10 bp)
+           -revcom   count kmers before and after reverse-complementing sequences
+                     (default: 0)
+           -seqs     count kmers in the provided arrayref of sequences (Bio::Seq
+                     objects)
+           -ids      if specified, index the sequences provided to -seq using the
+                     use the IDs in this arrayref instead of using the sequences
+                     $seq->id() method
+           -file     count kmers in the provided file of sequences
+           -weights  if specified, assign the abundance of each sequence from the
+                     values in this arrayref
 
  Returns : Grinder::KmerCollection object
 
@@ -67,8 +66,10 @@ sub new {
    $self->k( defined $k ? $k : 10 );
 
    $self->add_seqs($seqs, $ids) if defined $seqs;
-   $self->add_file($file) if defined $file;
+   $self->add_file($file)       if defined $file;
 
+   ####$self->add_weights($weights)           if defined $weights;
+  
    return $self;
 }
 
@@ -137,7 +138,7 @@ sub collection_by_seq {
 
 =head2 add_file
 
- Usage   : $col->add_file( 'seqs.fa' );
+ Usage   : $col->add_file('seqs.fa');
  Function: Process the kmers in the given file of sequences.
  Args    : filename
  Returns : Grinder::KmerCollection object
@@ -157,7 +158,7 @@ sub add_file {
 
 =head2 add_seqs
 
- Usage   : $col->add_seqs( [$seq1, $seq2] );
+ Usage   : $col->add_seqs([$seq1, $seq2]);
  Function: Process the kmers in the given sequences.
  Args    : * arrayref of Bio::Seq objects
            * arrayref of IDs to use for the indexing of the sequences
@@ -186,6 +187,26 @@ sub add_seqs {
    }
    $self->collection_by_kmer($col_by_kmer);
    $self->collection_by_seq($col_by_seq);
+   return $self;
+}
+
+
+=head2 add_weights
+
+ Usage   : $col->add_weights({'seq1' => 3, 'seq10' => 0.45});
+ Function: Assign weights to sequences
+ Args    : hashref where the keys are sequence IDs and the values are the weight
+           of the corresponding (e.g. their relative abundance)
+ Returns : Grinder::KmerCollection object
+
+=cut
+
+sub add_weights {
+   my ($self, $weights) = @_;
+   #####
+   # TODO
+   die "Error: Not implemented\n";
+   #####
    return $self;
 }
 
@@ -257,7 +278,7 @@ sub filter_shared {
 }
 
 
-##### should be able to specify a single kmer to get the count of
+##### should be able to specify a single kmer to get the count of?
 
 =head2 counts
 
@@ -281,7 +302,9 @@ sub counts {
       push @$counts, $count;
       $total += $count;
    }
-   $counts = _normalize($counts, $total) if $freq;
+   if ($freq && $total) {
+     $counts = _normalize($counts, $total);
+   }
    return $kmers, $counts;
 }
 

@@ -26,7 +26,7 @@ ok $factory = Grinder->new(
 ), 'No chimeras';
 
 while ( $read = $factory->next_read ) {
-   is nof_references($read->desc), 1;
+   is nof_references($read), 1;
    # Remove forward and reverse primer
    my $seq = $read->seq;
    $seq = remove_primers($seq, 'AAACT.AAA.GAATTG.CGG', 'G.ACACACCGCCCGT');
@@ -50,8 +50,8 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
-   $nof_chimeras += nof_references($read->desc);
-   $nof_regulars += nof_references($read->desc);
+   $nof_chimeras += nof_references($read);
+   $nof_regulars += nof_references($read);
 }
 between_ok( $nof_chimeras / $nof_regulars, 0.9, 1.1 );
 
@@ -71,7 +71,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
-   is nof_references($read->desc), 2;
+   is nof_references($read), 2;
 }
 
 
@@ -90,7 +90,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
-   is nof_references($read->desc), 3;
+   is nof_references($read), 3;
 }
 
 
@@ -109,7 +109,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
-   is nof_references($read->desc), 4;
+   is nof_references($read), 4;
 }
 
 
@@ -128,7 +128,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    # Remove forward and reverse primer
-   my $nof_refs = nof_references($read->desc);
+   my $nof_refs = nof_references($read);
    $chim_sizes{$nof_refs}++;
    between_ok( $nof_refs, 2, 4 );
 }
@@ -148,16 +148,6 @@ sub remove_primers {
    $seq =~ s/$forward_re//i;
    $seq =~ s/$reverse_re//i;
    return $seq;
-}
-
-
-sub nof_references {
-   my ($desc) = @_;
-   $desc =~ m/reference=(\S+)/;
-   my $refs = $1;
-   my @refs = split(',', $refs);
-   my $nof_refs = scalar @refs;
-   return $nof_refs;
 }
 
 
