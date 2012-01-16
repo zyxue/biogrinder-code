@@ -42,21 +42,7 @@ ok $factory = Grinder->new(
 ), 'Trimeras';
 
 while ( $read = $factory->next_read ) {
-#   is nof_references($read->desc), 3;
-}
-
-ok $factory = Grinder->new(
-   -reference_file  => data('kmers.fa'),
-   -length_bias     => 0               ,
-   -unidirectional  => 1               ,
-   -chimera_perc    => 100             ,
-   -chimera_dist    => (1)             ,
-   -chimera_kmer    => 8               ,
-   -total_reads     => 100             ,
-), 'Bimeras';
-
-while ( $read = $factory->next_read ) {
-   is nof_references($read), 2;
+   is nof_references($read), 3;
 }
 
 
@@ -73,7 +59,7 @@ ok $factory = Grinder->new(
 ), 'Quadrameras';
 
 while ( $read = $factory->next_read ) {
-#   is nof_references($read->desc), 4;
+   is nof_references($read), 4;
 }
 
 done_testing();

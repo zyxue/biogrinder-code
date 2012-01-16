@@ -1439,7 +1439,6 @@ sub initialize {
     $self->{num_libraries}, $self->{shared_perc}, $self->{permuted_perc},
     $self->{diversity}, $self->{forward_reverse} );
 
-  #####
   # Count kmers in the database if we need to form kmer-based chimeras
   if ($self->{chimera_perc} && $self->{chimera_kmer}) {
     $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
@@ -1448,7 +1447,6 @@ sub initialize {
       -ids  => $self->database_get_all_oids(),
     )->filter_shared(2);
   }
-  #####
 
   # Markers to keep track of computation progress
   $self->{cur_lib}  = 0;
@@ -2246,20 +2244,14 @@ sub rand_seq_chimera {
     # Pick multimera size
     my $m = $self->rand_chimera_size();
 
-    ####
     # Pick chimera fragments
-    my $k = $self->{chimera_kmer};
     my @pos;
-    if ($k) {
+    if ($self->{chimera_kmer}) {
       @pos = $self->kmer_chimera_fragments($m);
     } else {
+      #### TODO: try to not provide $positions and $oids
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
-
-    #
-    
-
-    ####
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2281,30 +2273,82 @@ sub rand_chimera_size {
 
 
 sub kmer_chimera_fragments {
-  # Multimera where breakpoints are located on shared kmers
-  my ($self, $max_m) = @_;
+  # Return a kmer-based chimera of the required size. It is impossible to
+  # randomly make one that will meet the required size. So, make multiple
+  # attempts and save failed attempts in a pool for later reuse.
+  my ($self, $m) = @_;
+
+  my $frags;
+  my $pool = $self->{chimera_kmer_pool}->{$m};
+  if ( (defined $pool) && (scalar @$pool > 0) ) {
+    # Pick a chimera from the pool if possible
+    $frags = shift @$pool;
+
+  } else {
+    # Attempt multiple times to generate a suitable chimera
+    my $actual_m = 0;
+    my $nof_tries = 0;
+    my $max_nof_tries = 100;
+    while ( ($actual_m < $m) && ($nof_tries <= $max_nof_tries) ) {
+      $nof_tries++;
+      $frags = [ $self->kmer_chimera_fragments_backend($m) ];
+      my $actual_m = scalar @$frags / 3;
+
+      if ($nof_tries >= $max_nof_tries) {
+        # Could not make a suitable chimera, accept the current chimera
+        warn "Warning: Could not make a chimera of $m sequences after ".
+          "$max_nof_tries attempts. Accepting a chimera of $actual_m sequences".
+          " instead...\n";
+        $actual_m = $m;
+      }
+
+      if ($actual_m < $m) {
+        # Add unsuitable chimera to the pool
+        $pool = $self->{chimera_kmer_pool}->{$actual_m};
+        push @$pool, $frags;
+        # Prevent the pool from growing too big
+        my $max_pool_size = 100;
+        shift @$pool if scalar @$pool > $max_pool_size;
+
+      } else {
+        # We got a suitable chimera... done
+        last;
+      }
+    }
+  }
+
+  return @$frags;
+}
+
+
+sub kmer_chimera_fragments_backend {
+  # Multimera where breakpoints are located on shared kmers. A smaller chimera
+  # than requested may be returned.
+  my ($self, $m) = @_;
 
   # Initial pair of fragments
   my @pos = $self->rand_kmer_chimera_initial();
 
   #########
-  print "Multimera with m = $max_m\n";
-  print "INI: ".$self->_pos_dumper(\@pos)."\n";
+  #print "Multimera with m = $m\n";
+  #print "INI: ".$self->_pos_dumper(\@pos)."\n";
   #########
 
   # Append sequence to chimera
-  for my $m (3 .. $max_m) {
+  for my $i (3 .. $m) {
     my ($seqid1, $start1, $end1, $seqid2, $start2, $end2) =
       $self->rand_kmer_chimera_extend($pos[-3], $pos[-2], $pos[-1]);
 
     if (not defined $seqid2) {
       # Could not find a sequence that shared a suitable kmer      
-      warn "Warning: Should have made a chimera with $max_m sequences, but stopped at ".($m-1)."\n";
+      ####
+      #warn "Warning: Should have made a chimera with $m sequences, but stopped at ".($i-1)."\n";
+      ####
       last;
     }
 
     ########
-    print "MORE: ".$self->_pos_dumper([$seqid1, $start1, $end1, $seqid2, $start2, $end2])."\n";
+    #print "MORE: ".$self->_pos_dumper([$seqid1, $start1, $end1, $seqid2, $start2, $end2])."\n";
     ########
  
     @pos[-3..-1] = ($seqid1, $start1, $end1);
@@ -2312,7 +2356,7 @@ sub kmer_chimera_fragments {
   }
 
   ########
-  print "POS: ".$self->_pos_dumper(\@pos)."\n";
+  #print "POS: ".$self->_pos_dumper(\@pos)."\n";
   ########
 
   # Put sequence objects instead of sequence IDs
@@ -2378,7 +2422,7 @@ sub rand_kmer_chimera_extend {
     if (defined $seqid2) {
 
       ####
-      print "kmer $kmer links $seqid1 to $seqid2\n";
+      #print "kmer $kmer links $seqid1 to $seqid2\n";
       ####
 
       # Pick a random breakpoint
