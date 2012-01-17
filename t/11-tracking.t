@@ -92,11 +92,29 @@ ok $factory = Grinder->new(
    -chimera_perc    => 100                         ,
    -chimera_dist    => (1)                         ,
    -chimera_kmer    => 0                           ,
-), 'Chimeric amplicon tracking';
+), 'Bimeric amplicon tracking';
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {
    like $read->desc, qr/reference=\S+,\S+.*amplicon=\d+\.\.\d+,\d+\.\.\d+.*position=.*/;
+}
+
+
+ok $factory = Grinder->new(
+   -reference_file  => data('amplicon_database.fa'),
+   -forward_reverse => data('forward_primer.fa')   ,
+   -length_bias     => 0                           ,
+   -unidirectional  => 1                           ,
+   -total_reads     => 10                          ,
+   -desc_track      => 1                           ,
+   -chimera_perc    => 100                         ,
+   -chimera_dist    => (0, 1)                      ,
+   -chimera_kmer    => 10                          ,
+), 'Trimeric amplicon tracking';
+
+ok $read = $factory->next_read;
+while ($factory->next_read) {
+   like $read->desc, qr/reference=\S+(,\S+){2}.*amplicon=\d+\.\.\d+(,\d+\.\.\d+){2}.*position=.*/;
 }
 
 
