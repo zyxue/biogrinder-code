@@ -61,6 +61,12 @@
       #if str($chimera_perc):
         -chimera_perc     $chimera_perc
       #end if
+      #if str($chimera_dist):
+        -chimera_dist     $chimera_dist
+      #end if
+      #if str($chimera_kmer):
+        -chimera_kmer     $chimera_kmer
+      #end if
       #if str($abundance_file) != "None":
         -abundance_file   $abundance_file
       #end if
@@ -173,6 +179,10 @@ the homopolymer length n.
 
     <param name="chimera_perc" type="text" value="0" optional="true" label="Percentage of chimeras" help="Specify the percent of reads in amplicon libraries that should be chimeric sequences. The 'reference' field in the description of chimeric reads will
 contain the ID of all the reference sequences forming the chimeric template. A typical value is 10%." />
+
+    <param name="chimera_dist" type="text" value="314 38 1" optional="true" label="Multimera distribution" help="Specify the distribution of chimeras: bimeras, trimeras, quadrameras and multimeras of higher order. The default is the average values from Quince et al. 2011: '314 38 1', which corresponds to 89% of bimeras, 11% of trimeras and 0.3% of quadrameras. Note that this option only takes effect when you request the generation of chimeras with the chimera percentage option." />
+
+    <param name="chimera_kmer" type="text" value="10" optional="true" label="k-mer based chimeras" help="Activate a method to form chimeras by picking breakpoints at places where k-mers are shared between sequences. The value to provide to this option represents k, the length of the k-mers (in bp). The longer the kmer, the more similar the sequences have to be to be eligible to form chimeras. The more frequent a k-mer is in the pool of reference sequences (taking into account their relative abundance), the more often this k-mer will be chosen. For example, CHSIM (Edgar et al. 2011) uses a k-mer length of 10 bp. If you do not want to use k-mer information to form chimeras, use 0, which will result in the reference sequences and breakpoints to be taken randomly. Note that this option only takes effect when you request the generation of chimeras with the chimera percentage option." />
 
     <param name="abundance_file" type="data" format="tabular" optional="true" label="Abundance file" help="Specify the relative abundance of the reference sequencse manually in an input file. Each line of the file should contain a sequence name and its relative abundance (%), e.g. 'seqABC 82.1' or 'seqABC 82.1 10.2' if you are specifying two different libraries." />
 
