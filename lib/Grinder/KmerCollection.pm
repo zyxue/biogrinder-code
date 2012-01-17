@@ -35,7 +35,8 @@ use warnings;
 use Grinder;
 use Bio::SeqIO;
 
-use base qw(Bio::Root::Root);
+use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
+
 
 =head2 new
 
@@ -87,7 +88,7 @@ sub k {
    my ($self, $val) = @_;
    if ($val) {
       if ($val < 1) {
-         die("Error: The minimum kmer length is 1 but got $val\n");
+         $self->throw("Error: The minimum kmer length is 1 but got $val\n");
       }
       $self->{'k'} = $val;
    }
