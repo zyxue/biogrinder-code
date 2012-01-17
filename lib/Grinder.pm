@@ -2550,21 +2550,29 @@ sub assemble_chimera {
   #   seq1, start1, end1, seq2, start2, end2, ...
   my (@pos) = @_;
 
-  # Initialize the chimera sequence object with the first sequence
-  my ($seq, $start, $end) = splice @pos, 0, 3;
-  my $chimera = $seq->trunc($start, $end);
-  if (defined $seq->{_amplicon}) {
-    $chimera->{_amplicon} = $seq->{_amplicon};
-  }
-
-  # Append other sequence fragments to the chimera
-  while ( ($seq, $start, $end) = splice @pos, 0, 3 ) {
-    $chimera->seq( $chimera->seq . $seq->subseq($start, $end) );
-    $chimera->id( $chimera->id . ',' . $seq->id );
-    if (defined $chimera->{_amplicon} && defined $seq->{_amplicon}) {
-      $chimera->{_amplicon} = $chimera->{_amplicon}.','.$seq->{_amplicon};
+  # Create the ID, sequence and amplicon strings
+  my ($chimera_id, $chimera_seq, $chimera_ampl);
+  while ( my ($seq, $start, $end) = splice @pos, 0, 3 ) {
+    if (defined $chimera_id) {
+      $chimera_id .= ',';
+    }
+    if (defined $chimera_ampl) {
+      $chimera_ampl .= ',';
+    }
+    $chimera_id   .= $seq->id;
+    $chimera_seq  .= $seq->subseq($start, $end);
+    if (defined $seq->{_amplicon}) {
+      $chimera_ampl .= $seq->{_amplicon};
     }
   }
+
+  # Create a sequence object
+  my $chimera = Bio::PrimarySeq->new(
+    -id  => $chimera_id,
+    -seq => $chimera_seq,
+  );
+  $chimera->{_amplicon} = $chimera_ampl;
+
   return $chimera;
 }
 
