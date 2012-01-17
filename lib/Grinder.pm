@@ -1406,6 +1406,10 @@ sub initialize {
   }
   srand( $self->{random_seed} );
 
+  ####
+  print "SEED: ".$self->{random_seed}."\n";
+  ####
+
   # Sequence length check
   my $max_read_length = $self->{read_length} + $self->{read_delta}; # approximation
   if ($self->{mate_length}) {
@@ -2244,6 +2248,11 @@ sub rand_seq_chimera {
     # Pick multimera size
     my $m = $self->rand_chimera_size();
 
+
+    #########
+    print "*** Multimera with m = $m\n";
+    ########
+
     # Pick chimera fragments
     my @pos;
     if ($self->{chimera_kmer}) {
@@ -2252,6 +2261,10 @@ sub rand_seq_chimera {
       #### TODO: try to not provide $positions and $oids
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
+
+    #########
+    print "POS: ".$self->_pos_dumper(\@pos)."\n\n";
+    #########
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2262,6 +2275,29 @@ sub rand_seq_chimera {
   }
   return $chimera;
 }
+
+
+#####
+sub _pos_dumper {
+  my ($self, $pos) = @_;
+  my $string;
+  my @arr = @$pos;
+  while ( my ($seq, $start, $end) = splice @arr, 0, 3 ) {
+    if (defined $string) {
+      $string .= "  ";
+    }
+    my $seqid;
+    my $ref = ref($seq);
+    if ($ref && $ref eq 'Bio::Seq') {
+      $seqid = $seq->id;
+    } else {
+      $seqid = $self->database_get_parent_id($seq);
+    }
+    $string .= $seqid.':'.$start.'-'.$end;
+  }
+  return $string;
+}
+#####
 
 
 sub rand_chimera_size {
@@ -2294,10 +2330,6 @@ sub kmer_chimera_fragments {
       $nof_tries++;
       $frags = [ $self->kmer_chimera_fragments_backend($m) ];
       my $actual_m = scalar @$frags / 3;
-
-      ####
-      print "actual_m = $actual_m\n";
-      ####
 
       if ($nof_tries >= $max_nof_tries) {
         # Could not make a suitable chimera, accept the current chimera
@@ -2335,9 +2367,8 @@ sub kmer_chimera_fragments_backend {
   my @pos = $self->rand_kmer_chimera_initial();
 
   #########
-  #print "Multimera with m = $m\n";
-  #print "INI: ".$self->_pos_dumper(\@pos)."\n";
-  #########
+  print "+ initial: ".$self->_pos_dumper(\@pos)."\n\n";
+  ########
 
   # Append sequence to chimera
   for my $i (3 .. $m) {
@@ -2349,17 +2380,9 @@ sub kmer_chimera_fragments_backend {
       last;
     }
 
-    ########
-    #print "MORE: ".$self->_pos_dumper([$seqid1, $start1, $end1, $seqid2, $start2, $end2])."\n";
-    ########
- 
     @pos[-3..-1] = ($seqid1, $start1, $end1);
     push @pos, ($seqid2, $start2, $end2);
   }
-
-  ########
-  #print "POS: ".$self->_pos_dumper(\@pos)."\n";
-  ########
 
   # Put sequence objects instead of sequence IDs
   for (my $i = 0; $i < scalar @pos; $i = $i+3) {
@@ -2372,29 +2395,6 @@ sub kmer_chimera_fragments_backend {
 }
 
 
-#####
-sub _pos_dumper {
-  my ($self, $pos) = @_;
-  my $string;
-  my @arr = @$pos;
-  for my $element (@arr) {
-    my $to_add;
-    if (defined $string) {
-      $to_add .= " ";
-    }
-    if ($element =~ m/^Bio/) {
-      my $oid = $element;
-      my $seqid = $self->database_get_parent_id($oid);
-      $element = $seqid;
-    }
-    $to_add .= $element;
-    $string .= $to_add;
-  }
-  return $string;
-}
-#####
-
-
 sub rand_kmer_chimera_extend {
   # Pick another fragment to add to a kmer-based chimera. Return undef if none
   # can be found
@@ -2402,7 +2402,7 @@ sub rand_kmer_chimera_extend {
   my ($seqid2, $start2, $end2);
 
   ####
-  print "Trying to extend sequence ".$self->database_get_parent_id($seqid1)." $start1-$end1\n";
+  print "+ extend ".$self->database_get_parent_id($seqid1).":$start1-$end1\n";
   ####
 
   # Get kmer frequencies in the end part of sequence 1
@@ -2415,7 +2415,7 @@ sub rand_kmer_chimera_extend {
     my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
 
     ####
-    print "Got kmer $kmer...\n";
+    print "+ kmer $kmer\n";
     ####
 
     # Get a sequence that has the same kmer as the first but is not the first
@@ -2423,9 +2423,9 @@ sub rand_kmer_chimera_extend {
 
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
-  
+
       ####
-      print "Got sequences ".$self->database_get_parent_id($seqid2)."\n";
+      print "+ with sequence ".$self->database_get_parent_id($seqid2)."\n";
       ####
 
       # Pick a random breakpoint
@@ -2433,10 +2433,6 @@ sub rand_kmer_chimera_extend {
 
       my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
-
-      ####
-      print "pos1 $pos1 and pos2 $pos2\n";
-      ####
 
       # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
       my $middle = int($self->{chimera_kmer} / 2);
@@ -2489,8 +2485,8 @@ sub rand_kmer_chimera_initial {
   # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
   my $middle = int($self->{chimera_kmer} / 2);
   my $start1 = 1;
-  my $end1   = $pos1 + $middle;
-  my $start2 = $pos2 + $middle + 1;
+  my $end1   = $pos1 + $middle - 1;
+  my $start2 = $pos2 + $middle;
   my $end2   = $self->database_get_seq($seqid2)->length;
 
   return $seqid1, $start1, $end1, $seqid2, $start2, $end2;
