@@ -678,7 +678,7 @@ Activate a method to form chimeras by picking breakpoints at places where k-mers
 are shared between sequences. <chimera_kmer> represents k, the length of the
 k-mers (in bp). The longer the kmer, the more similar the sequences have to be
 to be eligible to form chimeras. The more frequent a k-mer is in the pool of
-reference sequences (taking into accounting their relative abundance), the more
+reference sequences (taking into account their relative abundance), the more
 often this k-mer will be chosen. For example, CHSIM (Edgar et al. 2011) uses
 a k-mer length of 10 bp. If you do not want to use k-mer information to form
 chimeras, use 0, which will result in the reference sequences and breakpoints
