@@ -2029,6 +2029,9 @@ sub next_single_read {
       $message .= ".\n";
       die $message;
     }
+    # Chimerize the template sequence if needed
+    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
+      $self->{positions}, $oids) if $self->{chimera_perc};
     # Take a random orientation if needed
     my $orientation = ($self->{unidirectional} != 0) ? 1 : rand_seq_orientation();
     # Choose a read size according to the specified distribution
@@ -2039,9 +2042,6 @@ sub next_single_read {
     # Read position on genome or amplicon
     my ($start, $end) = rand_seq_pos($genome, $length, $self->{forward_reverse},
       $mid);
-    # Chimerize the template sequence if needed
-    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
-      $self->{positions}, $oids) if $self->{chimera_perc};
     # New sequence object
     $shotgun_seq = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
       $orientation, $start, $end, $mid, undef, $lib_num, $self->{desc_track},
@@ -2085,6 +2085,9 @@ sub next_mate_pair {
       $message .= ".\n";
       die $message;
     }
+    # Chimerize the template sequence if needed
+    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
+      $self->{positions}, $oids) if $self->{chimera_perc};
     # Take from a random strand if needed
     my $orientation = ($self->{unidirectional} != 0) ? 1 : rand_seq_orientation();
     # Choose a mate pair length according to the specified distribution
@@ -2095,9 +2098,6 @@ sub next_mate_pair {
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
-    # Chimerize the template sequence if needed
-    $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
-      $self->{positions}, $oids) if $self->{chimera_perc};
     # First mate read
     my $read_length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
@@ -2263,7 +2263,7 @@ sub rand_seq_chimera {
     }
 
     #########
-    #print "*** POS: ".$self->_pos_dumper(\@pos)." ***\n\n";
+    print "*** POS: ".$self->_pos_dumper(\@pos)." ***\n";
     #########
 
     # Join chimera fragments
@@ -2365,10 +2365,6 @@ sub kmer_chimera_fragments_backend {
   # Initial pair of fragments
   my @pos = $self->rand_kmer_chimera_initial();
 
-  #########
-  print "+ initial: ".$self->_pos_dumper(\@pos)."\n";
-  ########
-
   # Append sequence to chimera
   for my $i (3 .. $m) {
     my ($seqid1, $start1, $end1, $seqid2, $start2, $end2) =
@@ -2381,11 +2377,6 @@ sub kmer_chimera_fragments_backend {
 
     @pos[-3..-1] = ($seqid1, $start1, $end1);
     push @pos, ($seqid2, $start2, $end2);
-
-    #########
-    print "+ extend : ".$self->_pos_dumper(\@pos)."\n";
-    ########
-
   }
 
   # Put sequence objects instead of sequence IDs
@@ -2405,10 +2396,6 @@ sub rand_kmer_chimera_extend {
   my ($self, $seqid1, $start1, $end1) = @_;  
   my ($seqid2, $start2, $end2);
 
-  ####
-  #print "+ extend: ".$self->database_get_parent_id($seqid1).":$start1-$end1\n";
-  ####
-
   # Get kmer frequencies in the end part of sequence 1
   my ($kmer_arr, $freqs) = $self->{chimera_kmer_col}->counts($seqid1, $start1, 1);
 
@@ -2418,37 +2405,22 @@ sub rand_kmer_chimera_extend {
     my $kmer_cdf = $self->proba_cumul($freqs);
     my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
 
-    ####
-    #print "+ extend: kmer $kmer\n";
-    ####
-
     # Get a sequence that has the same kmer as the first but is not the first
     $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
 
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
 
-      ####
-      #print "+ extend: with sequence ".$self->database_get_parent_id($seqid2)."\n";
-      ####
-
       # Pick a random breakpoint
       #### TODO: can we prefer a position not too crazy?
-
       my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
 
       # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
       my $middle = int($self->{chimera_kmer} / 2);
       #$start1 = $start1;
-
-      ####
-      #$end1    = $pos1 + $middle;
-      #$start2  = $pos2 + $middle + 1;
       $end1    = $pos1 + $middle - 1;
       $start2  = $pos2 + $middle;
-      ####
-
       $end2    = $self->database_get_seq($seqid2)->length;
 
     }
@@ -2473,17 +2445,7 @@ sub rand_kmer_chimera_initial {
   } else {
     # Pick a random kmer and sequence containing that kmer
     $kmer   = $self->rand_kmer_from_collection();
-
-    ####
-    #print "+ initial: kmer $kmer\n";
-    ####
-
     $seqid1 = $self->rand_seq_with_kmer( $kmer );
-
-    ####
-    #print "+ initial: seq ".$self->database_get_parent_id($seqid1)."\n";
-    ####
-
   }
 
   # Get a sequence that has the same kmer as the first but is not the first
@@ -2518,14 +2480,7 @@ sub rand_kmer_from_collection {
   my ($self, $kmer_arr, $kmer_cdf) = @_;
   my $kmers = defined $kmer_arr ? $kmer_arr : $self->{chimera_kmer_arr};
   my $cdf   = defined $kmer_cdf ? $kmer_cdf : $self->{chimera_kmer_cdf};
-
-  ####
-  #print "+ rand_kmer: kmers ".Dumper($kmers);
-  #print "+ rand_kmer: kmers ".Dumper($self->{chimera_kmer_col});
-  ####
-
   my $kmer  = $$kmers[rand_weighted($cdf)];
-
   return $kmer;
 }
 
@@ -2537,26 +2492,11 @@ sub rand_seq_with_kmer {
    my $source;
    my ($sources, $freqs) = $self->{chimera_kmer_col}->sources($kmer, $excl, 1);
 
-   ####
-   #use Data::Dumper;
-   #print Dumper($self->{chimera_kmer_col}->collection_by_kmer->{$kmer});
-   #print "+ rand_seq: sources / freqs\n";
-   #for (my $i = 0; $i < scalar @$sources; $i++) {
-   #   my $source = $sources->[$i];
-   #   my $freq   = $freqs->[$i];
-   #   print "+           ".$self->database_get_parent_id($source)." / ".$freq."\n";
-   #}
-   ####
-
    my $num_sources = scalar @$sources;
    if ($num_sources > 0) {
      my $cdf = $self->proba_cumul($freqs);
      $source = $$sources[rand_weighted($cdf)];
    }
-
-   ####
-   #print "+ rand_seq: source ".$source."\n";
-   ####
 
    return $source;
 }
