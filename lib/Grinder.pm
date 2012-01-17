@@ -2250,7 +2250,7 @@ sub rand_seq_chimera {
 
 
     #########
-    #print "*** Multimera with m = $m ***\n";
+    print "*** Multimera with m = $m ***\n";
     ########
 
     # Pick chimera fragments
@@ -2362,30 +2362,17 @@ sub kmer_chimera_fragments_backend {
   # than requested may be returned.
   my ($self, $m) = @_;
 
-  ####
-  use Data::Dumper;
-  print "BEFORE: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
-  ####
-
   # Initial pair of fragments
   my @pos = $self->rand_kmer_chimera_initial();
 
-  ####
-  print "AFTER INITIAL: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
-  ####
-
   #########
-  #print "+ initial: ".$self->_pos_dumper(\@pos)."\n\n";
+  print "+ initial: ".$self->_pos_dumper(\@pos)."\n";
   ########
 
   # Append sequence to chimera
   for my $i (3 .. $m) {
     my ($seqid1, $start1, $end1, $seqid2, $start2, $end2) =
       $self->rand_kmer_chimera_extend($pos[-3], $pos[-2], $pos[-1]);
-
-    ####
-    print "AFTER EXTEND: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
-    ####
 
     if (not defined $seqid2) {
       # Could not find a sequence that shared a suitable kmer      
@@ -2394,6 +2381,11 @@ sub kmer_chimera_fragments_backend {
 
     @pos[-3..-1] = ($seqid1, $start1, $end1);
     push @pos, ($seqid2, $start2, $end2);
+
+    #########
+    print "+ extend : ".$self->_pos_dumper(\@pos)."\n";
+    ########
+
   }
 
   # Put sequence objects instead of sequence IDs
@@ -2433,10 +2425,6 @@ sub rand_kmer_chimera_extend {
     # Get a sequence that has the same kmer as the first but is not the first
     $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
 
-    ####
-    print "FLAG 4: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
-    ####
-
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
 
@@ -2448,18 +2436,19 @@ sub rand_kmer_chimera_extend {
       #### TODO: can we prefer a position not too crazy?
 
       my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
-
-      ####
-      print "FLAG 5: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
-      ####
-
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
 
       # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
       my $middle = int($self->{chimera_kmer} / 2);
       #$start1 = $start1;
-      $end1    = $pos1 + $middle;
-      $start2  = $pos2 + $middle + 1;
+
+      ####
+      #$end1    = $pos1 + $middle;
+      #$start2  = $pos2 + $middle + 1;
+      $end1    = $pos1 + $middle - 1;
+      $start2  = $pos2 + $middle;
+      ####
+
       $end2    = $self->database_get_seq($seqid2)->length;
 
     }
