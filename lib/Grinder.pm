@@ -1198,6 +1198,8 @@ sub next_lib {
   $self->{cur_coverage_fold} = 0;
   $self->{next_mate} = undef;
   $self->{positions} = undef;
+
+  # Prepare sampling from this community
   my $c_struct = $self->{c_structs}[$self->{cur_lib}-1];
   if ( defined $c_struct ) {
     # Create probabilities of picking genomes from community structure
@@ -1207,15 +1209,20 @@ sub next_lib {
     ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
   }
 
-  ####
-  # Update kmer collection with weight (relative abundance) of each reference sequence
+  # If chimeras are needed, update the kmer collection with sequence abundance
   my $kmer_col = $self->{chimera_kmer_col};
   if ($kmer_col) {
+    my $weights;
+    for (my $i = 0; $i < scalar @{$c_struct->{'ids'}}; $i++) {
+      my $id     = $c_struct->{'ids'}->[$i];
+      my $weight = $c_struct->{'abs'}->[$i];
+      $weights->{$id} = $weight;
+    }
+    $kmer_col->weights($weights);
     my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
     $self->{chimera_kmer_arr} = $kmers;
     $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
   }
-  ####
 
   return $c_struct;
 }
@@ -1405,10 +1412,6 @@ sub initialize {
     $self->{random_seed} = Math::Random::MT::Perl::_rand_seed();
   }
   srand( $self->{random_seed} );
-
-  ####
-  print "SEED: ".$self->{random_seed}."\n";
-  ####
 
   # Sequence length check
   my $max_read_length = $self->{read_length} + $self->{read_delta}; # approximation
@@ -2248,11 +2251,6 @@ sub rand_seq_chimera {
     # Pick multimera size
     my $m = $self->rand_chimera_size();
 
-
-    #########
-    print "*** Multimera with m = $m ***\n";
-    ########
-
     # Pick chimera fragments
     my @pos;
     if ($self->{chimera_kmer}) {
@@ -2261,10 +2259,6 @@ sub rand_seq_chimera {
       #### TODO: try to not provide $positions and $oids
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
-
-    #########
-    print "*** POS: ".$self->_pos_dumper(\@pos)." ***\n";
-    #########
 
     # Join chimera fragments
     $chimera = assemble_chimera(@pos);
@@ -2275,29 +2269,6 @@ sub rand_seq_chimera {
   }
   return $chimera;
 }
-
-
-#####
-sub _pos_dumper {
-  my ($self, $pos) = @_;
-  my $string;
-  my @arr = @$pos;
-  while ( my ($seq, $start, $end) = splice @arr, 0, 3 ) {
-    if (defined $string) {
-      $string .= "  ";
-    }
-    my $seqid;
-    my $ref = ref($seq);
-    if ($ref && $ref eq 'Bio::Seq') {
-      $seqid = $seq->id;
-    } else {
-      $seqid = $self->database_get_parent_id($seq);
-    }
-    $string .= $seqid.':'.$start.'-'.$end;
-  }
-  return $string;
-}
-#####
 
 
 sub rand_chimera_size {
@@ -2358,8 +2329,8 @@ sub kmer_chimera_fragments {
 
 
 sub kmer_chimera_fragments_backend {
-  # Multimera where breakpoints are located on shared kmers. A smaller chimera
-  # than requested may be returned.
+  # Pick sequence fragments for multimeras where breakpoints are located on
+  # shared kmers. A smaller chimera than requested may be returned.
   my ($self, $m) = @_;
 
   # Initial pair of fragments

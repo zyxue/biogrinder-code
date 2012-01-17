@@ -60,16 +60,15 @@ use base qw(Bio::Root::Root);
 sub new {
    my ($class, @args) = @_;
    my $self = $class->SUPER::new(@args);
-   my($k, $revcom, $seqs, $ids, $file) =
-     $self->_rearrange([qw(K REVCOM SEQS IDS FILE)], @args);
+   my($k, $revcom, $seqs, $ids, $file, $weights) =
+     $self->_rearrange([qw(K REVCOM SEQS IDS FILE WEIGHTS)], @args);
 
    $self->k( defined $k ? $k : 10 );
 
+   $self->weights($weights)     if defined $weights;
    $self->add_seqs($seqs, $ids) if defined $seqs;
    $self->add_file($file)       if defined $file;
 
-   ####$self->add_weights($weights)           if defined $weights;
-  
    return $self;
 }
 
@@ -92,6 +91,26 @@ sub k {
       $self->{'k'} = $val;
    }
    return $self->{'k'};
+}
+
+
+=head2 weights
+
+ Usage   : $col->weights({'seq1' => 3, 'seq10' => 0.45});
+ Function: Get or set the weight of each sequence. Each sequence is given a
+           weight of 1 by default.
+ Args    : hashref where the keys are sequence IDs and the values are the weight
+           of the corresponding (e.g. their relative abundance)
+ Returns : Grinder::KmerCollection object
+
+=cut
+
+sub weights {
+   my ($self, $val) = @_;
+   if ($val) {
+      $self->{'weights'} = $val;
+   }
+   return $self->{'weights'};
 }
 
 
@@ -172,7 +191,7 @@ sub add_seqs {
    my $col_by_seq  = $self->collection_by_seq  || {};
    my $i = 0;
    for my $seq (@$seqs) {
-      my $kmer_counts = $self->_count_kmers($seq);
+      my $kmer_counts = $self->_find_kmers($seq);
       while ( my ($kmer, $positions) = each %$kmer_counts ) {
          my $seq_id;
          if (defined $ids) {
@@ -191,30 +210,10 @@ sub add_seqs {
 }
 
 
-=head2 add_weights
-
- Usage   : $col->add_weights({'seq1' => 3, 'seq10' => 0.45});
- Function: Assign weights to sequences
- Args    : hashref where the keys are sequence IDs and the values are the weight
-           of the corresponding (e.g. their relative abundance)
- Returns : Grinder::KmerCollection object
-
-=cut
-
-sub add_weights {
-   my ($self, $weights) = @_;
-   #####
-   # TODO
-   die "Error: Not implemented\n";
-   #####
-   return $self;
-}
-
-
 =head2 filter_rare
 
  Usage   : $col->filter_rare( 2 );
- Function: Remove kmers occurring less than the number of times specified
+ Function: Remove kmers occurring at less than the (weighted) abundance specified
  Args    : integer
  Returns : Grinder::KmerCollection object
 
@@ -226,7 +225,7 @@ sub filter_rare {
    my $col_by_kmer = $self->collection_by_kmer;
    my $col_by_seq  = $self->collection_by_seq;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
-      my $count = _sum_from_sources( $sources );
+      my $count = $self->_sum_from_sources( $sources );
       if ($count < $min_num) {
         # Remove this kmer
         $changed = 1;
@@ -255,13 +254,13 @@ sub filter_rare {
 =cut
 
 sub filter_shared {
-   my ($self, $min_num) = @_;
+   my ($self, $min_shared) = @_;
    my $changed = 0;
    my $col_by_kmer = $self->collection_by_kmer;
    my $col_by_seq  = $self->collection_by_seq;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
-      my $count = scalar keys %$sources;
-      if ($count < $min_num) {
+      my $num_shared = scalar keys %$sources;
+      if ($num_shared < $min_shared) {
         $changed = 1;
         delete $col_by_kmer->{$kmer};
         while ( my ($seq, $seq_kmers) = each %$col_by_seq ) {
@@ -281,7 +280,8 @@ sub filter_shared {
 =head2 counts
 
  Usage   : $col->counts
- Function: Calculate the total count of each kmer
+ Function: Calculate the total count of each kmer. Counts are affected by the
+           weights you gave to the sequences.
  Args    : * restrict sequences to search to specified sequence ID (optional)
            * starting position from which counting should start (optional)
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
@@ -297,7 +297,7 @@ sub counts {
    my $total = 0;
    my $col_by_kmer = $self->collection_by_kmer;
    while ( my ($kmer, $sources) = each %$col_by_kmer ) {
-      my $count = _sum_from_sources( $sources, $id, $start );
+      my $count = $self->_sum_from_sources( $sources, $id, $start );
       if ($count > 0) {
          push @$kmers, $kmer;
          push @$counts, $count;
@@ -314,7 +314,7 @@ sub counts {
 =head2 sources
 
  Usage   : $col->sources()
- Function: Return the sources of a kmer and their abundance.
+ Function: Return the sources of a kmer and their (weighted) abundance.
  Args    : * kmer to get the sources of
            * sources to exclude from the results (optional)
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
@@ -342,7 +342,12 @@ sub sources {
            next;
          }
          push @$sources, $source;
-         my $count = scalar @$positions;
+ 
+         ####
+         my $weight = defined $self->weights ? $self->weights->{$source} : 1;
+         my $count  = $weight * scalar @$positions;
+         ####
+
          push @$counts, $count;
          $total += $count;
       }
@@ -357,7 +362,7 @@ sub sources {
 
  Usage   : $col->kmers('seq1');
  Function: This is the inverse of sources(). Return the kmers found in a sequence
-           (given its ID).
+           (given its ID) and their (weighted) abundance.
  Args    : * sequence ID to get the kmers of
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
  Returns : * arrayref of sequence IDs
@@ -375,7 +380,12 @@ sub kmers {
    if (defined $seq_kmers) {
       while ( my ($kmer, $positions) = each %$seq_kmers ) {
          push @$kmers, $kmer;
-         my $count = scalar @$positions;
+
+         ####
+         my $weight = defined $self->weights ? $self->weights->{$seq_id} : 1;
+         my $count  = $weight * scalar @$positions;
+         ####
+
          push @$counts, $count;
          $total += $count;
       }
@@ -413,8 +423,10 @@ sub positions {
 #======== Internals ===========================================================#
 
 
-sub _count_kmers {
-   # Count the kmers of size k in a sequence (Bio::Seq) and return a hashref.
+sub _find_kmers {
+   # Find all kmers of size k in a sequence (Bio::Seq) and return a hashref
+   # where the keys are the kmers and the values are the positions of the kmers
+   # in the sequences.
    my ($self, $seq) = @_;
    my $k = $self->k;
    my $seq_str = uc $seq->seq; # case-insensitive
@@ -429,9 +441,9 @@ sub _count_kmers {
 
 
 sub _sum_from_sources {
-   # Calculate the number of occurences of a kmer. An optional sequence ID and 
-   # start position to restrict the kmers can be specified
-   my ($sources, $id, $start) = @_;
+   # Calculate the number of (weighted) occurences of a kmer. An optional
+   # sequence ID and start position to restrict the kmers can be specified.
+   my ($self, $sources, $id, $start) = @_;
    $start ||= 1;
    my $count = 0;
 
@@ -444,7 +456,12 @@ sub _sum_from_sources {
    while ( my ($source, $positions) = each %$sources ) {
       for my $position (@$positions) {
          if ($position >= $start) {
-           $count++;
+
+           ####
+           my $weight = defined $self->weights ? $self->weights->{$source} : 1;
+           $count += $weight;
+           ####
+
          }
       }
    }

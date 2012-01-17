@@ -8,7 +8,7 @@ use Grinder;
 
 
 
-my ($factory, $read, $nof_reads);
+my ($factory, $read, $nof_reads, $delta);
 my %chim_sizes;
 my %refs;
 my %expected;
@@ -127,7 +127,7 @@ ok exists $refs{'seq4'};
 ok not exists $refs{'seq5'};
 
 
-# With sequences sharing a unique kmer
+# From equal abundance sequences
 
 ok $factory = Grinder->new(
    -reference_file  => data('kmers2.fa'),
@@ -137,7 +137,7 @@ ok $factory = Grinder->new(
    -chimera_dist    => (0, 0, 0, 0, 1)  ,
    -chimera_kmer    => 8                ,
    -total_reads     => 1000             ,
-), 'Hexameras from equal abundance sequences';
+), 'From equal abundance sequences';
 
 %refs = ();
 while ( $read = $factory->next_read ) {
@@ -152,12 +152,40 @@ while ( $read = $factory->next_read ) {
               'seq2' => 6000 * 6/18,
               'seq3' => 6000 * 8/18, );
 
-my $delta = 0.2;
+$delta = 0.2;
 between_ok $refs{'seq1'}, $expected{'seq1'}*(1-$delta), $expected{'seq1'}*(1+$delta);
 between_ok $refs{'seq2'}, $expected{'seq2'}*(1-$delta), $expected{'seq2'}*(1+$delta);
 between_ok $refs{'seq3'}, $expected{'seq3'}*(1-$delta), $expected{'seq3'}*(1+$delta);
 
 
+# From differentially abundant sequences
+
+ok $factory = Grinder->new(
+   -reference_file  => data('kmers2.fa')          ,
+   -abundance_file  => data('abundance_kmers.txt'),
+   -length_bias     => 0                          ,
+   -unidirectional  => 1                          ,
+   -chimera_perc    => 100                        ,
+   -chimera_dist    => (0, 0, 0, 0, 1)            ,
+   -chimera_kmer    => 8                          ,
+   -total_reads     => 1000                       ,
+), 'From differentially abundant sequences';
+
+%refs = ();
+while ( $read = $factory->next_read ) {
+   my @refs = get_references($read);
+   is scalar @refs, 6;
+   for my $ref (@refs) {
+     $refs{$ref}++;
+   }
+}
+
+$delta = 0.2;
+cmp_ok $refs{'seq2'}, '<', 1100;
+# seq1 and seq3 should occur as frequently
+cmp_ok $refs{'seq1'}, '>', 2300;
+cmp_ok $refs{'seq3'}, '>', 2300;
+between_ok $refs{'seq1'}, $expected{'seq3'}*(1-$delta), $expected{'seq3'}*(1+$delta);
 
 
 done_testing();

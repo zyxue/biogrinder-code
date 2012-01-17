@@ -8,7 +8,8 @@ use Bio::PrimarySeq;
 
 
 use_ok 'Grinder::KmerCollection';
-my ($col, $seq1, $seq2, $by_kmer, $by_seq, $file, $sources, $counts, $freqs, $kmers, $pos);
+my ($col, $seq1, $seq2, $by_kmer, $by_seq, $file, $sources, $counts, $freqs,
+    $kmers, $pos, $weights);
 
 
 # Test the Grinder::KmerCollection module
@@ -315,9 +316,39 @@ is_deeply $sources, ['123'];
 is_deeply $counts , [    1 ];
 
 
-$file = data('kmers.fa');
-ok $col = Grinder::KmerCollection->new( -k => 8, -file => $file );
+# Using weights
 
+ok $col = Grinder::KmerCollection->new(
+   -k => 8, -seqs => [$seq1, $seq2],
+)->filter_shared(2);
+
+$weights = { 'seq1' => 10, 'seq4' => 0.1 };
+ok $col->weights($weights);
+
+($sources, $counts) = $col->sources('AAAAAAAA');
+is_deeply $sources, ['seq4', 'seq1'];
+is_deeply $counts , [  0.1 ,   730 ];
+
+($kmers, $counts) = $col->counts();
+is_deeply $kmers , ['AAAAAAAA'];
+is_deeply $counts, [    730.1 ];
+
+($kmers, $counts) = $col->kmers('seq1');
+is_deeply $kmers , ['AAAAAAAA'];
+is_deeply $counts, [      730 ];
+
+($kmers, $counts) = $col->kmers('seq4');
+is_deeply $kmers , ['AAAAAAAA'];
+is_deeply $counts, [      0.1 ];
+
+ok $col->weights({});
+is_deeply $col->weights, {};
+
+
+# Read from file
+
+$file = data('kmers.fa');
+ok $col = Grinder::KmerCollection->new( -k => 8, -file => $file, );
 
 
 done_testing;
