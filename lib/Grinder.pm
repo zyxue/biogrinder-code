@@ -2250,7 +2250,7 @@ sub rand_seq_chimera {
 
 
     #########
-    print "*** Multimera with m = $m\n";
+    #print "*** Multimera with m = $m ***\n";
     ########
 
     # Pick chimera fragments
@@ -2263,7 +2263,7 @@ sub rand_seq_chimera {
     }
 
     #########
-    print "POS: ".$self->_pos_dumper(\@pos)."\n\n";
+    #print "*** POS: ".$self->_pos_dumper(\@pos)." ***\n\n";
     #########
 
     # Join chimera fragments
@@ -2320,7 +2320,6 @@ sub kmer_chimera_fragments {
     # Pick a chimera from the pool if possible
     $frags = shift @$pool;
 
-
   } else {
     # Attempt multiple times to generate a suitable chimera
     my $actual_m = 0;
@@ -2363,17 +2362,30 @@ sub kmer_chimera_fragments_backend {
   # than requested may be returned.
   my ($self, $m) = @_;
 
+  ####
+  use Data::Dumper;
+  print "BEFORE: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
+  ####
+
   # Initial pair of fragments
   my @pos = $self->rand_kmer_chimera_initial();
 
+  ####
+  print "AFTER INITIAL: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
+  ####
+
   #########
-  print "+ initial: ".$self->_pos_dumper(\@pos)."\n\n";
+  #print "+ initial: ".$self->_pos_dumper(\@pos)."\n\n";
   ########
 
   # Append sequence to chimera
   for my $i (3 .. $m) {
     my ($seqid1, $start1, $end1, $seqid2, $start2, $end2) =
       $self->rand_kmer_chimera_extend($pos[-3], $pos[-2], $pos[-1]);
+
+    ####
+    print "AFTER EXTEND: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
+    ####
 
     if (not defined $seqid2) {
       # Could not find a sequence that shared a suitable kmer      
@@ -2402,7 +2414,7 @@ sub rand_kmer_chimera_extend {
   my ($seqid2, $start2, $end2);
 
   ####
-  print "+ extend ".$self->database_get_parent_id($seqid1).":$start1-$end1\n";
+  #print "+ extend: ".$self->database_get_parent_id($seqid1).":$start1-$end1\n";
   ####
 
   # Get kmer frequencies in the end part of sequence 1
@@ -2415,23 +2427,32 @@ sub rand_kmer_chimera_extend {
     my $kmer = $self->rand_kmer_from_collection($kmer_arr, $kmer_cdf);
 
     ####
-    print "+ kmer $kmer\n";
+    #print "+ extend: kmer $kmer\n";
     ####
 
     # Get a sequence that has the same kmer as the first but is not the first
     $seqid2 = $self->rand_seq_with_kmer( $kmer, $seqid1 );
 
+    ####
+    print "FLAG 4: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
+    ####
+
     # Pick a suitable kmer start on that sequence
     if (defined $seqid2) {
 
       ####
-      print "+ with sequence ".$self->database_get_parent_id($seqid2)."\n";
+      #print "+ extend: with sequence ".$self->database_get_parent_id($seqid2)."\n";
       ####
 
       # Pick a random breakpoint
       #### TODO: can we prefer a position not too crazy?
 
       my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
+
+      ####
+      print "FLAG 5: ".Dumper($self->{chimera_kmer_col}->collection_by_kmer);
+      ####
+
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
 
       # Place breakpoint about the middle of the kmer (kmers are at least 2 bp long) 
@@ -2463,7 +2484,17 @@ sub rand_kmer_chimera_initial {
   } else {
     # Pick a random kmer and sequence containing that kmer
     $kmer   = $self->rand_kmer_from_collection();
+
+    ####
+    #print "+ initial: kmer $kmer\n";
+    ####
+
     $seqid1 = $self->rand_seq_with_kmer( $kmer );
+
+    ####
+    #print "+ initial: seq ".$self->database_get_parent_id($seqid1)."\n";
+    ####
+
   }
 
   # Get a sequence that has the same kmer as the first but is not the first
@@ -2498,6 +2529,12 @@ sub rand_kmer_from_collection {
   my ($self, $kmer_arr, $kmer_cdf) = @_;
   my $kmers = defined $kmer_arr ? $kmer_arr : $self->{chimera_kmer_arr};
   my $cdf   = defined $kmer_cdf ? $kmer_cdf : $self->{chimera_kmer_cdf};
+
+  ####
+  #print "+ rand_kmer: kmers ".Dumper($kmers);
+  #print "+ rand_kmer: kmers ".Dumper($self->{chimera_kmer_col});
+  ####
+
   my $kmer  = $$kmers[rand_weighted($cdf)];
 
   return $kmer;
@@ -2510,11 +2547,28 @@ sub rand_seq_with_kmer {
    my ($self, $kmer, $excl) = @_;
    my $source;
    my ($sources, $freqs) = $self->{chimera_kmer_col}->sources($kmer, $excl, 1);
+
+   ####
+   #use Data::Dumper;
+   #print Dumper($self->{chimera_kmer_col}->collection_by_kmer->{$kmer});
+   #print "+ rand_seq: sources / freqs\n";
+   #for (my $i = 0; $i < scalar @$sources; $i++) {
+   #   my $source = $sources->[$i];
+   #   my $freq   = $freqs->[$i];
+   #   print "+           ".$self->database_get_parent_id($source)." / ".$freq."\n";
+   #}
+   ####
+
    my $num_sources = scalar @$sources;
    if ($num_sources > 0) {
      my $cdf = $self->proba_cumul($freqs);
      $source = $$sources[rand_weighted($cdf)];
    }
+
+   ####
+   #print "+ rand_seq: source ".$source."\n";
+   ####
+
    return $source;
 }
 
@@ -2536,19 +2590,28 @@ sub rand_kmer_start {
   # Pick a kmer starting position at random for the given kmer and sequence ID.
   # An optional minimum start position can be given.
   my ($self, $kmer, $source, $min_start) = @_;
+  my $start;
   $min_start ||= 1;
   my $kmer_col = $self->{chimera_kmer_col};
   my $kmer_starts = $kmer_col->positions($kmer, $source);
 
+  # Find index of first index min_idx where position respects min_start
+  my $min_idx;
   for (my $i = 0; $i < scalar @$kmer_starts; $i++) {
     my $start = $kmer_starts->[$i];
-    if ($start < $min_start) {
-      splice @$kmer_starts, $i, 1;
-      $i--;
+    if ($start >= $min_start) {
+      $min_idx = $i;
+      last;
     }
   }
 
-  my $start = $kmer_starts->[ int rand scalar @$kmer_starts ];
+  if (defined $min_idx) {
+    # Get a random index between min_idx and the end of the array
+    my $rand_idx = $min_idx + int rand (scalar @$kmer_starts - $min_idx);
+    # Get the value for this random index
+    $start = $kmer_starts->[ $rand_idx ];
+  }
+
   return $start;
 }
 
