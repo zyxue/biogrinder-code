@@ -32,6 +32,7 @@ methods. Internal methods are usually preceded with a _
 
 use strict;
 use warnings;
+use Grinder;
 use Bio::SeqIO;
 
 use base qw(Bio::Root::Root);
@@ -305,7 +306,7 @@ sub counts {
       }
    }
    if ($freq && $total) {
-     $counts = _normalize($counts, $total);
+     $counts = Grinder::normalize($counts, $total);
    }
    return $kmers, $counts;
 }
@@ -342,16 +343,12 @@ sub sources {
            next;
          }
          push @$sources, $source;
- 
-         ####
          my $weight = defined $self->weights ? $self->weights->{$source} : 1;
          my $count  = $weight * scalar @$positions;
-         ####
-
          push @$counts, $count;
          $total += $count;
       }
-      $counts = _normalize($counts, $total) if $freq; 
+      $counts = Grinder::normalize($counts, $total) if $freq; 
    }
 
    return $sources, $counts;
@@ -380,16 +377,12 @@ sub kmers {
    if (defined $seq_kmers) {
       while ( my ($kmer, $positions) = each %$seq_kmers ) {
          push @$kmers, $kmer;
-
-         ####
          my $weight = defined $self->weights ? $self->weights->{$seq_id} : 1;
          my $count  = $weight * scalar @$positions;
-         ####
-
          push @$counts, $count;
          $total += $count;
       }
-      $counts = _normalize($counts, $total) if $freq;
+      $counts = Grinder::normalize($counts, $total) if $freq;
    }
 
    return $kmers, $counts;
@@ -456,27 +449,13 @@ sub _sum_from_sources {
    while ( my ($source, $positions) = each %$sources ) {
       for my $position (@$positions) {
          if ($position >= $start) {
-
-           ####
            my $weight = defined $self->weights ? $self->weights->{$source} : 1;
            $count += $weight;
-           ####
-
          }
       }
    }
    return $count;
 }
 
-
-sub _normalize {
-   # Normalize an arrayref to 1.
-   my ($arr, $total) = @_;
-   if (not $total) { # total undef or 0
-      die "Error: Need to provide a valid total\n";
-   }
-   $arr = [ map {$_ / $total} @$arr ];
-   return $arr;
-}
 
 1;

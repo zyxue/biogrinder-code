@@ -1392,9 +1392,7 @@ sub initialize {
       $total += $multimera_abundance;
     }
     $self->{chimera_dist} = undef if $total == 0;
-    for (my $i = 0; $i < scalar @{$self->{chimera_dist}}; $i++) {
-      $self->{chimera_dist}->[$i] /= $total;
-    }
+    $self->{chimera_dist} = normalize($self->{chimera_dist}, $total);
     # Calculate cdf
     if ($self->{chimera_perc}) {
       $self->{chimera_dist_cdf} = $self->proba_cumul( $self->{chimera_dist} );
@@ -1720,7 +1718,7 @@ sub community_given_abundances {
       next;
     }
     # Normalize the abundances
-    $comm_abs = [ map { $_ / $comm_total } (@$comm_abs) ];
+    $comm_abs = normalize($comm_abs, $comm_total);
     # Sort relative abundances by decreasing 
     ($comm_abs, $comm_ids) = two_array_sort($comm_abs, $comm_ids);
     $comm_abs = [reverse(@$comm_abs)];
@@ -1918,61 +1916,51 @@ sub community_calculate_species_abundance {
   my ($distrib, $param, $diversity) = @_;
   # First calculate rank-abundance values
   my $rel_ab;
+  my $total = 0;
   if ($distrib eq 'uniform') {
     # no parameter
     my $val = 1 / $diversity;
     for (my $index = 0 ; $index < $diversity ; $index++) {
       $$rel_ab[$index] = $val;
     }
+    $total = 1;
   } elsif ($distrib eq 'linear') {
     # no parameter
     my $slope = 1 / $diversity;
-    my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
       $$rel_ab[$index] = 1 - $slope * $index;
       $total += $$rel_ab[$index];
-    }
-    for (my $index = 0 ; $index < $diversity ; $index++) {
-      $$rel_ab[$index] /= $total;
     }
   } elsif ($distrib eq 'powerlaw') {
     # 1 parameter
     die "Error: The powerlaw model requires an input parameter (-p option)\n"
       if not defined $param;
-    my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
       $$rel_ab[$index] = ($index+1)**-$param;
       $total += $$rel_ab[$index];
-    }
-    for (my $index = 0 ; $index < $diversity ; $index++) {
-      $$rel_ab[$index] /= $total;
     }
   } elsif ($distrib eq 'logarithmic') {
     # 1 parameter
     die "Error: The logarithmic model requires an input parameter (-p option)\n"
       if not defined $param;
-    my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
       $$rel_ab[$index] = log($index+2)**-$param;
       $total += $$rel_ab[$index];
-    }
-    for (my $index = 0 ; $index < $diversity ; $index++) {
-      $$rel_ab[$index] /= $total;
     }
   } elsif ($distrib eq 'exponential') {
     # 1 parameter
     die "Error: The exponential model requires an input parameter (-p option)\n"
       if not defined $param;
-    my $total = 0;
     for (my $index = 0 ; $index < $diversity ; $index++) {
       $$rel_ab[$index] = exp(-($index+1)*$param);
       $total += $$rel_ab[$index];
     }
-    for (my $index = 0 ; $index < $diversity ; $index++) {
-      $$rel_ab[$index] /= $total;
-    }
   } else {
     die "Error: $distrib is not a valid rank-abundance distribution\n";
+  }
+  # Normalize to 1 if needed
+  if ($total != 1) {
+    $rel_ab = normalize($rel_ab, $total);
   }
   return $rel_ab;
 }
@@ -2001,9 +1989,7 @@ sub community_calculate_amplicon_abundance {
 
   # Normalize the relative abundance
   if ($sum != 1) {
-    for my $i (0 .. scalar @$r_spp_abs - 1) {
-      $$r_spp_abs[$i] /= $sum;
-    }
+    $r_spp_abs = normalize($r_spp_abs, $sum);
   }
 
   return $r_spp_abs, $r_spp_ids;
@@ -2173,7 +2159,7 @@ sub proba_bias_dependency {
   my ($self, $c_struct, $seq_db, $size_dep, $copy_bias) = @_;
 
   # Calculate probability
-  my @probas;
+  my $probas;
   my $totproba = 0;
   my $diversity = scalar @{$c_struct->{'ids'}};
   for my $i (0 .. scalar $diversity - 1) {
@@ -2196,18 +2182,16 @@ sub proba_bias_dependency {
       }
     }
 
-    push @probas, $proba;
+    push @$probas, $proba;
     $totproba += $proba;
   }
 
   # Normalize if necessary
   if ($totproba != 1) {
-    for my $i (0 .. scalar $diversity - 1) {
-      $probas[$i] /= $totproba;
-    }
+    $probas = normalize($probas, $totproba);
   }
 
-  return \@probas;
+  return $probas;
 }
 
 
@@ -2668,6 +2652,7 @@ sub rand_point_errors {
   if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
     my $mut_pdf  = []; # probability density function
     my $mut_freq =  0; # average
+    my $mut_sum  =  0;
 
     if ($self->{mutation_model} eq 'uniform') {
       # Uniform error model
@@ -2675,35 +2660,36 @@ sub rand_point_errors {
       my $proba = 1 / $seq_len;
       $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
       $mut_freq = $self->{mutation_para1};
+      $mut_sum  = 1;
 
     } elsif ($self->{mutation_model} eq 'linear') {
       # Linear error model
       # para 1 is the error rate at the 5' end of the read
       # para 2 is the error rate at the 3' end
       my $slope = ($self->{mutation_para2} - $self->{mutation_para1}) / ($seq_len-1);
-      my $mut_sum = 0;
       for my $i (0 .. $seq_len-1) {
         my $val = $self->{mutation_para1} + $i * $slope;
         $mut_sum += $val;
         $$mut_pdf[$i] = $val;
       }
-      $mut_pdf = [ map { $_/$mut_sum } (@$mut_pdf) ];
       $mut_freq = abs( $self->{mutation_para2} + $self->{mutation_para1} ) / 2;
       
-
     } elsif ($self->{mutation_model} eq 'poly4') {
       # Fourth degree polynomial error model: e = para1 + para2 * i**4
-      my $mut_sum  = 0;
       for my $i (0 .. $seq_len-1) {
         my $val = $self->{mutation_para1} + $self->{mutation_para2} * ($i+1)**4;
         $mut_sum += $val;
         $$mut_pdf[$i] = $val;
       }
-      $mut_pdf  = [ map { $_/$mut_sum } (@$mut_pdf) ];
       $mut_freq = $mut_sum / $seq_len;
 
     } else {
       die "Error: '".$self->{mutation_model}."' is not a supported error distribution\n";
+    }
+
+    # Normalize to 1 if needed
+    if ($mut_sum != 1) {
+      $mut_pdf = normalize($mut_pdf, $mut_sum);
     }
 
     # TODO: Could have sanity checks so that mut_pdf should have no values < 0 or > 100
@@ -3382,6 +3368,17 @@ sub two_array_sort {
     $k2[$i] = $ids[$i][1];
   }
   return \@k1, \@k2;
+}
+
+
+sub normalize {
+   # Normalize an arrayref to 1.
+   my ($arr, $total) = @_;
+   if (not $total) { # total undef or 0
+      die "Error: Need to provide a valid total\n";
+   }
+   $arr = [ map {$_ / $total} @$arr ];
+   return $arr;
 }
 
 

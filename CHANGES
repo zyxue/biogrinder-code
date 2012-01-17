@@ -1,5 +1,11 @@
 Revision history for Grinder
 
+0.4.x   xx-Xxx-XXXX
+        Implemented multimeras, i.e. chimeras from more than two reference
+          sequences. See <chimera_dist>.
+        Implemented chimeras where the breakpoints correspond to k-mers shared
+          by the reference sequences. See <chimera_kmer>.
+
 0.4.2   15-Dec-2011
         Fixed incorrectly calculated relative abundances when using length bias
           (reported by Mike Imelfort and Mohamed Fauzi Haroon).
