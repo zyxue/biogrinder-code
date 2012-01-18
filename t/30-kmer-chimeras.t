@@ -23,7 +23,7 @@ ok $factory = Grinder->new(
    -chimera_perc    => 100             ,
    -chimera_dist    => (1)             ,
    -chimera_kmer    => 8               ,
-   -total_reads     => 100             ,
+   -total_reads     => 300             ,
 ), 'Bimeras';
 
 %refs = ();
@@ -50,7 +50,7 @@ ok $factory = Grinder->new(
    -chimera_perc    => 100             ,
    -chimera_dist    => (0, 1)          ,
    -chimera_kmer    => 8               ,
-   -total_reads     => 100             ,
+   -total_reads     => 300             ,
 ), 'Trimeras';
 
 %refs = ();
@@ -77,7 +77,7 @@ ok $factory = Grinder->new(
    -chimera_perc    => 100             ,
    -chimera_dist    => (0, 0, 1)       ,
    -chimera_kmer    => 8               ,
-   -total_reads     => 100             ,
+   -total_reads     => 300             ,
 ), 'Quadrameras';
 
 %refs = ();

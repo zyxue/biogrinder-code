@@ -16,7 +16,7 @@ use Math::Random::MT qw(srand rand); # seed and draw from the random generator
 use Getopt::Euclid qw( :minimal_keys :defer );
 
 
-our $VERSION = '0.4.2';
+our $VERSION = '0.4.3';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -144,7 +144,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.4.2
+0.4.3
 
 =head1 AUTHOR
 
