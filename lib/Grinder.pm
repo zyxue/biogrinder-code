@@ -674,11 +674,14 @@ are shared between sequences. <chimera_kmer> represents k, the length of the
 k-mers (in bp). The longer the kmer, the more similar the sequences have to be
 to be eligible to form chimeras. The more frequent a k-mer is in the pool of
 reference sequences (taking into account their relative abundance), the more
-often this k-mer will be chosen. For example, CHSIM (Edgar et al. 2011) uses
-a k-mer length of 10 bp. If you do not want to use k-mer information to form
-chimeras, use 0, which will result in the reference sequences and breakpoints
-to be taken randomly. Note that this option only takes effect when you request
-the generation of chimeras with the <chimera_perc> option. Default: chimera_kmer.default bp
+often this k-mer will be chosen. For example, CHSIM (Edgar et al. 2011) uses this
+method with a k-mer length of 10 bp. If you do not want to use k-mer information
+to form chimeras, use 0, which will result in the reference sequences and
+breakpoints to be taken randomly on the "aligned" reference sequences. Note that
+this option only takes effect when you request the generation of chimeras with
+the <chimera_perc> option. Also, this options is quite memory intensive, so you
+should probably limit yourself to a relatively small number of reference sequences
+if you want to use it. Default: chimera_kmer.default bp
 
 =for Euclid:
    chimera_kmer.type: number, chimera_kmer == 0 || chimera_kmer >= 2
