@@ -18,8 +18,7 @@ resources
 build_requires  'Test::More';
 
 requires        'Getopt::Euclid'          => '0.2.8';
-requires        'Math::Random::MT'        =>  0;
-requires        'Math::Random::MT::Perl'  => '1.06';
+requires        'Math::Random::MT'        => '1.13';
 requires        'Bio::SeqIO'              =>  0;
 #requires       'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 

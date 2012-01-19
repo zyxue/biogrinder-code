@@ -11,8 +11,7 @@ use List::Util qw(max);
 use Bio::SeqIO;
 use Grinder::KmerCollection;
 use Bio::Seq::SimulatedRead;
-use Math::Random::MT::Perl;          # create a seed
-use Math::Random::MT qw(srand rand); # seed and draw from the random generator
+use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw( :minimal_keys :defer );
 
 
@@ -196,11 +195,7 @@ Getopt::Euclid (>= 0.2.8)
 
 =item *
 
-Math::Random::MT
-
-=item *
-
-Math::Random::MT::Perl (>= 1.06)
+Math::Random::MT (>= 1.13)
 
 =back
 
@@ -1405,11 +1400,12 @@ sub initialize {
     die "Error: <qual_levels> needs to be specified to output FASTQ reads\n";
   }
 
-  # Seed the random number generator (manually or by generating a random seed)
-  if (not defined $self->{random_seed}) {
-    $self->{random_seed} = Math::Random::MT::Perl::_rand_seed();
+  # Random number generator: seed or be auto-seeded
+  if (defined $self->{random_seed}) {
+    srand( $self->{random_seed} );
+  } else {
+    $self->{random_seed} = srand( );
   }
-  srand( $self->{random_seed} );
 
   # Sequence length check
   my $max_read_length = $self->{read_length} + $self->{read_delta}; # approximation
