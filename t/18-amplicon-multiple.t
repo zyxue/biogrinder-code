@@ -24,9 +24,22 @@ ok $factory = Grinder->new(
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
+   $got_amplicons{$read->seq} = undef;
    ok_read_forward_only($read, 1, $nof_reads);
 };
 is $nof_reads, 100;
+
+%expected_amplicons = (
+   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
+   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTggggg' => undef,
+   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGTggggg' => undef,
+   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'      => undef,
+   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
+);
+
+is_deeply( \%got_amplicons, \%expected_amplicons );
+undef %got_amplicons;
+
 
 # Template with several matching amplicons and forward and reverse primers
 
@@ -46,9 +59,12 @@ while ( $read = $factory->next_read ) {
    ok_read_forward_reverse($read, 1, $nof_reads);
 };
 is $nof_reads, 100;
+
 %expected_amplicons = (
-   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
    'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
+   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
 );
 is_deeply( \%got_amplicons, \%expected_amplicons );
 undef %got_amplicons;
@@ -72,8 +88,15 @@ while ( $read = $factory->next_read ) {
    ok_read_forward_reverse($read, 1, $nof_reads);
 };
 is $nof_reads, 100;
+
+%expected_amplicons = (
+   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
+);
+
 is_deeply( \%got_amplicons, \%expected_amplicons );
 undef %got_amplicons;
+
 
 done_testing();
 
@@ -91,8 +114,6 @@ sub ok_read_forward_reverse {
       is $strand, $req_strand;
    }
    my $readseq = $read->seq;
-   ok (($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT')
-     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'));
    is $read->id, $nof_reads;
    is $read->length, 95;
 }
@@ -108,9 +129,6 @@ sub ok_read_forward_only {
       is $strand, $req_strand;
    }
    my $readseq = $read->seq;
-   ok ( ($readseq eq 'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' )
-     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGTggggg')
-     or ($readseq eq 'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'     ));
    is $read->id, $nof_reads;
    my $readlength = $read->length;
    ok ( ($readlength == 95) or ($readlength == 100) );

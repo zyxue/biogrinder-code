@@ -3113,13 +3113,15 @@ sub database_create_amplicon {
   my ($seq, $start, $end, $orientation) = @_;
   my $amplicon;
   my $coord;
+
   if ($orientation == -1) {
     # Calculate coordinates relative to forward strand. For example, given a
     # read starting at 10 and ending at 23 on the reverse complement of a 100 bp
     # sequence, return complement(77..90).
-    $amplicon = $seq->trunc($start, $end)->revcom;
-    $start = $seq->length - $start + 1;
-    $end   = $seq->length - $end + 1;
+    $amplicon = $seq->revcom->trunc($start, $end);
+    my $seq_len = $seq->length;
+    $start = $seq_len - $start + 1;
+    $end   = $seq_len - $end + 1;
     ($start, $end) = ($end, $start);
     $coord = "complement($start..$end)";
   } else {
@@ -3127,6 +3129,7 @@ sub database_create_amplicon {
     $coord = "$start..$end";
   }
   $amplicon->{_amplicon} = $coord;
+
   return $amplicon
 }
 
