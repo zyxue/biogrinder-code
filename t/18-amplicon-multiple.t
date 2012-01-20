@@ -92,6 +92,7 @@ is $nof_reads, 100;
 %expected_amplicons = (
    'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
    'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
+   'AAACTTAAAGGAATTGACGGggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggGTACACACCGCCCGT' => undef,
 );
 
 is_deeply( \%got_amplicons, \%expected_amplicons );

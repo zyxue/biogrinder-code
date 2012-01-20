@@ -3050,25 +3050,46 @@ sub database_extract_amplicons {
   # several 16S rRNA genes. Extract all amplicons from a sequence (both strands)
   # but take only the shortest when amplicons are nested.
   # Fetch amplicons from both strands
-  my @amplicons;
-  for my $orientation (1, -1) {
-    my $strand_amplicons = database_extract_amplicons_from_strand($seq,
-      $forward_regexp, $reverse_regexp, $orientation);  
-    push @amplicons, @$strand_amplicons if defined $strand_amplicons;
+
+  # Get amplicons from forward and reverse strand
+  my $fwd_amplicons = database_extract_amplicons_from_strand($seq, $forward_regexp, $reverse_regexp, 1);
+  my $rev_amplicons = database_extract_amplicons_from_strand($seq, $forward_regexp, $reverse_regexp, -1);
+
+  # Deal with nested amplicons by removing the longest of the two
+  my $re = qr/(\d+)\.\.(\d+)/;
+  for (my $rev = 0; $rev < scalar @$rev_amplicons; $rev++) {
+    my ($rev_start, $rev_end) = ( $rev_amplicons->[$rev]->{_amplicon} =~ m/$re/ );
+    for (my $fwd = 0; $fwd < scalar @$fwd_amplicons; $fwd++) {
+      my ($fwd_start, $fwd_end) = ( $fwd_amplicons->[$fwd]->{_amplicon} =~ m/$re/ );
+      if ( ($fwd_start < $rev_start) && ($rev_end < $fwd_end) ) {
+        splice @$fwd_amplicons, $fwd, 1; # Remove forward amplicon
+        $fwd--;
+        next;
+      }
+      if ( ($rev_start < $fwd_start) && ($fwd_end < $rev_end) ) {
+        splice @$rev_amplicons, $rev, 1; # Remove reverse amplicon
+        $rev--;
+      }
+    }
   }
+  
+  my $amplicons = [ @$fwd_amplicons, @$rev_amplicons ];
+
   # Complain if primers did not match explicitly specified reference sequence
   my $seqid = $seq->id;
   if ( (scalar keys %{$ids_to_keep} > 0) &&
        (exists $$ids_to_keep{$seqid}   ) &&
-       (scalar @amplicons == 0         ) ) {
+       (scalar @$amplicons == 0         ) ) {
     die "Error: Requested sequence $seqid did not match the specified forward primer.\n";
   }
-  return \@amplicons;
+
+  return $amplicons;
 }
 
 
 sub database_extract_amplicons_from_strand {
-  # Get amplicons from the given strand (orientation) of the given sequence
+  # Get amplicons from the given strand (orientation) of the given sequence.
+  # For nested amplicons, only the shortest is returned to mimic PCR.
   my ($seq, $forward_regexp, $reverse_regexp, $orientation) = @_;
 
   # Reverse-complement sequence if looking at a -1 orientation
@@ -3082,7 +3103,7 @@ sub database_extract_amplicons_from_strand {
   }
 
   # Get amplicons from sequence string
-  my $amplicons;
+  my $amplicons = [];
   if ( (defined $forward_regexp) && (not defined $reverse_regexp) ) {
     while ( $seqstr =~ m/($forward_regexp)/g ) {
       my $start = pos($seqstr) - length($1) + 1;

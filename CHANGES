@@ -1,5 +1,11 @@
 Revision history for Grinder
 
+xxxxx   
+        Fixed bug when looking for amplicons on the reverse complement of a
+          reference sequence
+        Properly remove the shortest of two amplicons, even if they are on
+          different strands.
+
 0.4.4   20-Jan-2011
         Dependencies update: no need for Math::Random::MT::Perl anymore.
 
