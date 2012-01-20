@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+0.4.4   20-Jan-2011
+        Dependencies update: no need for Math::Random::MT::Perl anymore.
+
 0.4.3   18-Jan-2011
         Implemented multimeras, i.e. chimeras from more than two reference
           sequences (suggested by anonymous reviewer). See <chimera_dist>.
