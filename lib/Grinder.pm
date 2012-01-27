@@ -2655,7 +2655,7 @@ sub rand_point_errors {
   my ($self, $seq_str, $error_specs) = @_;
 
   # Mutation cumulative density functions (cdf) for this sequence length
-  my $seq_len = length($seq_str);
+  my $seq_len = length $seq_str;
   if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
     my $mut_pdf  = []; # probability density function
     my $mut_freq =  0; # average
@@ -2950,6 +2950,8 @@ sub database_create {
   my %seq_ids;     # hash of reference sequence IDs and IDs of their amplicons
   my %mol_types;    # hash of count of molecule types (dna, rna, protein)
   while ( my $ref_seq = <$in> ) {
+    # Skip empty sequences
+    next if not $ref_seq->seq;
     # Record molecule type
     $mol_types{$ref_seq->alphabet}++;
     # Skip unwanted sequences
@@ -2986,6 +2988,14 @@ sub database_create {
   }
   undef $in; # close the filehandle (maybe?!)
 
+  # Error if no usable sequences in the database
+  if (scalar keys %seq_ids == 0) {
+    die "Error: No genome sequences could be used. If you specified a file of".
+      " abundances for the genome sequences, make sure that their ID match the".
+      " ID in the FASTA file. If you specified amplicon primers, verify that ".
+      "they match some genome sequences.\n";
+  }
+
   # Determine database type: dna, rna, protein
   my $db_alphabet = $self->database_get_mol_type(\%mol_types);
   $self->{alphabet} = $db_alphabet;
@@ -2999,14 +3009,6 @@ sub database_create {
   if ( ($db_alphabet eq 'protein') && ($unidirectional != 1) ) {
     die "Error: Got <unidirectional> = $unidirectional but can only use ".
       "<unidirectional> = 1 with proteic reference sequences\n";
-  }
-
-  # Error if no usable sequences in the database
-  if (scalar keys %seq_ids == 0) {
-    die "Error: No genome sequences could be used. If you specified a file of".
-      " abundances for the genome sequences, make sure that their ID match the".
-      " ID in the FASTA file. If you specified amplicon primers, verify that ".
-      "they match some genome sequences.\n";
   }
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
