@@ -1425,10 +1425,16 @@ sub initialize {
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
   # Import genome sequences
-  my $max_chimera_size = scalar @{$self->{chimera_dist}} + 1; # nof seqs in largest chimera
+  my $min_seq_len;
+  if ($self->{chimera_dist_cdf}) {
+    # Each chimera needs >= 1 bp. Use # sequences required by largest chimera.
+    $min_seq_len = scalar @{$self->{chimera_dist}} + 1;
+  } else {
+    $min_seq_len = 1;
+  }
   $self->{database} = $self->database_create( $self->{reference_file},
     $self->{unidirectional}, $self->{forward_reverse}, $self->{abundance_file},
-    $self->{delete_chars}, $max_chimera_size );
+    $self->{delete_chars}, $min_seq_len );
 
   $self->initialize_alphabet;
   if ( ($self->{alphabet} eq 'protein')     &&
@@ -2239,7 +2245,7 @@ sub rand_seq_chimera {
     if ($self->{chimera_kmer}) {
       @pos = $self->kmer_chimera_fragments($m);
     } else {
-      #### TODO: try to not provide $positions and $oids
+      # TODO: try to not provide $positions and $oids
       @pos = $self->rand_chimera_fragments($m, $sequence, $positions, $oids);
     }
 
@@ -2366,7 +2372,7 @@ sub rand_kmer_chimera_extend {
     if (defined $seqid2) {
 
       # Pick a random breakpoint
-      #### TODO: can we prefer a position not too crazy?
+      # TODO: can we prefer a position not too crazy?
       my $pos1 = $self->rand_kmer_start( $kmer, $seqid1, $start1 );
       my $pos2 = $self->rand_kmer_start( $kmer, $seqid2 );
 
@@ -2656,6 +2662,11 @@ sub rand_point_errors {
 
   # Mutation cumulative density functions (cdf) for this sequence length
   my $seq_len = length $seq_str;
+
+  ####
+  print "sequence is $seq_len bp long\n";
+  ####
+
   if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
     my $mut_pdf  = []; # probability density function
     my $mut_freq =  0; # average
