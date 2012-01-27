@@ -2662,11 +2662,6 @@ sub rand_point_errors {
 
   # Mutation cumulative density functions (cdf) for this sequence length
   my $seq_len = length $seq_str;
-
-  ####
-  print "sequence is $seq_len bp long\n";
-  ####
-
   if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
     my $mut_pdf  = []; # probability density function
     my $mut_freq =  0; # average
@@ -2684,13 +2679,18 @@ sub rand_point_errors {
       # Linear error model
       # para 1 is the error rate at the 5' end of the read
       # para 2 is the error rate at the 3' end
-      my $slope = ($self->{mutation_para2} - $self->{mutation_para1}) / ($seq_len-1);
-      for my $i (0 .. $seq_len-1) {
-        my $val = $self->{mutation_para1} + $i * $slope;
-        $mut_sum += $val;
-        $$mut_pdf[$i] = $val;
-      }
       $mut_freq = abs( $self->{mutation_para2} + $self->{mutation_para1} ) / 2;
+      if ($seq_len == 1) {
+        $$mut_pdf[0] = $mut_freq;
+        $mut_sum = $mut_freq
+      } elsif ($seq_len > 1) {
+        my $slope = ($self->{mutation_para2} - $self->{mutation_para1}) / ($seq_len-1);
+        for my $i (0 .. $seq_len-1) {
+          my $val = $self->{mutation_para1} + $i * $slope;
+          $mut_sum += $val;
+          $$mut_pdf[$i] = $val;
+        }
+      }
       
     } elsif ($self->{mutation_model} eq 'poly4') {
       # Fourth degree polynomial error model: e = para1 + para2 * i**4

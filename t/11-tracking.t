@@ -14,11 +14,11 @@ my ($factory, $nof_reads, $read);
 # Tracking read information in the read description 
 
 ok $factory = Grinder->new(
-   -reference_file => data('shotgun_database.fa'),
-   -total_reads    => 10                         ,
-   -unidirectional => 0                          ,
-   -desc_track     => 1                          ,
-), 'Shotgun tracking';
+   -reference_file => data('shotgun_database_extended.fa'),
+   -total_reads    => 10                                  ,
+   -unidirectional => 0                                   ,
+   -desc_track     => 1                                   ,
+), 'Bidirectional shotgun tracking';
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {
@@ -27,11 +27,11 @@ while ($factory->next_read) {
 
 
 ok $factory = Grinder->new(
-   -reference_file => data('shotgun_database.fa'),
-   -total_reads    => 10                         ,
-   -unidirectional => 1                          ,
-   -desc_track     => 1                          ,
-), 'Shotgun tracking';
+   -reference_file => data('shotgun_database_extended.fa'),
+   -total_reads    => 10                                  ,
+   -unidirectional => 1                                   ,
+   -desc_track     => 1                                   ,
+), 'Forward shotgun tracking';
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {
@@ -40,11 +40,11 @@ while ($factory->next_read) {
 
 
 ok $factory = Grinder->new(
-   -reference_file => data('shotgun_database.fa'),
-   -total_reads    => 10                         ,
-   -unidirectional => -1                         ,
-   -desc_track     => 1                          ,
-), 'Shotgun tracking';
+   -reference_file => data('shotgun_database_extended.fa'),
+   -total_reads    => 10                                  ,
+   -unidirectional => -1                                  ,
+   -desc_track     => 1                                   ,
+), 'Reverse shotgun tracking';
 
 ok $read = $factory->next_read;
 while ($factory->next_read) {

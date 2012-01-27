@@ -14,9 +14,9 @@ my ($factory, $seed1, $seed2, $seed3, @dataset1, @dataset2);
 # Seed the pseudo-random number generator
 
 ok $factory = Grinder->new(
-   -reference_file => data('shotgun_database.fa'),
-   -random_seed    => 1233567890                 ,
-   -total_reads    => 10                         ,
+   -reference_file => data('shotgun_database_extended.fa'),
+   -random_seed    => 1233567890                          ,
+   -total_reads    => 10                                  ,
 ), 'Set the seed';
 ok $seed1 = $factory->get_random_seed();
 is $seed1, 1233567890;

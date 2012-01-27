@@ -13,7 +13,7 @@ my ($factory, $nof_reads, $read);
 # Initialization with short argument
 
 ok $factory = Grinder->new(
-   -rf => data('shotgun_database.fa'),
+   -rf => data('shotgun_database_extended.fa'),
    -tr => 10                         ,
 ), 'Shotgun & short arguments';
 
@@ -22,9 +22,9 @@ ok $factory->next_read;
 # Long argument
 
 ok $factory = Grinder->new(
-   -reference_file => data('shotgun_database.fa'),
-   -read_dist      => 48                         ,
-   -total_reads    => 100                        ,
+   -reference_file => data('shotgun_database_extended.fa'),
+   -read_dist      => 48                                  ,
+   -total_reads    => 100                                 ,
 ), 'Long arguments';
 
 ok $factory->next_lib;

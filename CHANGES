@@ -1,8 +1,11 @@
 Revision history for Grinder
 
 xxxxx   
+        Fixed bug when adding mutations linearly to a 1 bp read (reported by
+          Robert Schmieder).
+        Better handling of 0 bp reference sequences.
         Fixed bug when looking for amplicons on the reverse complement of a
-          reference sequence
+          reference sequence.
         Properly remove the shortest of two amplicons, even if they are on
           different strands.
 
@@ -43,7 +46,7 @@ xxxxx
         Speed improvement for position-specific error models
         Galaxy GUI fix so that the output is fastqsanger, not just fastq
         The reference_file parameter is now a required argument, so that running
-          grinder without arguments displays the help (reported by Rob Schmieder)
+          grinder without arguments displays the help (reported by Robert Schmieder)
         Fixed a bug that caused a crash when using an indel model and a homopolymer
           model simultaneously (reported by Robert Schmieder)
         Information displayed on screen now reports whether the library is a
