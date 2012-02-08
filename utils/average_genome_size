@@ -1,15 +1,72 @@
 #! /usr/bin/env perl
 
-# This file is part of the Grinder package, copyright 2009,2010,2011,2012
+# This file is part of the Grinder package, copyright 2009-2012
 # Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
+
+
+=head1 NAME
+
+average_genome_size - Calculate the average genome size (in bp) of species in a Grinder library
+
+=head1 DESCRIPTION
+
+Calculate the average genome size (in bp) of species in a Grinder library given
+the library composition and the full-genomes used to produce it.
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item <db_fasta>
+
+FASTA file containing the full-genomes used to produce the Grinder library.
+
+=for Euclid:
+   db_fasta.type: readable
+
+=item <rank_file>
+
+Grinder rank file that describes the library composition.
+
+=for Euclid:
+   rank_file.type: readable
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright 2009-2012 Florent ANGLY <florent.angly@gmail.com>
+
+Grinder is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License (GPL) as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+Grinder is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with Grinder.  If not, see <http://www.gnu.org/licenses/>.
+
+=head1 BUGS
+
+All complex software has bugs lurking in it, and this program is no exception.
+If you find a bug, please report it on the SourceForge Tracker for Grinder:
+L<http://sourceforge.net/tracker/?group_id=244196&atid=1124737>
+
+Bug reports, suggestions and patches are welcome. Grinder's code is developed
+on Sourceforge (L<http://sourceforge.net/scm/?type=git&group_id=244196>) and is
+under Git revision control. To get started with a patch, do:
+
+   git clone git://biogrinder.git.sourceforge.net/gitroot/biogrinder/biogrinder
+
+=cut
+
 
 use strict;
 use warnings;
-my $usage = "Usage: $0 FASTA_DATABASE GRINDER_RANK_FILE\n".
-  "$0 calculates the average genome size (in bp) of a simulated random library produces by Grinder\n";
-my $db_fasta  = $ARGV[0] || die $usage;
-my $rank_file = $ARGV[1] || die $usage;
-average_genome_size($db_fasta, $rank_file);
+use Getopt::Euclid qw( :minimal_keys );
+average_genome_size($ARGV{'db_fasta'}, $ARGV{'rank_file'});
 exit;
 
 

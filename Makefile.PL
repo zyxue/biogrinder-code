@@ -28,7 +28,7 @@ requires        'Bio::SeqIO'              =>  0;
 author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
-author_requires 'Module::Install::ReadmeFromPod';
+author_requires 'Module::Install::ReadmeFromPod' => 0.14;
 author_requires 'Module::Install::AutoManifest';
 author_requires 'Statistics::R'  => '0.21';
 
@@ -69,35 +69,27 @@ auto_license();
 
 # Generate the README files from the module's POD
 
-auto_readme();
+auto_doc();
 
 
 
 #--------- UTILS --------------------------------------------------------------#
 
 
-sub auto_readme {
-   #print "*** Building README files...\n";
-   my $source = 'lib/Grinder.pm';
-   readme_from $source;
-   readme_html_from( $source, 'README.htm' );
-   return 1;
-}
-
-sub readme_html_from {
-   my ($in, $out) = @_;
-   `pod2html --infile=$in --outfile=$out`;
-   warn "Warning: Could not generate $out.\n$!\n" if $? == -1;
-   rm_files(['pod2htmd.tmp', 'pod2htmi.tmp']);
-   return $?; # exit status
-}
-
-sub rm_files {
-   my ($files) = @_;
-   for my $file (@$files) {
-      if (-e $file) {
-         unlink $file or warn "Warning: Could not remove file '$file'.\n$!\n";
-      }
+sub auto_doc {
+   print "*** Building doc...\n";
+   my $grinder = 'lib/Grinder.pm';
+   my $script1 = 'utils/average_genome_size';
+   my $script2 = 'utils/change_paired_read_orientation';
+   my $man_dir = 'man';
+   if (not -d $man_dir) {
+      mkdir $man_dir or die "Could not write folder $man_dir:\n$!\n";
    }
+   my $clean   = 1;
+   readme_from $grinder, $clean, 'txt', 'README';
+   readme_from $grinder, $clean, 'htm', 'README.htm';
+   readme_from $grinder, $clean, 'man', "$man_dir/grinder.1";
+   readme_from $script1, $clean, 'man', "$man_dir/average_genome_size.1";
+   readme_from $script2, $clean, 'man', "$man_dir/change_paired_read_orientation.1";
    return 1;
 }
