@@ -182,12 +182,12 @@ for you:
 
 Bio::SeqIO, Bio::Root::Root, Bio::Seq::SimulatedRead
 
-Part of the Bioperl package. Bio::Seq::SimulatedReads has not not been released
+Part of the Bioperl package. Bio::Seq::SimulatedReads has not been released
 yet and is therefore included here.
 
 =item *
 
-Getopt::Euclid (>= 0.2.8)
+Getopt::Euclid (>= 0.3.4)
 
 =item *
 
