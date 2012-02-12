@@ -1,4 +1,4 @@
-# This file is part of the Grinder package, copyright 2009,2010,2011,2012
+# This file is part of the Grinder package, copyright 2009-2012
 # Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 package Grinder;
@@ -12,10 +12,11 @@ use Bio::SeqIO;
 use Grinder::KmerCollection;
 use Bio::Seq::SimulatedRead;
 use Math::Random::MT qw(srand rand);
-use Getopt::Euclid qw( :minimal_keys :defer );
+use Getopt::Euclid qw(:minimal_keys :defer);
 
 
-our $VERSION = '0.4.4';
+#### use version; our $VERSION = version->declare('0.3.4_1');
+our $VERSION = '0.4.5_1';
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
@@ -143,7 +144,7 @@ Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
 
-0.4.4
+0.4.5
 
 =head1 AUTHOR
 
@@ -179,15 +180,10 @@ for you:
 
 =item *
 
-Bio::SeqIO
+Bio::SeqIO, Bio::Root::Root, Bio::Seq::SimulatedRead
 
-Part of the Bioperl package
-
-=item *
-
-Bio::Seq::SimulatedRead
-
-Part of Bioperl but included here because it has not been released yet
+Part of the Bioperl package. Bio::Seq::SimulatedReads has not not been released
+yet and is therefore included here.
 
 =item *
 
@@ -373,18 +369,24 @@ around 2.5 kbp and has 0.2 kbp standard deviation
 
 A transcriptomic dataset
 
+   grinder -reference_file transcripts.fna
+
+=item 13.
+
+A unidirectional transcriptomic dataset
+
    grinder -reference_file transcripts.fna -unidirectional 1
 
 Note the use of -unidirectional 1 to prevent reads to be taken from the reverse-
 complement of the reference sequences.
 
-=item 13.
+=item 14.
 
 A proteomic dataset
 
    grinder -reference_file proteins.faa -unidirectional 1
 
-=item 14.
+=item 15.
 
 A 16S rRNA amplicon library
 
@@ -393,20 +395,20 @@ A 16S rRNA amplicon library
 Note the use of -length_bias 0 because reference sequence length should not affect
 the relative abundance of amplicons.
 
-=item 15.
+=item 16.
 
 The same amplicon library with 20% of chimeric reads (90% bimera, 10% trimera)
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -chimera_perc 20 -chimera_dist 90 10
 
-=item 16.
+=item 17.
 
 Three 16S rRNA amplicon libraries with specified MIDs and no reference sequences
 in common
 
    grinder -reference_file 16Sgenes.fna -forward_reverse 16Sprimers.fna -length_bias 0 -unidirectional 1 -num_libraries 3 -multiplex_ids MIDs.fna
 
-=item 17.
+=item 18.
 
 Reading reference sequences from the standard input, which allows you to
 decompress FASTA files on the fly:
@@ -558,7 +560,7 @@ and 1392R primers that target the V6 to V9 region of the 16S rRNA gene.
 Instead of producing reads bidirectionally, from the reference strand and its
 reverse complement, proceed unidirectionally, from one strand only (forward or
 reverse). Values: 0 (off, i.e. bidirectional), 1 (forward), -1 (reverse). Use
-<unidirectional> = 1 for strand specific transcriptomic or proteomic datasets.
+<unidirectional> = 1 for strand-specific transcriptomic or proteomic datasets.
 Default: unidirectional.default
 
 =for Euclid:
@@ -997,7 +999,7 @@ Returns : seed number
 
 =head1 COPYRIGHT
 
-Copyright 2009,2010,2011 Florent ANGLY <florent.angly@gmail.com>
+Copyright 2009-2012 Florent ANGLY <florent.angly@gmail.com>
 
 Grinder is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License (GPL) as published by

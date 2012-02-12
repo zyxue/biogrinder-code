@@ -1,6 +1,6 @@
 Revision history for Grinder
 
-xxxxx   
+0.4.5   27-Jan-2012   
         Fixed bug when adding mutations linearly to a 1 bp read (reported by
           Robert Schmieder).
         Better handling of 0 bp reference sequences.
@@ -9,10 +9,10 @@ xxxxx
         Properly remove the shortest of two amplicons, even if they are on
           different strands.
 
-0.4.4   20-Jan-2011
+0.4.4   20-Jan-2012
         Dependencies update: no need for Math::Random::MT::Perl anymore.
 
-0.4.3   18-Jan-2011
+0.4.3   18-Jan-2012
         Implemented multimeras, i.e. chimeras from more than two reference
           sequences (suggested by anonymous reviewer). See <chimera_dist>.
         Implemented chimeras where the breakpoints correspond to k-mers shared

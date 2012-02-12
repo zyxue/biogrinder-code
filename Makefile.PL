@@ -5,7 +5,7 @@ use inc::Module::Install;
 
 name     'Grinder';
 all_from 'lib/Grinder.pm';
-license  'gpl3'; # As of version 1.01, Module::Install does not parse the GPL version number
+license  'gpl3'; # Module::Install 1.04 does not parse the GPL version number
 
 resources
    homepage   'http://sourceforge.net/projects/biogrinder/';
@@ -16,10 +16,10 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More';
-
-requires        'Getopt::Euclid'          => '0.2.8';
+requires        'Getopt::Euclid'          => '0.3.4';
 requires        'Math::Random::MT'        => '1.13';
 requires        'Bio::SeqIO'              =>  0;
+#requires       'Bio::Root::Root'         =>  0;
 #requires       'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
 
 
@@ -67,7 +67,7 @@ WriteAll;
 auto_license();
 
 
-# Generate the README files from the module's POD
+# Generate the README and manpage files from the POD docs
 
 auto_doc();
 
@@ -78,7 +78,10 @@ auto_doc();
 
 sub auto_doc {
    print "*** Building doc...\n";
-   my $grinder = 'lib/Grinder.pm';
+   # Generate script/grinder.pod
+   my @args = ($^X, '-Ilib', 'script/grinder', '--podfile');
+   system(@args) == 0 or die "system @args failed: $?";
+   my $grinder = 'script/grinder.pod';
    my $script1 = 'utils/average_genome_size';
    my $script2 = 'utils/change_paired_read_orientation';
    my $man_dir = 'man';
