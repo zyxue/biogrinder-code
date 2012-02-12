@@ -15,8 +15,8 @@ use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
 
-#### use version; our $VERSION = version->declare('0.3.4_1');
-our $VERSION = '0.4.5_1';
+use version; our $VERSION = version->declare('0.4.5');
+
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
