@@ -80,7 +80,7 @@ sub auto_doc {
    print "*** Building doc...\n";
    # Generate script/grinder.pod
    my @args = ($^X, '-Ilib', 'script/grinder', '--podfile');
-   system(@args) == 0 or die "system @args failed: $?";
+   system(@args) == 0 or die "System call to '@args' failed:\n$?\n";
    my $grinder = 'script/grinder.pod';
    my $script1 = 'utils/average_genome_size';
    my $script2 = 'utils/change_paired_read_orientation';

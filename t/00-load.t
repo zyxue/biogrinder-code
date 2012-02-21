@@ -6,11 +6,13 @@ use Test::More;
 
 
 BEGIN {
-   use_ok( 'Grinder' );
+   use_ok('Grinder' );
+   use_ok('Grinder::KmerCollection');
+   use_ok('t::TestUtils');
 }
 
 diag( "Testing Grinder $Grinder::VERSION, Perl $], $^X" );
 
-use_ok('t::TestUtils');
+
 
 done_testing();
