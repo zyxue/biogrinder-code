@@ -2,8 +2,7 @@ package Grinder::Database;
 
 use strict;
 use warnings;
-#use Grinder;
-#use Bio::SeqIO;
+use Bio::SeqIO;
 
 use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
 
@@ -19,8 +18,12 @@ sub new {
    #$self->add_seqs($seqs, $ids) if defined $seqs;
    #$self->add_file($file)       if defined $file;
 
+   # Defaults
+   $unidirectional = 0 if not defined $unidirectional; # bidirectional
+   $min_len = 1 if not defined $min_len;
+
    $self->_create($fasta_file, $unidirectional, $forward_reverse_primers,
-    $abundance_file, $delete_chars, $min_len);
+      $abundance_file, $delete_chars, $min_len);
 
    return $self;
 }
@@ -54,14 +57,6 @@ sub _create {
   #   * Minimum sequence size: Skip sequences smaller than that
   my ($self, $fasta_file, $unidirectional, $forward_reverse_primers,
     $abundance_file, $delete_chars, $min_len) = @_;
-
-  # Defaults
-  #$unidirectional
-  #$forward_reverse_primers
-  #$abundance_file
-  #$delete_chars
-  $min_len = 1 if not defined $min_len;
-  
 
   # Input filehandle
   if (not defined $fasta_file) {
@@ -169,7 +164,7 @@ sub _create {
   }
 
   # Determine database type: dna, rna, protein
-  my $db_alphabet = $self->database_get_mol_type(\%mol_types);
+  my $db_alphabet = $self->_get_mol_type(\%mol_types);
   $self->{alphabet} = $db_alphabet;
 
   # Error if using amplicon on protein database
@@ -187,6 +182,37 @@ sub _create {
   return $database;
 }
 
+
+sub _get_mol_type {
+  # Given a count of the different molecule types in the database, determine
+  # what molecule type it is.
+  my ($self, $mol_types) = @_;
+  my $max_count = 0;
+  my $max_type  = '';
+  while (my ($type, $count) = each %$mol_types) {
+    if ($count > $max_count) {
+      $max_count = $count;
+      $max_type  = $type;
+    }
+  }
+  my $other_count = 0;
+  while (my ($type, $count) = each %$mol_types) {
+    if (not $type eq $max_type) {
+      $other_count += $count;
+    }
+  }
+  if ($max_count < $other_count) {
+    $self->throw("Cannot determine to what type of molecules the reference ".
+        "sequences belong. Got $max_count sequences of type '$max_type' and ".
+        "$other_count others.\n");
+  }
+  if ( (not $max_type eq 'dna') &&
+       (not $max_type eq 'rna') &&
+       (not $max_type eq 'protein') ) {
+    $self->throw("Reference sequences are in an unknown alphabet '$max_type'.\n");
+  }
+  return $max_type;
+}
 
 
 1;
