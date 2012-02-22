@@ -3183,7 +3183,7 @@ sub database_get_all_oids {
 
 
 sub database_get_all_seqs {
-  # Retrieve all sequence objects from the database. These sequenc objects match
+  # Retrieve all sequence objects from the database. These sequence objects match
   # the output of the database_get_all_oids method.
   my ($self)  = @_;
   my @seqs;
