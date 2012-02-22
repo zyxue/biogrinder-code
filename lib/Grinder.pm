@@ -3018,13 +3018,14 @@ sub database_create {
     die "Error: Cannot use amplicon primers with proteic reference sequences\n";
   }
 
-  # Error if using amplicon on protein database
+  # Error if using wrong direction on protein database
   if ( ($db_alphabet eq 'protein') && ($unidirectional != 1) ) {
     die "Error: Got <unidirectional> = $unidirectional but can only use ".
       "<unidirectional> = 1 with proteic reference sequences\n";
   }
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
+
   return $database;
 }
 

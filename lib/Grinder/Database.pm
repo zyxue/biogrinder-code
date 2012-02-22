@@ -2,186 +2,242 @@ package Grinder::Database;
 
 use strict;
 use warnings;
-use Bio::SeqIO;
+use Bio::DB::Fasta;
 
 use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
 
 sub new {
    my ($class, @args) = @_;
    my $self = $class->SUPER::new(@args);
-   my ($fasta_file, $unidirectional, $forward_reverse_primers, $abundance_file,    
-      $delete_chars, $min_len) = $self->_rearrange([qw(FASTA_FILE UNIDIRECTIONAL
-      FORWARD_REVERSE_PRIMERS ABUNDANCE_FILE DELETE_CHARS MIN_LEN)], @args);
+   my ($fasta_file, $unidirectional, $primers, $abundance_file, $delete_chars,
+      $minimum_length) = $self->_rearrange([qw(FASTA_FILE UNIDIRECTIONAL PRIMERS
+      ABUNDANCE_FILE DELETE_CHARS MINIMUM_LENGTH)], @args);
 
-   #$self->k( defined $k ? $k : 10 );
-   #$self->weights($weights)     if defined $weights;
-   #$self->add_seqs($seqs, $ids) if defined $seqs;
-   #$self->add_file($file)       if defined $file;
+   $minimum_length = 1  if not defined $minimum_length;
+   $self->_set_minimum_length($minimum_length);
 
-   # Defaults
-   $unidirectional = 0 if not defined $unidirectional; # bidirectional
-   $min_len = 1 if not defined $min_len;
+   $delete_chars   = '' if not defined $delete_chars;
+   $self->_set_delete_chars($delete_chars);
 
-   $self->_create($fasta_file, $unidirectional, $forward_reverse_primers,
-      $abundance_file, $delete_chars, $min_len);
+   # Initialize database
+   $self->_create($fasta_file, $abundance_file, $delete_chars, $minimum_length);
+
+   $unidirectional = 0  if not defined $unidirectional; # bidirectional
+   $self->_set_unidirectional($unidirectional);
+
+   ##### Read amplicon primers
+   ####$self->_set_primers($primers) if defined $primers;
+
+  # Error if using amplicon on protein database
+  if ( ($self->get_alphabet eq 'protein') && ($self->get_unidirectional != 1) ) {
+    $self->throw("Got <unidirectional> = $unidirectional but can only use ".
+      "<unidirectional> = 1 with proteic reference sequences\n");
+  }
 
    return $self;
 }
 
 
-#sub k {
-#   my ($self, $val) = @_;
-#   if ($val) {
-#      if ($val < 1) {
-#         $self->throw("Error: The minimum kmer length is 1 but got $val\n");
-#      }
-#      $self->{'k'} = $val;
-#   }
-#   return $self->{'k'};
-#}
+sub _set_primers {
+   my ($self, $val) = @_;
+   $self->{'primers'} = $val;
+   return $self->get_primers;
+}
+
+
+sub get_primers {
+   my ($self) = @_;
+   return $self->{'primers'};
+}
+
+
+sub _set_alphabet {
+   my ($self, $val) = @_;
+   $self->{'alphabet'} = $val;
+   return $self->get_alphabet;
+}
+
+
+sub get_alphabet {
+   my ($self) = @_;
+   return $self->{'alphabet'};
+}
+
+
+sub _set_ids {
+   my ($self, $val) = @_;
+   $self->{'ids'} = $val;
+   return $self->get_ids;
+}
+
+
+sub get_ids {
+   my ($self) = @_;
+   return $self->{'ids'};
+}
+
+
+sub _set_unidirectional {
+   my ($self, $val) = @_;
+   # Error if using wrong direction on protein database
+   if ( ($self->get_alphabet eq 'protein') && ($val != 1) ) {
+      $self->throw("Got <unidirectional> = $val but can only use ".
+         "<unidirectional> = 1 with proteic reference sequences\n");
+   }
+   $self->{'unidirectional'} = $val;
+   return $self->get_unidirectional;
+}
+
+
+sub get_unidirectional {
+   my ($self) = @_;
+   return $self->{'unidirectional'};
+}
+
+
+sub _set_minimum_length {
+   my ($self, $val) = @_;
+   $self->{'minimum_length'} = $val;
+   return $self->get_minimum_length;
+}
+
+
+sub get_minimum_length {
+   my ($self) = @_;
+   return $self->{'minimum_length'};
+}
+
+
+sub _set_delete_chars {
+   my ($self, $val) = @_;
+   $self->{'delete_chars'} = $val;
+   return $self->get_delete_chars;
+}
+
+
+sub get_delete_chars {
+   my ($self) = @_;
+   return $self->{'delete_chars'};
+}
+
+
+sub _set_database {
+   my ($self, $val) = @_;
+   $self->{'database'} = $val;
+   return $self->get_database;
+}
+
+
+sub get_database {
+   my ($self) = @_;
+   return $self->{'database'};
+}
 
 
 sub _create {
-  # Read and import sequences
-  # Parameters:
-  #   * FASTA file containing the sequences or '-' for stdin. REQUIRED
-  #   * Sequencing unidirectionally? 0: no, 1: yes forward, -1: yes reverse
-  #   * Amplicon PCR primers (optional): Should be provided in a FASTA file and
-  #     use the IUPAC convention. If a primer sequence is given, any sequence
-  #     that does not contain the primer (or its reverse complement for the
-  #     reverse primer) is skipped, while any sequence that match is trimmed so
-  #     that it is flush with the primer sequence.
-  #   * Abundance file (optional): To avoid registering sequences in the database
-  #     unless they are needed
-  #   * Delete chars (optional): Characters to delete form the sequences.
-  #   * Minimum sequence size: Skip sequences smaller than that
-  my ($self, $fasta_file, $unidirectional, $forward_reverse_primers,
-    $abundance_file, $delete_chars, $min_len) = @_;
+   # Read and import sequences
+   # Parameters:
+   #   * FASTA file containing the sequences or '-' for stdin. REQUIRED
+   #   * Abundance file (optional): To avoid registering unwanted sequences
+   #   * Delete chars (optional): Characters to delete from the sequences.
+   #   * Minimum sequence size: Skip sequences smaller than that
+   my ($self, $fasta_file, $abundance_file, $delete_chars, $min_len) = @_;
 
-  # Input filehandle
-  if (not defined $fasta_file) {
-    $self->throw("No reference sequences provided\n");
-  }
-  my $in;
-  if ($fasta_file eq '-') {
-    $in = Bio::SeqIO->newFh(
-      -fh     => \*STDIN,
-      -format => 'fasta',
-    );
-  } else {
-    $in = Bio::SeqIO->newFh(
-      -file   => $fasta_file,
-      -format => 'fasta',
-    );
-  }
-  # Regular expression to catch amplicons present in the database
-  my ($forward_regexp, $reverse_regexp);
-  if (defined $forward_reverse_primers) {
-    # Read primers from FASTA file
-    my $primer_in = Bio::SeqIO->newFh(
-      -file   => $forward_reverse_primers,
-      -format => 'fasta',
-    );
-    my $first_primer = <$primer_in>;
-    if (not defined $first_primer) {
-      $self->throw("The file '$forward_reverse_primers' does not contain any primers\n");
-    } else {
-      # Force the alphabet since degenerate primers can look like protein sequences
-      $first_primer->alphabet('dna');
-    }
-    my $second_primer = <$primer_in>;
-    if (defined $second_primer) {
-      $second_primer->alphabet('dna');
-    }
-    undef $primer_in;
-    # Regexp for forward primer and optional reverse complement of reverse primer
-    $forward_regexp = iupac_to_regexp($first_primer->seq);
-    if (defined $second_primer) {
-      $second_primer = $second_primer->revcom;
-      $reverse_regexp = iupac_to_regexp($second_primer->seq);
-    }
-  }
-  # Get list of all IDs with a manually-specified abundance
-  my %ids_to_keep;
-  if ($abundance_file) {
-    my ($ids) = community_read_abundances($abundance_file);
-    for my $comm_num (0 .. $#$ids) {
-      for my $gen_num ( 0 .. scalar @{$$ids[$comm_num]} - 1 ) {
-        my $id = $$ids[$comm_num][$gen_num];
-        $ids_to_keep{$id} = undef;
+   # Get list of all IDs with a manually-specified abundance
+   my %ids_to_keep;
+   my $nof_ids_to_keep = 0;
+   if ($abundance_file) {
+      my ($ids) = community_read_abundances($abundance_file);
+      for my $comm_num (0 .. $#$ids) {
+         for my $gen_num ( 0 .. scalar @{$$ids[$comm_num]} - 1 ) {
+            my $id = $$ids[$comm_num][$gen_num];
+            $ids_to_keep{$id} = undef;
+            $nof_ids_to_keep++;
+         }
       }
-    }
-  }
-  # Process database sequences
-  my %seq_db;      # hash of BioPerl sequence objects (all amplicons)
-  my %seq_ids;     # hash of reference sequence IDs and IDs of their amplicons
-  my %mol_types;    # hash of count of molecule types (dna, rna, protein)
-  while ( my $ref_seq = <$in> ) {
-    # Skip empty sequences
-    next if not $ref_seq->seq;
-    # Record molecule type
-    $mol_types{$ref_seq->alphabet}++;
-    # Skip unwanted sequences
-    my $ref_seq_id = $ref_seq->id;
-    next if (scalar keys %ids_to_keep > 0) && (not exists $ids_to_keep{$ref_seq_id});
-    # If we are sequencing from the reverse strand, reverse complement now
-    if ($unidirectional == -1) {
-      $ref_seq = $ref_seq->revcom;
-    }
-    # Extract amplicons if needed
-    my $amp_seqs;
-    if (defined $forward_regexp) {
-      $amp_seqs = $self->database_extract_amplicons($ref_seq, $forward_regexp,
-        $reverse_regexp, \%ids_to_keep);
-      next if scalar @$amp_seqs == 0;
-    } else {
-      $amp_seqs = [$ref_seq];
-    }
+   }
 
-    for my $amp_seq (@$amp_seqs) {
-      # Remove forbidden chars
-      if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
-        my $clean_seq = $amp_seq->seq;
-        $clean_seq =~ s/[$delete_chars]//gi;
-        $amp_seq->seq($clean_seq);
-      }
+   # Index input file
+   my $db = Bio::DB::Fasta->new($fasta_file, -reindex => 1);
+   $self->_set_database($db);
+
+   # List sequences that are ok to use
+   my @seq_ids;
+   my $nof_seqs;
+   my %mol_types;
+   my $stream = $db->get_PrimarySeq_stream;
+   while (my $seq = $stream->next_seq) {
+
+      # Skip empty sequences
+      next if not $seq->seq;
+
+      # Record molecule type
+      $mol_types{$seq->alphabet}++;
+
+      # Skip unwanted sequences
+      my $seq_id = $seq->id;
+      next if ($nof_ids_to_keep > 0) && (not exists $ids_to_keep{$seq_id});
+
+      # Remove specified characters
+      $seq = $self->_remove_chars($seq, $delete_chars);
+
       # Skip the sequence if it is too small
-      next if $amp_seq->length < $min_len;
-      # Save amplicon sequence and identify them by their unique object reference
-      $seq_db{$amp_seq} = $amp_seq;
-      $seq_ids{$ref_seq_id}{$amp_seq} = undef;
-    }
+      next if $seq->length < $min_len;
 
-  }
-  undef $in; # close the filehandle (maybe?!)
+      # Keep this sequence
+      push @seq_ids, $seq->id;
+      $nof_seqs++;
+   }
 
-  # Error if no usable sequences in the database
-  if (scalar keys %seq_ids == 0) {
-    $self->throw("No genome sequences could be used. If you specified a file ".
-      "of abundances for the genome sequences, make sure that their ID match ".
-      "the ID in the FASTA file. If you specified amplicon primers, verify ".
-      "that they match some genome sequences.\n");
-  }
+   # Error if no usable sequences in the database
+   if ($nof_seqs == 0) {
+      $self->throw("No genome sequences could be used. If you specified a file ".
+         "of abundances for the genome sequences, make sure that their ID match".
+         " the ID in the FASTA file. If you specified amplicon primers, verify ".
+         "that they match some genome sequences.\n");
+   }
 
-  # Determine database type: dna, rna, protein
-  my $db_alphabet = $self->_get_mol_type(\%mol_types);
-  $self->{alphabet} = $db_alphabet;
+   # Determine database type: dna, rna, protein
+   my $db_alphabet = $self->_set_alphabet( $self->_get_mol_type(\%mol_types) );
 
-  # Error if using amplicon on protein database
-  if ( ($db_alphabet eq 'protein') && (defined $forward_reverse_primers) ) {
-    $self->throw("Cannot use amplicon primers with proteic reference sequences\n");
-  }
+   # Record the sequence IDs
+   $self->_set_ids( \@seq_ids );
 
-  # Error if using amplicon on protein database
-  if ( ($db_alphabet eq 'protein') && ($unidirectional != 1) ) {
-    $self->throw("Got <unidirectional> = $unidirectional but can only use ".
-      "<unidirectional> = 1 with proteic reference sequences\n");
-  }
-
-  my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
-  return $database;
+   return $db;
 }
 
+
+sub _remove_chars {
+   # Remove forbidden chars
+   my ($self, $seq, $chars) = @_;
+   if ( defined($chars) && not($chars eq '') ) {
+
+      ####
+      #print "Removing chars: $chars\n";
+      #print "1/ seq->seq: '".$seq->seq."'\n";
+      ####
+
+      my $seq_string = $seq->seq;
+
+      ####
+      #print "   a) seq_string: '".$seq_string."'\n";
+      ####
+
+      $seq_string =~ s/[$chars]//gi;
+
+      ####
+      #print "   b) seq_string: '".$seq_string."'\n";
+      ####
+
+      $seq->seq( $seq_string );
+
+      ####
+      #print "2/ seq->seq: '".$seq->seq."'\n";
+      ####
+
+   }
+   return $seq;
+}
 
 sub _get_mol_type {
   # Given a count of the different molecule types in the database, determine
@@ -213,6 +269,50 @@ sub _get_mol_type {
   }
   return $max_type;
 }
+
+
+
+sub next_seq {
+   my ($self) = @_;
+   # do something about unidirectional
+   # them delete chars
+   # then fetch amplicons
+   # finally remove seqs < min_len
+
+   my $unidirectional = $self->get_unidirectional;
+   my $delete_chars   = $self->get_delete_chars;
+}
+
+#    # If we are sequencing from the reverse strand, reverse complement now
+#    if ($unidirectional == -1) {
+#       $ref_seq = $ref_seq->revcom;
+#    }
+#
+#    # Extract amplicons if needed
+#    my $amp_seqs;
+#    if (defined $forward_regexp) {
+#      $amp_seqs = $self->database_extract_amplicons($ref_seq, $forward_regexp,
+#        $reverse_regexp, \%ids_to_keep);
+#      next if scalar @$amp_seqs == 0;
+#    } else {
+#      $amp_seqs = [$ref_seq];
+#    }
+#
+#    for my $amp_seq (@$amp_seqs) {
+#      # Remove forbidden chars
+#      if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
+#        my $clean_seq = $amp_seq->seq;
+#        $clean_seq =~ s/[$delete_chars]//gi;
+#        $amp_seq->seq($clean_seq);
+#      }
+#      # Skip the sequence if it is too small
+#      next if $amp_seq->length < $min_len;
+#      # Save amplicon sequence and identify them by their unique object reference
+#      $seq_db{$amp_seq} = $amp_seq;
+#      $seq_ids{$ref_seq_id}{$amp_seq} = undef;
+#    }
+#
+#
 
 
 1;
