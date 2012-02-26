@@ -19,14 +19,14 @@ sub new {
    $delete_chars   = '' if not defined $delete_chars;
    $self->_set_delete_chars($delete_chars);
 
-   # Initialize database
-   $self->_create($fasta_file, $abundance_file, $delete_chars, $minimum_length);
+   # Index file, filter sequences and get IDs
+   $self->_init_db($fasta_file, $abundance_file, $delete_chars, $minimum_length);
 
    $unidirectional = 0  if not defined $unidirectional; # bidirectional
    $self->_set_unidirectional($unidirectional);
 
-   ##### Read amplicon primers
-   ####$self->_set_primers($primers) if defined $primers;
+   # Read amplicon primers
+   $self->_set_primers($primers) if defined $primers;
 
   # Error if using amplicon on protein database
   if ( ($self->get_alphabet eq 'protein') && ($self->get_unidirectional != 1) ) {
@@ -38,16 +38,70 @@ sub new {
 }
 
 
-sub _set_primers {
-   my ($self, $val) = @_;
-   $self->{'primers'} = $val;
-   return $self->get_primers;
-}
-
-
 sub get_primers {
    my ($self) = @_;
    return $self->{'primers'};
+}
+
+
+sub _set_primers {
+  my ($self, $forward_reverse_primers) = @_;
+  # Read primer file and convert primers into regular expressions to catch
+  # amplicons present in the database
+  if (defined $forward_reverse_primers) {
+
+    # Read primers from FASTA file
+    my $primer_in = Bio::SeqIO->newFh(
+      -file   => $forward_reverse_primers,
+      -format => 'fasta',
+    );
+
+    # Mandatory first primer
+    my $primer = <$primer_in>;
+    if (not defined $primer) {
+      $self->throw("The file '$forward_reverse_primers' contains no primers\n");
+    }
+    $primer->alphabet('dna'); # Force the alphabet since degenerate primers can look like protein sequences
+    $self->_set_forward_regexp( iupac_to_regexp($primer->seq) );
+    $primer = undef;
+
+    # Take reverse-complement of optional reverse primers
+    $primer = <$primer_in>;
+    if (defined $primer) {
+      $primer->alphabet('dna');
+      $primer = $primer->revcom;
+      $self->_set_reverse_regexp( iupac_to_regexp($primer->seq) );
+    }
+
+  }
+  $self->{'primers'} = $forward_reverse_primers;
+  return $self->get_primers;
+}
+
+
+sub get_forward_regexp {
+   my ($self) = @_;
+   return $self->{'forward_regexp'};
+}
+
+
+sub _set_forward_regexp {
+   my ($self, $val) = @_;
+   $self->{'forward_regexp'} = $val;
+   return $self->get_forward_regexp;
+}
+
+
+sub get_reverse_regexp {
+   my ($self) = @_;
+   return $self->{'reverse_regexp'};
+}
+
+
+sub _set_reverse_regexp {
+   my ($self, $val) = @_;
+   $self->{'reverse_regexp'} = $val;
+   return $self->get_reverse_regexp;
 }
 
 
@@ -134,7 +188,7 @@ sub get_database {
 }
 
 
-sub _create {
+sub _init_db {
    # Read and import sequences
    # Parameters:
    #   * FASTA file containing the sequences or '-' for stdin. REQUIRED

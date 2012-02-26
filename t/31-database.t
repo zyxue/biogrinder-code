@@ -19,6 +19,14 @@ is $db->get_delete_chars, '';
 is_deeply $db->get_ids, ['seq1', 'seq3', 'seq5', 'seq2', 'seq4'];
 
 
+#ok $db = Grinder::Database->new(
+#   -fasta_file     => data('shotgun_database.fa'),
+#   -minimum_length => 200,
+#);
+#is $db->get_minimum_length, 200;
+#is_deeply $db->get_ids, ['seq1', 'seq2'];
+
+
 ok $db = Grinder::Database->new(
    -fasta_file     => data('shotgun_database.fa'),
    -minimum_length => 200,
@@ -32,8 +40,9 @@ ok $db = Grinder::Database->new(
    -delete_chars => 'ac',
 );
 is $db->get_delete_chars, 'ac';
-#### is_deeply $db->get_ids, ['seq3', 'seq4', 'seq5']; #### wrong... not sure why
-
+#is_deeply $db->get_ids, ['seq3', 'seq4', 'seq5']; #### wrong... not sure why?
+#use Data::Dump qw(dump);
+#print Data::Dump::dump($db);
 
 ok $db = Grinder::Database->new(
    -fasta_file   => data('shotgun_database.fa'),
@@ -46,6 +55,9 @@ use Data::Dump qw(dump);
 print Data::Dump::dump($db);
 
 
+### test alphabet like in t/25-molecule-type.t
+
+
 #$db = Grinder::Database->new(
 #   -fasta_file              => data('shotgun_database.fa'),
 #   -unidirectional          => 
@@ -55,5 +67,7 @@ print Data::Dump::dump($db);
 #   -min_len                 => 1;
 #);
 
+
+# next seq for shotgun
 
 done_testing();
