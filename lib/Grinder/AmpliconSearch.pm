@@ -3,6 +3,7 @@ package Grinder::AmpliconSearch;
 use strict;
 use warnings;
 use Bio::SeqIO;
+use Bio::Tools::IUPAC;
 
 use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
 
@@ -35,14 +36,20 @@ sub new {
 
 
 sub _initialize {
-   ### convert forward primer to regexp
-   #$self->_set_forward_regexp( _iupac_to_regexp($forward_primer->seq) );
-   #if (defined $reverse_primer) {
-   #   $primer = $reverse_primer->revcom;
-   #   $self->_set_reverse_regexp( _iupac_to_regexp($reverse_primer->seq) );
-   #}
-   ### take optional reverse primer, reverse complement it and convert to regexp
-   ### start regexp iterator
+   my ($self) = @_;
+   # Convert forward primer to regexp 
+   my $re = Bio::Tools::IUPAC->new( -seq => $self->get_forward_primer() )->regexp;
+   $self->_set_forward_regexp( $re );
+   my $rev_primer = $self->get_reverse_primer;
+   if (defined $rev_primer) {
+      $rev_primer = $rev_primer->revcom;
+      $re = Bio::Tools::IUPAC->new( -seq => $rev_primer )->regexp;
+      $self->_set_reverse_regexp( $re );
+   }
+
+   ######
+   # start regexp iterator
+   ######
 }
 
 
@@ -149,15 +156,10 @@ sub next_amplicon {
    my ($self) = @_;
    $self->_initialize if not defined $self->get_forward_regexp();
 
-   #### retrieve next amplicon or return undef
+   ######
+   # retrieve next amplicon or return undef
+   ######
 }
 
-
-#### Use Bio::Tools::SeqPattern
-sub _iupac_to_regexp {
-  my ($val) = @);
-  return $val;
-}
-####
 
 1;
