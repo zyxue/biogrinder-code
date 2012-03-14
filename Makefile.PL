@@ -16,11 +16,14 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More';
-requires        'Getopt::Euclid'          => '0.3.4';
-requires        'Math::Random::MT'        => '1.13';
-requires        'Bio::SeqIO'              =>  0;
-#requires       'Bio::Root::Root'         =>  0;
-#requires       'Bio::Seq::SimulatedRead' =>  0; # required but packaged here since it is so recent
+requires        'Getopt::Euclid'             => '0.3.4';
+requires        'Math::Random::MT'           => '1.13';
+requires        'Bio::SeqIO'                 =>  0;
+#requires       'Bio::Root::Root'            =>  0;
+# The following modules are recent modules required, but packaged with Grinder
+#requires       'Bio::Seq::SimulatedRead'    =>  0;
+#requires       'Bio::Tools::AmpliconSearch' =>  0;
+#requires       'Bio::SeqFeature::SubSeq'    =>  0;
 
 
 # Dependencies for authors

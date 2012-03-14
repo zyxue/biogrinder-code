@@ -49,7 +49,7 @@ eval { $read = $factory->next_read };
 like $@, qr/error/i;
 
 
-# Remove forbidden characters
+# Delete forbidden characters
 
 ok $factory = Grinder->new(
    -reference_file => data('dirty_database.fa'),
