@@ -10,64 +10,64 @@ use Grinder;
 
 my ($factory, $read, $nof_reads, %got_amplicons, %expected_amplicons);
 
-# Template with several matching amplicons and forward primer only
+####### Template with several matching amplicons and forward primer only
 
-ok $factory = Grinder->new(
-   -reference_file  => data('multiple_amplicon_database.fa'),
-   -forward_reverse => data('forward_primer.fa')            ,
-   -length_bias     => 0                                    ,
-   -unidirectional  => 1                                    ,
-   -read_dist       => 100                                  ,
-   -total_reads     => 100                                  ,
-), 'Forward primer only';
+######ok $factory = Grinder->new(
+######   -reference_file  => data('multiple_amplicon_database.fa'),
+######   -forward_reverse => data('forward_primer.fa')            ,
+######   -length_bias     => 0                                    ,
+######   -unidirectional  => 1                                    ,
+######   -read_dist       => 100                                  ,
+######   -total_reads     => 100                                  ,
+######), 'Forward primer only';
 
-$nof_reads = 0;
-while ( $read = $factory->next_read ) {
-   $nof_reads++;
-   $got_amplicons{$read->seq} = undef;
-   ok_read_forward_only($read, 1, $nof_reads);
-};
-is $nof_reads, 100;
+######$nof_reads = 0;
+######while ( $read = $factory->next_read ) {
+######   $nof_reads++;
+######   $got_amplicons{$read->seq} = undef;
+######   ok_read_forward_only($read, 1, $nof_reads);
+######};
+######is $nof_reads, 100;
 
-%expected_amplicons = (
-   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
-   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTggggg' => undef,
-   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGTggggg' => undef,
-   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'      => undef,
-   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
-);
+######%expected_amplicons = (
+######   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
+######   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTggggg' => undef,
+######   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGTggggg' => undef,
+######   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT'      => undef,
+######   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGTccccc' => undef,
+######);
 
-is_deeply( \%got_amplicons, \%expected_amplicons );
-undef %got_amplicons;
+######is_deeply( \%got_amplicons, \%expected_amplicons );
+######undef %got_amplicons;
 
 
-# Template with several matching amplicons and forward and reverse primers
+####### Template with several matching amplicons and forward and reverse primers
 
-ok $factory = Grinder->new(
-   -reference_file  => data('multiple_amplicon_database.fa'),
-   -forward_reverse => data('forward_reverse_primers.fa')   ,
-   -length_bias     => 0                                    ,
-   -unidirectional  => 1                                    ,
-   -read_dist       => 100                                  ,
-   -total_reads     => 100                                  ,
-), 'Forward and reverse primers';
+######ok $factory = Grinder->new(
+######   -reference_file  => data('multiple_amplicon_database.fa'),
+######   -forward_reverse => data('forward_reverse_primers.fa')   ,
+######   -length_bias     => 0                                    ,
+######   -unidirectional  => 1                                    ,
+######   -read_dist       => 100                                  ,
+######   -total_reads     => 100                                  ,
+######), 'Forward and reverse primers';
 
-$nof_reads = 0;
-while ( $read = $factory->next_read ) {
-   $nof_reads++;
-   $got_amplicons{$read->seq} = undef;
-   ok_read_forward_reverse($read, 1, $nof_reads);
-};
-is $nof_reads, 100;
+######$nof_reads = 0;
+######while ( $read = $factory->next_read ) {
+######   $nof_reads++;
+######   $got_amplicons{$read->seq} = undef;
+######   ok_read_forward_reverse($read, 1, $nof_reads);
+######};
+######is $nof_reads, 100;
 
-%expected_amplicons = (
-   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
-   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
-   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
-   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
-);
-is_deeply( \%got_amplicons, \%expected_amplicons );
-undef %got_amplicons;
+######%expected_amplicons = (
+######   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+######   'AAACTTAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+######   'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
+######   'AAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT' => undef,
+######);
+######is_deeply( \%got_amplicons, \%expected_amplicons );
+######undef %got_amplicons;
 
 
 # Template with several nested amplicons and forward and reverse primers
@@ -94,6 +94,13 @@ is $nof_reads, 100;
    'AAACTTAAAGGAATTGRCGGttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttGTACACACCGCCCGT' => undef,
    'AAACTTAAAGGAATTGACGGggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggGTACACACCGCCCGT' => undef,
 );
+
+
+#####
+use Data::Dumper;
+print "EXPECTED: ".Dumper(\%expected_amplicons);
+print "GOT     : ".Dumper(\%got_amplicons);
+#####
 
 is_deeply( \%got_amplicons, \%expected_amplicons );
 undef %got_amplicons;

@@ -19,14 +19,6 @@ is $db->get_delete_chars, '';
 is_deeply $db->get_ids, ['seq1', 'seq3', 'seq5', 'seq2', 'seq4'];
 
 
-#ok $db = Grinder::Database->new(
-#   -fasta_file     => data('shotgun_database.fa'),
-#   -minimum_length => 200,
-#);
-#is $db->get_minimum_length, 200;
-#is_deeply $db->get_ids, ['seq1', 'seq2'];
-
-
 ok $db = Grinder::Database->new(
    -fasta_file     => data('shotgun_database.fa'),
    -minimum_length => 200,

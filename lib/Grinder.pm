@@ -3089,6 +3089,11 @@ sub database_create {
 
     }
 
+    ####
+    #use Data::Dumper;
+    #print "AMP_SEQS: ".Dumper($amp_seqs);
+    ####
+
 
     for my $amp_seq (@$amp_seqs) {
       # Remove forbidden chars
@@ -3524,13 +3529,13 @@ sub new_subseq {
     my $desc = $newseq->desc;
 
     ####
-    print "DESC1: ".$desc."\n";
+    #print "DESC1: ".$desc."\n";
     ####
 
     $desc =~ s/(reference=\S+)/$1 $amplicon_desc/;
 
     ####
-    print "DESC2: ".$desc."\n\n";
+    #print "DESC2: ".$desc."\n\n";
     ####
 
     $newseq->desc($desc);
