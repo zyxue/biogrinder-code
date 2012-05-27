@@ -1,6 +1,6 @@
 Revision history for Grinder
 
-0.4.x   
+0.4.6   27-May-2012
         When generating kmer-based chimeras, save resources by only calculating
           the kmers of the reference sequences that are going to be used
           (improvement suggested by David Koslicki).

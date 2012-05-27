@@ -15,7 +15,7 @@ use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
 
-use version; our $VERSION = version->declare('0.4.5');
+use version; our $VERSION = version->declare('0.4.6');
 
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
@@ -131,20 +131,14 @@ quality scores in FASTA, QUAL and FASTQ files.
 
 If you use Grinder in your research, please cite:
 
-   Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2011) Grinder: a
-   versatile sequence simulator for environmental shotgun and amplicon datasets
-   
-In review...
+   Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2012), Grinder: a
+   versatile amplicon and shotgun sequence simulator, Nucleic Acids Reseach
 
-   Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
-   GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
-   Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
-   
-Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
+Available from L<http://dx.doi.org/10.1093/nar/gks251>.
 
 =head1 VERSION
 
-0.4.5
+0.4.6
 
 =head1 AUTHOR
 
