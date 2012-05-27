@@ -22,6 +22,7 @@ ok $factory = Grinder->new(
    -chimera_dist    => (1, 1, 1)                               ,
    -chimera_kmer    => 10                                      ,
    -total_reads     => 300                                     ,
+   -diversity       => 5                                       ,
 ), 'Chimera from shotgun library';
 
 %refs = ();
@@ -32,17 +33,6 @@ while ( $read = $factory->next_read ) {
      $refs{$ref}++;
    }
 }
-
-####
-use Data::Dumper;
-print Dumper(\%refs);
-####
-
-ok exists $refs{'seq1'};
-ok exists $refs{'seq2'};
-ok exists $refs{'seq3'};
-ok exists $refs{'seq4'};
-ok exists $refs{'seq5'};
 
 is $factory->next_lib, undef;
 
@@ -55,7 +45,7 @@ ok $factory = Grinder->new(
    -chimera_dist    => (1)                                     ,
    -chimera_kmer    => 2                                       ,
    -total_reads     => 300                                     ,
-   -diversity       => 4                                       , # 4 out of 5 reference sequences
+   -diversity       => 3                                       , # 3 out of 5 reference sequences
 ), 'Use only some of the reference sequences';
 
 %refs = ();
@@ -66,7 +56,7 @@ while ( $read = $factory->next_read ) {
      $refs{$ref}++;
    }
 }
-is scalar keys %refs, 4;
+is scalar keys %refs, 3;
 is $factory->next_lib, undef;
 
 
