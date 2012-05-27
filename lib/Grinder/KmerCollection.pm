@@ -283,7 +283,7 @@ sub filter_shared {
 
  Usage   : $col->counts
  Function: Calculate the total count of each kmer. Counts are affected by the
-           weights you gave to the sequences.
+           weights given to the sequences.
  Args    : * restrict sequences to search to specified sequence ID (optional)
            * starting position from which counting should start (optional)
            * 0 to report counts (default), 1 to report frequencies (normalize to 1)
@@ -344,12 +344,14 @@ sub sources {
            next;
          }
          push @$sources, $source;
-         my $weight = defined $self->weights ? $self->weights->{$source} : 1;
+         my $weight = (defined $self->weights) ? ($self->weights->{$source} || 0) : 1;
          my $count  = $weight * scalar @$positions;
          push @$counts, $count;
          $total += $count;
       }
-      $counts = Grinder::normalize($counts, $total) if $freq; 
+      if ($freq) {
+         $counts = Grinder::normalize($counts, $total) if $total > 0;
+      }
    }
 
    return $sources, $counts;
@@ -378,7 +380,7 @@ sub kmers {
    if (defined $seq_kmers) {
       while ( my ($kmer, $positions) = each %$seq_kmers ) {
          push @$kmers, $kmer;
-         my $weight = defined $self->weights ? $self->weights->{$seq_id} : 1;
+         my $weight = (defined $self->weights) ? ($self->weights->{$seq_id} || 0) : 1;
          my $count  = $weight * scalar @$positions;
          push @$counts, $count;
          $total += $count;
@@ -450,7 +452,7 @@ sub _sum_from_sources {
    while ( my ($source, $positions) = each %$sources ) {
       for my $position (@$positions) {
          if ($position >= $start) {
-            my $weight = defined $self->weights ? $self->weights->{$source} : 1;
+            my $weight = (defined $self->weights) ? ($self->weights->{$source} || 0) : 1;
             $count += $weight;
          }
       }
