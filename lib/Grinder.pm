@@ -1429,7 +1429,7 @@ sub initialize {
   $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
-  # Import genome sequences
+  # Import reference sequences
   my $min_seq_len;
   if ($self->{chimera_dist_cdf}) {
     # Each chimera needs >= 1 bp. Use # sequences required by largest chimera.
@@ -1456,10 +1456,27 @@ sub initialize {
 
   # Count kmers in the database if we need to form kmer-based chimeras
   if ($self->{chimera_perc} && $self->{chimera_kmer}) {
+
+    # Get all wanted sequences (not all the sequences in the database)
+    my %ids_hash;
+    my @ids;
+    my @seqs;
+    for my $c_struct ( @{ $self->{c_structs} } ) {
+      for my $id (@{$c_struct->{ids}}) {
+        if (not exists $ids_hash{$id}) {
+          $ids_hash{$id} = undef;
+          push @ids, $id;
+          push @seqs, $self->database_get_seq($id);
+        }
+      }
+    }
+    %ids_hash = ();
+
+    # Now create a collection of kmers
     $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
       -k    => $self->{chimera_kmer},
-      -seqs => $self->database_get_all_seqs(),
-      -ids  => $self->database_get_all_oids(),
+      -seqs => \@seqs,
+      -ids  => \@ids,
     )->filter_shared(2);
   }
 

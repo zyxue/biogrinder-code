@@ -49,7 +49,7 @@ use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
            -seqs     count kmers in the provided arrayref of sequences (Bio::Seq
                      objects)
            -ids      if specified, index the sequences provided to -seq using the
-                     use the IDs in this arrayref instead of using the sequences
+                     the IDs in this arrayref instead of using the sequences
                      $seq->id() method
            -file     count kmers in the provided file of sequences
            -weights  if specified, assign the abundance of each sequence from the
