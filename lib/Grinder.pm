@@ -15,7 +15,7 @@ use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
 
-use version; our $VERSION = version->declare('0.4.6');
+use version; our $VERSION = version->declare('0.4.7');
 
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
@@ -138,7 +138,7 @@ Available from L<http://dx.doi.org/10.1093/nar/gks251>.
 
 =head1 VERSION
 
-0.4.6
+0.4.7
 
 =head1 AUTHOR
 
