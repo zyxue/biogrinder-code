@@ -450,8 +450,8 @@ sub _sum_from_sources {
    while ( my ($source, $positions) = each %$sources ) {
       for my $position (@$positions) {
          if ($position >= $start) {
-           my $weight = defined $self->weights ? $self->weights->{$source} : 1;
-           $count += $weight;
+            my $weight = defined $self->weights ? $self->weights->{$source} : 1;
+            $count += $weight;
          }
       }
    }

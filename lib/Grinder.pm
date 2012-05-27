@@ -1202,26 +1202,29 @@ sub next_lib {
   # Prepare sampling from this community
   my $c_struct = $self->{c_structs}[$self->{cur_lib}-1];
   if ( defined $c_struct ) {
+
     # Create probabilities of picking genomes from community structure
     $self->{positions} = $self->proba_create($c_struct, $self->{length_bias},
       $self->{copy_bias});
+
     # Calculate needed number of sequences based on desired coverage
     ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
-  }
 
-  # If chimeras are needed, update the kmer collection with sequence abundance
-  my $kmer_col = $self->{chimera_kmer_col};
-  if ($kmer_col) {
-    my $weights;
-    for (my $i = 0; $i < scalar @{$c_struct->{'ids'}}; $i++) {
-      my $id     = $c_struct->{'ids'}->[$i];
-      my $weight = $c_struct->{'abs'}->[$i];
-      $weights->{$id} = $weight;
+    # If chimeras are needed, update the kmer collection with sequence abundance
+    my $kmer_col = $self->{chimera_kmer_col};
+    if ($kmer_col) {
+      my $weights;
+      for (my $i = 0; $i < scalar @{$c_struct->{'ids'}}; $i++) {
+        my $id     = $c_struct->{'ids'}->[$i];
+        my $weight = $c_struct->{'abs'}->[$i];
+        $weights->{$id} = $weight;
+      }
+      $kmer_col->weights($weights);
+      my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
+      $self->{chimera_kmer_arr} = $kmers;
+      $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
     }
-    $kmer_col->weights($weights);
-    my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
-    $self->{chimera_kmer_arr} = $kmers;
-    $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
+
   }
 
   return $c_struct;

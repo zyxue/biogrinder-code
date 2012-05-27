@@ -1,5 +1,10 @@
 Revision history for Grinder
 
+0.4.6   
+        Fixed an "undefined value" error when using Kmer chimeras (reported by
+          David Koslicki).
+        
+
 0.4.5   27-Jan-2012   
         Fixed bug when adding mutations linearly to a 1 bp read (reported by
           Robert Schmieder).
