@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+0.x.x
+        Usage message improvements (reported by Xiao Yang).
+
 0.4.7   27-May-2012
         Requiring Math::Random::MT version 1.14 should fix issues that Windows
           users are having (reported by David Koslicki).

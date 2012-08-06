@@ -642,8 +642,9 @@ Default: homopolymer_dist.default
 
 Specify the percent of reads in amplicon libraries that should be chimeric
 sequences. The 'reference' field in the description of chimeric reads will
-contain the ID of all the reference sequences forming the chimeric template. A
-typical value is 10%. Default: chimera_perc.default %
+contain the ID of all the reference sequences forming the chimeric template.
+A typical value is 10% for amplicons. This option can be used to generate
+chimeric shotgun reads as well. Default: chimera_perc.default %
 
 =for Euclid:
    chimera_perc.type: number, chimera_perc >= 0 && chimera_perc <= 100
@@ -738,10 +739,11 @@ are included in the length specified with the -read_dist option.
 
 =item -di <diversity>... | -diversity <diversity>...
 
-Richness, or number of reference sequences to include in the shotgun libraries.
-Use 0 for the maximum diversity possible (based on the number of reference sequences
-available). Provide one value to make all libraries have the same diversity, or
-one diversity value per library otherwise. Default: diversity.default
+This option specifies alpha diversity, specifically the richness, i.e. reference
+sequences are taken randomly and included in the each library to reach the
+requested richness. Use 0 for the maximum richness possible (based on the number
+of reference sequences available). Provide one value to make all libraries have
+the same diversity, or one richness value per library otherwise. Default: diversity.default
 
 =for Euclid:
    diversity.type: 0+integer
@@ -749,7 +751,8 @@ one diversity value per library otherwise. Default: diversity.default
 
 =item -sp <shared_perc> | -shared_perc <shared_perc>
 
-For multiple libraries, percent of reference sequences they should have in common
+This option controls an aspect of beta-diversity. When creating multiple
+libraries, specify the percent of reference sequences they should have in common
 (relative to the diversity of the least diverse library). Default: shared_perc.default %
 
 =for Euclid:
@@ -759,8 +762,9 @@ For multiple libraries, percent of reference sequences they should have in commo
 
 =item -pp <permuted_perc> | -permuted_perc <permuted_perc>
 
-For multiple libraries, percent of the most-abundant reference sequences to permute
-in rank-abundance. Default: permuted_perc.default %
+This option controls another aspect of beta-diversity. For multiple libraries,
+choose the percent of the most-abundant reference sequences to permute (randomly
+shuffle) the rank-abundance of. Default: permuted_perc.default %
 
 =for Euclid:
    permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
