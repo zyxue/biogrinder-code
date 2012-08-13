@@ -808,9 +808,9 @@ qual_levels.default
 
 =item -fq <fastq_output> | -fastq_output <fastq_output>
 
-Write the generated reads in FASTQ format (Sanger variant) instead of FASTA and
-QUAL. <qual_levels> need to be specified for this option to be effective. 
-Default: fastq_output.default
+Whether to write the generated reads in FASTQ format (Sanger variant) instead of
+FASTA and QUAL or not (1: yes, 0: no). <qual_levels> need to be specified for
+this option to be effective. Default: fastq_output.default
 
 =for Euclid:
    fastq_output.type: integer, fastq_output == 0 || fastq_output == 1
