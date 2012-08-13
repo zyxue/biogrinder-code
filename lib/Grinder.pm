@@ -487,7 +487,7 @@ Important: the insert is defined in the biological sense, i.e. its length includ
 the length of both reads and of the stretch of DNA between them:
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
-       distribution (a typical value is 2,500 bp)
+       distribution (a typical value is 2,500 bp for mate pairs)
 Two distinct reads are generated whether or not the mate pair overlaps. Default:
 insert_dist.default
 
@@ -808,9 +808,9 @@ qual_levels.default
 
 =item -fq <fastq_output> | -fastq_output <fastq_output>
 
-Whether to write the generated reads in FASTQ format (Sanger variant) instead of
-FASTA and QUAL or not (1: yes, 0: no). <qual_levels> need to be specified for
-this option to be effective. Default: fastq_output.default
+Whether to write the generated reads in FASTQ format (with Sanger-encoded
+quality scores) instead of FASTA and QUAL or not (1: yes, 0: no).
+<qual_levels> need to be specified for this option to be effective. Default: fastq_output.default
 
 =for Euclid:
    fastq_output.type: integer, fastq_output == 0 || fastq_output == 1
