@@ -316,7 +316,7 @@ A DNA shotgun library where species are distributed according to a power law
 
 =item 5.
 
-A DNA shotgun library with 123 species
+A DNA shotgun library with 123 genomes taken random from the given genomes
 
    grinder -reference_file genomes.fna -diversity 123
 
