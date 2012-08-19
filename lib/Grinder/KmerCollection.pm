@@ -47,7 +47,7 @@ use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
            -revcom   count kmers before and after reverse-complementing sequences
                      (default: 0)
            -seqs     count kmers in the provided arrayref of sequences (Bio::Seq
-                     objects)
+                     or Bio::SeqFeature objects)
            -ids      if specified, index the sequences provided to -seq using the
                      use the IDs in this arrayref instead of using the sequences
                      $seq->id() method
@@ -181,7 +181,7 @@ sub add_file {
 
  Usage   : $col->add_seqs([$seq1, $seq2]);
  Function: Process the kmers in the given sequences.
- Args    : * arrayref of Bio::Seq objects
+ Args    : * arrayref of Bio::Seq or Bio::SeqFeature objects
            * arrayref of IDs to use for the indexing of the sequences
  Returns : Grinder::KmerCollection object
 
@@ -418,12 +418,21 @@ sub positions {
 
 
 sub _find_kmers {
-   # Find all kmers of size k in a sequence (Bio::Seq) and return a hashref
-   # where the keys are the kmers and the values are the positions of the kmers
-   # in the sequences.
+   # Find all kmers of size k in a sequence (Bio::Seq or Bio::SeqFeature) and
+   # return a hashref where the keys are the kmers and the values are the
+   # positions of the kmers in the sequences.
    my ($self, $seq) = @_;
    my $k = $self->k;
-   my $seq_str = uc $seq->seq; # case-insensitive
+   my $seq_str;
+   if ($seq->isa('Bio::SeqI')) {
+      $seq_str = $seq->seq;
+   } elsif ($seq->isa('Bio::SeqFeatureI')) {
+      $seq_str = $seq->seq->seq;
+   } else {
+      $self->throw('Error: Input sequence is not a Bio::SeqI or Bio::SeqFeatureI'.
+         ' compliant object');
+   }
+   $seq_str = uc $seq_str; # case-insensitive
    my $seq_len = length $seq_str;
    my $hash = {};
    for (my $i = 0; $i <= $seq_len - $k ; $i++) {

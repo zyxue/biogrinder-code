@@ -34,6 +34,7 @@ while ( $read = $factory->next_read ) {
      $refs{$ref}++;
    }
 }
+
 ok exists $refs{'seq1'};
 ok exists $refs{'seq2'};
 ok exists $refs{'seq3'};
