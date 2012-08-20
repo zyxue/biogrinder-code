@@ -424,7 +424,7 @@ sub _find_kmers {
    my ($self, $seq) = @_;
    my $k = $self->k;
    my $seq_str;
-   if ($seq->isa('Bio::SeqI')) {
+   if ($seq->isa('Bio::PrimarySeqI')) {
       $seq_str = $seq->seq;
    } elsif ($seq->isa('Bio::SeqFeatureI')) {
       $seq_str = $seq->seq->seq;
