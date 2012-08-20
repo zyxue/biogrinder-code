@@ -22,6 +22,8 @@ use version; our $VERSION = version->declare('0.4.5');
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
+=encoding utf8
+
 =head1 NAME
 
 Grinder - A versatile omics shotgun and amplicon sequencing read simulator
@@ -135,13 +137,13 @@ If you use Grinder in your research, please cite:
 
    Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2011) Grinder: a
    versatile sequence simulator for environmental shotgun and amplicon datasets
-   
+
 In review...
 
    Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
    GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
    Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
-   
+
 Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
 
 =head1 VERSION
@@ -2021,14 +2023,8 @@ sub next_single_read {
     # Error if we have exceeded the maximum number attempts
     $nof_tries++;
     if ($nof_tries > $max_nof_tries) {
-
-      ####
-      #my $message = "Error: Could not take a random shotgun read without ".
-      #  "forbidden characters from reference sequence ".$genome->id;
       my $message = "Error: Could not take a random shotgun read without ".
         "forbidden characters from reference sequence ".$genome->seq->id;
-      ####
-
       $message .= " ($max_nof_tries attempts made)" if ($max_nof_tries > 1);
       $message .= ".\n";
       die $message;
@@ -2041,13 +2037,6 @@ sub next_single_read {
     # Choose a read size according to the specified distribution
     my $length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
-  
-    ####
-    #print "Want a read of length: $length bp\n";
-    #print "Feature is this long: ".$genome->length." bp\n";
-    #print "Actual sequence is: ".$genome->seq->length." bp\n";
-    ####
-
     # Shorten read length if too long
     $length = $genome->length if $length > $genome->length;
     # Read position on genome or amplicon
@@ -2090,14 +2079,8 @@ sub next_mate_pair {
     # Error if we have exceeded the maximum number of attempts
     $nof_tries++;
     if ($nof_tries > $max_nof_tries) {
-
-      ####
-      #my $message = "Error: Could not take a pair of random shotgun read ".
-      #  "without forbidden characters from reference sequence ".$genome->id;
       my $message = "Error: Could not take a pair of random shotgun read ".
         "without forbidden characters from reference sequence ".$genome->seq->id;
-      ####
-
       $message .= " ($max_nof_tries attempts made)" if ($max_nof_tries > 1);
       $message .= ".\n";
       die $message;
@@ -2540,10 +2523,7 @@ sub rand_chimera_fragments {
     my $seq;
     do {
       $seq = $self->rand_seq($positions, $oids);
-    ####
-    ##} while ($seq->id eq $prev_seq->id);
     } while ($seq->seq->id eq $prev_seq->seq->id);
-    ####
     push @seqs, $seq;
     my $seq_len = $seq->length;
     if ( (not defined $min_len) || ($seq_len < $min_len) ) {
@@ -2591,42 +2571,29 @@ sub assemble_chimera {
       $chimera_ampl .= ',';
     }
 
-    ####
-    #$chimera_id   .= $seq->id;
     my $chimera = $seq->seq;
     $chimera_id .= $chimera->id;
-    ####
+    $chimera_seq  .= $chimera->subseq($start, $end);
 
-    ####
-    #$chimera_seq  .= $seq->subseq($start, $end);
-    $chimera_seq  .= $chimera->subseq($start, $end); # tried but failed??
-    ####
 
-    ####
     if (defined $seq->{_amplicon}) {
       $chimera_ampl .= $seq->{_amplicon};
     }
-    #if ($seq->isa('Bio::SeqFeature::Amplicon')) {
-    #   # Use a split location to replace this (http://www.bioperl.org/wiki/Module:Bio::Location::Split)
-    #   ###$amplicon->{_amplicon} = "$start..$end";
-    #   ###$amplicon->{_amplicon} = "complement($start..$end)";
-    #}
-    ####
   }
 
   # Create a sequence object
-  
-  ####
   my $chimera = Bio::PrimarySeq->new(
     -id  => $chimera_id,
     -seq => $chimera_seq,
   );
-  use Bio::SeqFeature::SubSeq;
+
+  ####
   $chimera = Bio::SeqFeature::SubSeq->new(
     -seq => $chimera,
     #### provide location as split location object
   );
   ####
+
   $chimera->{_amplicon} = $chimera_ampl;
 
   return $chimera;
@@ -2970,34 +2937,6 @@ sub database_create {
     );
   }
 
-###  # Regular expression to catch amplicons present in the database
-###  my ($forward_regexp, $reverse_regexp);
-###  if (defined $forward_reverse_primers) {
-###    # Read primers from FASTA file
-###    my $primer_in = Bio::SeqIO->newFh(
-###      -file   => $forward_reverse_primers,
-###      -format => 'fasta',
-###    );
-###    my $first_primer = <$primer_in>;
-###    if (not defined $first_primer) {
-###      die "Error: The file '$forward_reverse_primers' does not contain any primers\n";
-###    } else {
-###      # Force the alphabet since degenerate primers can look like protein sequences
-###      $first_primer->alphabet('dna');
-###    }
-###    my $second_primer = <$primer_in>;
-###    if (defined $second_primer) {
-###      $second_primer->alphabet('dna');
-###    }
-###    undef $primer_in;
-###    # Regexp for forward primer and optional reverse complement of reverse primer
-###    $forward_regexp = iupac_to_regexp($first_primer->seq);
-###    if (defined $second_primer) {
-###      $second_primer = $second_primer->revcom;
-###      $reverse_regexp = iupac_to_regexp($second_primer->seq);
-###    }
-###  }
-
   # Get list of all IDs with a manually-specified abundance
   my %ids_to_keep;
   if ($abundance_file) {
@@ -3016,12 +2955,6 @@ sub database_create {
     $amplicon_search = Bio::Tools::AmpliconSearch->new(
       -primer_file => $forward_reverse_primers,
     );
-
-    ####
-    #use Data::Dumper;
-    #print "AMPLICON_SEARCH: ".Dumper($amplicon_search);
-    ####
-
   }
 
   # Process database sequences
@@ -3042,17 +2975,6 @@ sub database_create {
     }
 
     # Extract amplicons if needed
-
-###    my $amp_seqs;
-###    if (defined $forward_regexp) {
-###      $amp_seqs = $self->database_extract_amplicons($ref_seq, $forward_regexp,
-###        $reverse_regexp, \%ids_to_keep);
-###      next if scalar @$amp_seqs == 0;
-###    } else {
-###      $amp_seqs = [$ref_seq];
-###    }
-
-    ####
     my $amp_seqs;
     if (defined $amplicon_search) {
       $amplicon_search->template($ref_seq);
@@ -3066,59 +2988,30 @@ sub database_create {
         } else {
           die "Error: Strand should be -1 or 1, but got '".$amp_seq->strand."'\n";
         }
-
-        ####
-        use Data::Dumper;
-        print "AMP_SEQ: ".Dumper($amp_seq);
-        ####
-
         push @$amp_seqs, $amp_seq;
       }
-      ###next if scalar @$amp_seqs == 0;
       next if not defined $amp_seqs;
 
 
     } else {
-
-      #####
-      ###$amp_seqs = [$ref_seq];
       $amp_seqs = [ Bio::SeqFeature::SubSeq->new( -start    => 1,
                                                   -end      => $ref_seq->length,
                                                   -template => $ref_seq,    ) ];
-      ####
-
     }
-
-    ####
-    #use Data::Dumper;
-    #print "AMP_SEQS: ".Dumper($amp_seqs);
-    ####
-
 
     for my $amp_seq (@$amp_seqs) {
       # Remove forbidden chars
       if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
 
         #### Maybe use split location here too
-        #my $clean_seq = $amp_seq->seq;
         my $clean_seq = $amp_seq->seq;
         my $clean_seqstr = $clean_seq->seq;
         my $dirty_length = length $clean_seqstr;
         ####
 
-        ####
-        #print "Chars to delete: $delete_chars\n";
-        #print "Dirty sequence : $clean_seqstr\n";
-        ####
 
-        ####
         $clean_seqstr =~ s/[$delete_chars]//gi;
         my $num_dels = $dirty_length - length $clean_seqstr;
-        ####
-
-        ####
-        #$amp_seq->seq($clean_seq);
-
         if ($num_dels > 0) {
           # Update sequence with cleaned sequence string
           $clean_seq->seq($clean_seqstr);
@@ -3126,12 +3019,6 @@ sub database_create {
           # Adjust (decrease) end of feature
           $amp_seq->end( $amp_seq->end - $num_dels );
         }
-        ####
-
-        ####
-        #print "Deleted $num_dels chars\n";
-        #print "Clean sequence: ".$amp_seq->seq->seq."\n\n";
-        ####
 
       }
       # Skip the sequence if it is too small
@@ -3143,12 +3030,6 @@ sub database_create {
 
   }
   undef $in; # close the filehandle (maybe?!)
-
-  ####
-  #use Data::Dumper;
-  #print "SEQ_IDS: ".Dumper(\%seq_ids);
-  #print "SEQ_DB: ".Dumper(\%seq_db);
-  ####
 
   # Error if no usable sequences in the database
   if (scalar keys %seq_ids == 0) {
@@ -3209,108 +3090,6 @@ sub database_get_mol_type {
 }
 
 
-###sub database_extract_amplicons {
-###  my ($self, $seq, $forward_regexp, $reverse_regexp, $ids_to_keep) = @_;
-###  # A database sequence can have several amplicons, e.g. a genome can have 
-###  # several 16S rRNA genes. Extract all amplicons from a sequence (both strands)
-###  # but take only the shortest when amplicons are nested.
-###  # Fetch amplicons from both strands
-###  # Get amplicons from forward and reverse strand
-###  my $fwd_amplicons = database_extract_amplicons_from_strand($seq, $forward_regexp, $reverse_regexp, 1);
-###  my $rev_amplicons = database_extract_amplicons_from_strand($seq, $forward_regexp, $reverse_regexp, -1);
-###  # Deal with nested amplicons by removing the longest of the two
-###  my $re = qr/(\d+)\.\.(\d+)/;
-###  for (my $rev = 0; $rev < scalar @$rev_amplicons; $rev++) {
-###    my ($rev_start, $rev_end) = ( $rev_amplicons->[$rev]->{_amplicon} =~ m/$re/ );
-###    for (my $fwd = 0; $fwd < scalar @$fwd_amplicons; $fwd++) {
-###      my ($fwd_start, $fwd_end) = ( $fwd_amplicons->[$fwd]->{_amplicon} =~ m/$re/ );
-###      if ( ($fwd_start < $rev_start) && ($rev_end < $fwd_end) ) {
-###        splice @$fwd_amplicons, $fwd, 1; # Remove forward amplicon
-###        $fwd--;
-###        next;
-###      }
-###      if ( ($rev_start < $fwd_start) && ($fwd_end < $rev_end) ) {
-###        splice @$rev_amplicons, $rev, 1; # Remove reverse amplicon
-###        $rev--;
-###      }
-###    }
-###  }
-###  
-###  my $amplicons = [ @$fwd_amplicons, @$rev_amplicons ];
-###  # Complain if primers did not match explicitly specified reference sequence
-###  my $seqid = $seq->id;
-###  if ( (scalar keys %{$ids_to_keep} > 0) &&
-###       (exists $$ids_to_keep{$seqid}   ) &&
-###       (scalar @$amplicons == 0         ) ) {
-###    die "Error: Requested sequence $seqid did not match the specified forward primer.\n";
-###  }
-###  return $amplicons;
-###}
-
-
-###sub database_extract_amplicons_from_strand {
-###  # Get amplicons from the given strand (orientation) of the given sequence.
-###  # For nested amplicons, only the shortest is returned to mimic PCR.
-###  my ($seq, $forward_regexp, $reverse_regexp, $orientation) = @_;
-###  # Reverse-complement sequence if looking at a -1 orientation
-###  my $seqstr;
-###  if ($orientation == 1) {
-###    $seqstr = $seq->seq;
-###  } elsif ($orientation == -1) {
-###    $seqstr = $seq->revcom->seq;
-###  } else {
-###    die "Error: Invalid orientation '$orientation'\n";
-###  }
-###  # Get amplicons from sequence string
-###  my $amplicons = [];
-###  if ( (defined $forward_regexp) && (not defined $reverse_regexp) ) {
-###    while ( $seqstr =~ m/($forward_regexp)/g ) {
-###      my $start = pos($seqstr) - length($1) + 1;
-###      my $end   = $seq->length;
-###      push @$amplicons, database_create_amplicon($seq, $start, $end, $orientation);
-###    }
-###  } elsif ( (defined $forward_regexp) && (defined $reverse_regexp) ) {
-###    while ( $seqstr =~ m/($forward_regexp.*?$reverse_regexp)/g ) {
-###      my $end   = pos($seqstr);
-###      my $start = $end - length($1) + 1;
-###      # Now trim the left end to obtain the shortest amplicon
-###      my $ampliconstr = substr $seqstr, $start - 1, $end - $start + 1;
-###      if ($ampliconstr =~ m/$forward_regexp.*($forward_regexp)/g) {
-###         $start += pos($ampliconstr) - length($1);
-###      }
-###      push @$amplicons, database_create_amplicon($seq, $start, $end, $orientation);
-###    }
-###  } else {
-###    die "Error: Need to provide at least a forward primer\n";
-###  }
-###  return $amplicons;
-###}
-
-
-###sub database_create_amplicon {
-###  # Create an amplicon sequence and register its coordinates
-###  my ($seq, $start, $end, $orientation) = @_;
-###  my $amplicon;
-###  my $coord;
-###  if ($orientation == -1) {
-###    # Calculate coordinates relative to forward strand. For example, given a
-###    # read starting at 10 and ending at 23 on the reverse complement of a 100 bp
-###    # sequence, return complement(77..90).
-###    $amplicon = $seq->revcom->trunc($start, $end);
-###    my $seq_len = $seq->length;
-###    $start = $seq_len - $start + 1;
-###    $end   = $seq_len - $end + 1;
-###    ($start, $end) = ($end, $start);
-###    $coord = "complement($start..$end)";
-###  } else {
-###    $amplicon = $seq->trunc($start, $end);
-###    $coord = "$start..$end";
-###  }
-###  $amplicon->{_amplicon} = $coord;
-###  return $amplicon
-###}
-
-
 sub database_get_all_oids {
   # Retrieve all object IDs from the database. These OIDs match the output of
   # the database_get_all_seqs method.
@@ -3363,13 +3142,7 @@ sub database_get_parent_id {
   # Based on a sequence object ID, retrieve the ID of the reference sequence it
   # came from
   my ($self, $oid) = @_;
-
-  ####
-  ## my $seq_id = $self->database_get_seq($oid)->id; # ORIGINAL
-  ## my $seq_id = $self->database_get_seq($oid)->display_name; # WRONG
   my $seq_id = $self->database_get_seq($oid)->seq->id;
-  ####
-
   return $seq_id;
 }
 
@@ -3501,7 +3274,6 @@ sub new_subseq {
   # Create a new simulated read object
   my $newseq = Bio::Seq::SimulatedRead->new(
      -id          => $newid,
-     ###-reference   => $seq_feat,
      -reference   => $seq_feat->seq,
      -start       => $start,
      -end         => $end,
@@ -3515,29 +3287,9 @@ sub new_subseq {
   # Record location of amplicon on reference sequence in the sequence description
   my $amplicon_desc = $seq_feat->{_amplicon};
   if (defined $amplicon_desc) {
-  #if ($seq_feat->isa('Bio::SeqFeature::Amplicon')) {
-  #  my $amplicon_desc;
-    ####
-    #if ($seq_feat->strand == -1) {
-    #  $amplicon_desc = 'complement('.$seq_feat->start.'..'.$seq_feat->end.')';
-    #} else {
-    #  $amplicon_desc = $seq_feat->start.'..'.$seq_feat->end;
-    #}
-    ####
-
     $amplicon_desc = 'amplicon='.$amplicon_desc;
     my $desc = $newseq->desc;
-
-    ####
-    #print "DESC1: ".$desc."\n";
-    ####
-
     $desc =~ s/(reference=\S+)/$1 $amplicon_desc/;
-
-    ####
-    #print "DESC2: ".$desc."\n\n";
-    ####
-
     $newseq->desc($desc);
   }
 
