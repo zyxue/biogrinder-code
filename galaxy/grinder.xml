@@ -1,4 +1,4 @@
-<tool id="grinder" name="Grinder" version="0.4.5">
+<tool id="grinder" name="Grinder" version="0.4.7">
 
   <description>versatile omic shotgun and amplicon read simulator</description>
 

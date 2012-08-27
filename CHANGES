@@ -1,5 +1,21 @@
 Revision history for Grinder
 
+0.x.x
+        Usage message improvements (reported by Xiao Yang).
+
+0.4.7   27-May-2012
+        Requiring Math::Random::MT version 1.14 should fix issues that Windows
+          users are having (reported by David Koslicki).
+
+0.4.6   27-May-2012
+        When generating kmer-based chimeras, save resources by only calculating
+          the kmers of the reference sequences that are going to be used
+          (improvement suggested by David Koslicki).
+        Fixed an "undefined value" error when using kmer-based chimeras
+          (reported by David Koslicki).
+        Fixed an error when using kmer-based chimeras but not using all the
+          reference sequences (reported by David Koslicki).
+
 0.4.5   27-Jan-2012   
         Fixed bug when adding mutations linearly to a 1 bp read (reported by
           Robert Schmieder).

@@ -17,10 +17,10 @@ resources
 
 build_requires  'Test::More';
 requires        'Getopt::Euclid'             => '0.3.4';
-requires        'Math::Random::MT'           => '1.13';
+requires        'Math::Random::MT'           => '1.16';
 requires        'Bio::SeqIO'                 =>  0;
 #requires       'Bio::Root::Root'            =>  0;
-# The following modules are recent modules required, but packaged with Grinder
+# Modules required, but packaged with Grinder since they are too recent to have had a release yet
 #requires       'Bio::Seq::SimulatedRead'    =>  0;
 #requires       'Bio::Tools::AmpliconSearch' =>  0;
 #requires       'Bio::SeqFeature::SubSeq'    =>  0;

@@ -17,7 +17,7 @@ use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
 
-use version; our $VERSION = version->declare('0.4.5');
+use version; our $VERSION = version->declare('0.4.7');
 
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
@@ -135,20 +135,14 @@ quality scores in FASTA, QUAL and FASTQ files.
 
 If you use Grinder in your research, please cite:
 
-   Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2011) Grinder: a
-   versatile sequence simulator for environmental shotgun and amplicon datasets
+   Angly FE, Willner D, Rohwer F, Hugenholtz P, Tyson GW (2012), Grinder: a
+   versatile amplicon and shotgun sequence simulator, Nucleic Acids Reseach
 
-In review...
-
-   Angly FE, Willner D, Prieto-Davó A, Edwards RA, Schmieder R, et al. (2009) The
-   GAAS Metagenomic Tool and Its Estimations of Viral and Microbial Average Genome
-   Size in Four Major Biomes. PLoS Comput Biol 5(12): e1000593.
-
-Available from L<http://dx.doi.org/10.1371/journal.pcbi.1000593>.
+Available from L<http://dx.doi.org/10.1093/nar/gks251>.
 
 =head1 VERSION
 
-0.4.5
+0.4.7
 
 =head1 AUTHOR
 
@@ -326,7 +320,7 @@ A DNA shotgun library where species are distributed according to a power law
 
 =item 5.
 
-A DNA shotgun library with 123 species
+A DNA shotgun library with 123 genomes taken random from the given genomes
 
    grinder -reference_file genomes.fna -diversity 123
 
@@ -497,7 +491,7 @@ Important: the insert is defined in the biological sense, i.e. its length includ
 the length of both reads and of the stretch of DNA between them:
    0 : off,
    or: insert size distribution in bp, in the same format as the read length
-       distribution (a typical value is 2,500 bp)
+       distribution (a typical value is 2,500 bp for mate pairs)
 Two distinct reads are generated whether or not the mate pair overlaps. Default:
 insert_dist.default
 
@@ -652,8 +646,9 @@ Default: homopolymer_dist.default
 
 Specify the percent of reads in amplicon libraries that should be chimeric
 sequences. The 'reference' field in the description of chimeric reads will
-contain the ID of all the reference sequences forming the chimeric template. A
-typical value is 10%. Default: chimera_perc.default %
+contain the ID of all the reference sequences forming the chimeric template.
+A typical value is 10% for amplicons. This option can be used to generate
+chimeric shotgun reads as well. Default: chimera_perc.default %
 
 =for Euclid:
    chimera_perc.type: number, chimera_perc >= 0 && chimera_perc <= 100
@@ -748,10 +743,11 @@ are included in the length specified with the -read_dist option.
 
 =item -di <diversity>... | -diversity <diversity>...
 
-Richness, or number of reference sequences to include in the shotgun libraries.
-Use 0 for the maximum diversity possible (based on the number of reference sequences
-available). Provide one value to make all libraries have the same diversity, or
-one diversity value per library otherwise. Default: diversity.default
+This option specifies alpha diversity, specifically the richness, i.e. reference
+sequences are taken randomly and included in the each library to reach the
+requested richness. Use 0 for the maximum richness possible (based on the number
+of reference sequences available). Provide one value to make all libraries have
+the same diversity, or one richness value per library otherwise. Default: diversity.default
 
 =for Euclid:
    diversity.type: 0+integer
@@ -759,7 +755,8 @@ one diversity value per library otherwise. Default: diversity.default
 
 =item -sp <shared_perc> | -shared_perc <shared_perc>
 
-For multiple libraries, percent of reference sequences they should have in common
+This option controls an aspect of beta-diversity. When creating multiple
+libraries, specify the percent of reference sequences they should have in common
 (relative to the diversity of the least diverse library). Default: shared_perc.default %
 
 =for Euclid:
@@ -769,8 +766,9 @@ For multiple libraries, percent of reference sequences they should have in commo
 
 =item -pp <permuted_perc> | -permuted_perc <permuted_perc>
 
-For multiple libraries, percent of the most-abundant reference sequences to permute
-in rank-abundance. Default: permuted_perc.default %
+This option controls another aspect of beta-diversity. For multiple libraries,
+choose the percent of the most-abundant reference sequences to permute (randomly
+shuffle) the rank-abundance of. Default: permuted_perc.default %
 
 =for Euclid:
    permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
@@ -814,9 +812,9 @@ qual_levels.default
 
 =item -fq <fastq_output> | -fastq_output <fastq_output>
 
-Write the generated reads in FASTQ format (Sanger variant) instead of FASTA and
-QUAL. <qual_levels> need to be specified for this option to be effective. 
-Default: fastq_output.default
+Whether to write the generated reads in FASTQ format (with Sanger-encoded
+quality scores) instead of FASTA and QUAL or not (1: yes, 0: no).
+<qual_levels> need to be specified for this option to be effective. Default: fastq_output.default
 
 =for Euclid:
    fastq_output.type: integer, fastq_output == 0 || fastq_output == 1
@@ -1206,26 +1204,29 @@ sub next_lib {
   # Prepare sampling from this community
   my $c_struct = $self->{c_structs}[$self->{cur_lib}-1];
   if ( defined $c_struct ) {
+
     # Create probabilities of picking genomes from community structure
     $self->{positions} = $self->proba_create($c_struct, $self->{length_bias},
       $self->{copy_bias});
+
     # Calculate needed number of sequences based on desired coverage
     ($self->{cur_total_reads}, $self->{cur_coverage_fold}) = $self->lib_coverage($c_struct);
-  }
 
-  # If chimeras are needed, update the kmer collection with sequence abundance
-  my $kmer_col = $self->{chimera_kmer_col};
-  if ($kmer_col) {
-    my $weights;
-    for (my $i = 0; $i < scalar @{$c_struct->{'ids'}}; $i++) {
-      my $id     = $c_struct->{'ids'}->[$i];
-      my $weight = $c_struct->{'abs'}->[$i];
-      $weights->{$id} = $weight;
+    # If chimeras are needed, update the kmer collection with sequence abundance
+    my $kmer_col = $self->{chimera_kmer_col};
+    if ($kmer_col) {
+      my $weights;
+      for (my $i = 0; $i < scalar @{$c_struct->{'ids'}}; $i++) {
+        my $id     = $c_struct->{'ids'}->[$i];
+        my $weight = $c_struct->{'abs'}->[$i];
+        $weights->{$id} = $weight;
+      }
+      $kmer_col->weights($weights);
+      my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
+      $self->{chimera_kmer_arr} = $kmers;
+      $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
     }
-    $kmer_col->weights($weights);
-    my ($kmers, $freqs) = $kmer_col->counts(undef, undef, 1);
-    $self->{chimera_kmer_arr} = $kmers;
-    $self->{chimera_kmer_cdf} = $self->proba_cumul($freqs);
+
   }
 
   return $c_struct;
@@ -1430,7 +1431,7 @@ sub initialize {
   $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
     $self->{num_libraries}) if defined $self->{multiplex_ids};
 
-  # Import genome sequences
+  # Import reference sequences
   my $min_seq_len;
   if ($self->{chimera_dist_cdf}) {
     # Each chimera needs >= 1 bp. Use # sequences required by largest chimera.
@@ -1457,10 +1458,27 @@ sub initialize {
 
   # Count kmers in the database if we need to form kmer-based chimeras
   if ($self->{chimera_perc} && $self->{chimera_kmer}) {
+
+    # Get all wanted sequences (not all the sequences in the database)
+    my %ids_hash;
+    my @ids;
+    my @seqs;
+    for my $c_struct ( @{ $self->{c_structs} } ) {
+      for my $id (@{$c_struct->{ids}}) {
+        if (not exists $ids_hash{$id}) {
+          $ids_hash{$id} = undef;
+          push @ids, $id;
+          push @seqs, $self->database_get_seq($id);
+        }
+      }
+    }
+    %ids_hash = ();
+
+    # Now create a collection of kmers
     $self->{chimera_kmer_col} = Grinder::KmerCollection->new(
       -k    => $self->{chimera_kmer},
-      -seqs => $self->database_get_all_seqs(),
-      -ids  => $self->database_get_all_oids(),
+      -seqs => \@seqs,
+      -ids  => \@ids,
     )->filter_shared(2);
   }
 
