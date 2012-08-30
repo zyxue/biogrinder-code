@@ -10,6 +10,7 @@ use File::Spec;
 use List::Util qw(max);
 use Bio::SeqIO;
 use Grinder::KmerCollection;
+use Bio::Location::Split;
 use Bio::Seq::SimulatedRead;
 use Bio::SeqFeature::SubSeq;
 use Bio::Tools::AmpliconSearch;
@@ -2050,6 +2051,7 @@ sub next_single_read {
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
       $self->{positions}, $oids) if $self->{chimera_perc};
+
     # Take a random orientation if needed
     my $orientation = ($self->{unidirectional} != 0) ? 1 : rand_seq_orientation();
     # Choose a read size according to the specified distribution
@@ -2579,40 +2581,33 @@ sub assemble_chimera {
   #   seq1, start1, end1, seq2, start2, end2, ...
   my (@pos) = @_;
 
-  # Create the ID, sequence and amplicon strings
-  my ($chimera_id, $chimera_seq, $chimera_ampl);
+  # Create the ID, sequence and split location
+  my ($chimera_id, $chimera_seq);
+  my $chimera_loc = Bio::Location::Split->new();
   while ( my ($seq, $start, $end) = splice @pos, 0, 3 ) {
+
+    # Add amplicon position
+    $chimera_loc->add_sub_Location( $seq->location );
+
+    # Add amplicon ID
     if (defined $chimera_id) {
       $chimera_id .= ',';
     }
-    if (defined $chimera_ampl) {
-      $chimera_ampl .= ',';
-    }
 
+    # Add subsequence
     my $chimera = $seq->seq;
     $chimera_id .= $chimera->id;
-    $chimera_seq  .= $chimera->subseq($start, $end);
+    $chimera_seq .= $chimera->subseq($start, $end);
 
-
-    if (defined $seq->{_amplicon}) {
-      $chimera_ampl .= $seq->{_amplicon};
-    }
   }
 
   # Create a sequence object
-  my $chimera = Bio::PrimarySeq->new(
-    -id  => $chimera_id,
-    -seq => $chimera_seq,
+  my $chimera = Bio::SeqFeature::SubSeq->new(
+    -seq => Bio::PrimarySeq->new( -id => $chimera_id, -seq => $chimera_seq ),
   );
 
-  ####
-  $chimera = Bio::SeqFeature::SubSeq->new(
-    -seq => $chimera,
-    #### provide location as split location object
-  );
-  ####
-
-  $chimera->{_amplicon} = $chimera_ampl;
+  # Save split location object (a bit hackish)
+  $chimera->{_chimera} = $chimera_loc;
 
   return $chimera;
 }
@@ -2997,20 +2992,9 @@ sub database_create {
     if (defined $amplicon_search) {
       $amplicon_search->template($ref_seq);
       while (my $amp_seq = $amplicon_search->next_amplicon) {
-
-        # Handle coordinates (legacy)
-        if ($amp_seq->strand == 1) {
-          $amp_seq->{_amplicon} = $amp_seq->start.'..'.$amp_seq->end;
-        } elsif ($amp_seq->strand == -1) {
-          $amp_seq->{_amplicon} = 'complement('.$amp_seq->start.'..'.$amp_seq->end.')';
-        } else {
-          die "Error: Strand should be -1 or 1, but got '".$amp_seq->strand."'\n";
-        }
         push @$amp_seqs, $amp_seq;
       }
       next if not defined $amp_seqs;
-
-
     } else {
       $amp_seqs = [ Bio::SeqFeature::SubSeq->new( -start    => 1,
                                                   -end      => $ref_seq->length,
@@ -3021,12 +3005,10 @@ sub database_create {
       # Remove forbidden chars
       if ( (defined $delete_chars) && (not $delete_chars eq '') ) {
 
-        #### Maybe use split location here too
+        ### TODO: Use Bio::Location::Split here as well?
         my $clean_seq = $amp_seq->seq;
         my $clean_seqstr = $clean_seq->seq;
         my $dirty_length = length $clean_seqstr;
-        ####
-
 
         $clean_seqstr =~ s/[$delete_chars]//gi;
         my $num_dels = $dirty_length - length $clean_seqstr;
@@ -3303,9 +3285,8 @@ sub new_subseq {
   );
 
   # Record location of amplicon on reference sequence in the sequence description
-  my $amplicon_desc = $seq_feat->{_amplicon};
-  if (defined $amplicon_desc) {
-    $amplicon_desc = 'amplicon='.$amplicon_desc;
+  if ( $seq_feat->isa('Bio::SeqFeature::Amplicon') || exists($seq_feat->{_chimera}) ) {
+    my $amplicon_desc = gen_subseq_desc($seq_feat);
     my $desc = $newseq->desc;
     $desc =~ s/(reference=\S+)/$1 $amplicon_desc/;
     $newseq->desc($desc);
@@ -3319,6 +3300,35 @@ sub new_subseq {
   }
 
   return $newseq;
+}
+
+
+sub gen_subseq_desc {
+  my ($seq_feat) = @_;
+
+  # Chimera have several locations (a Bio::Location::Split object)
+  my @locations;
+  if (exists $seq_feat->{_chimera}) {
+    @locations = $seq_feat->{_chimera}->sub_Location();
+  } else {
+    @locations = ( $seq_feat->location );
+  } 
+
+  for (my $i = 0; $i <= scalar @locations - 1; $i++) {
+    my $location = $locations[$i];
+    my $strand = $location->strand || 1;
+    if ($strand == 1) {
+      $location = $location->start.'..'.$location->end;
+    } elsif ($strand == -1) {
+      $location = 'complement('.$location->start.'..'.$location->end.')';
+    } else {
+      die "Error: Strand should be -1 or 1, but got '".$location."'\n";
+    }
+    $locations[$i] = $location;
+  }
+
+  my $desc = 'amplicon='.join(',', @locations);
+  return $desc;
 }
 
 
