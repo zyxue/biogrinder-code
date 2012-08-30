@@ -88,6 +88,9 @@ sub _init_db {
       $seq = $self->_remove_chars($seq, $delete_chars);
 
       # Skip the sequence if it is too small
+
+      print "seq is ".$seq->length." bp long\n";
+
       next if $seq->length < $min_len;
 
       # Keep this sequence
@@ -336,10 +339,33 @@ sub _remove_chars {
    # Remove forbidden chars
    my ($self, $seq, $chars) = @_;
    if ( defined($chars) && not($chars eq '') ) {
+
+      ####
+      print "processing sequence ".$seq->id."\n";
+      print "start: ".$seq->length." bp -> ".$seq->seq."\n";
+      ####
+
       my $seq_string = $seq->seq;
       $seq_string =~ s/[$chars]//gi;
+
+      ####
+      print "middle: ".length($seq_string)." bp -> ".$seq_string."\n";
+      use Data::Dumper; print Dumper($seq_string);
+      ####
+
       $seq->seq( $seq_string );
+
+      ####
+      print "end: ".$seq->length." bp -> ".$seq->seq."\n";
+      if (not ($seq->seq eq $seq_string)) {
+         die "Error: WTF\n";
+      }
+      ####
+
    }
+
+
+
    return $seq;
 }
 

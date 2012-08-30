@@ -980,7 +980,7 @@ Returns : Community structure to be used for this library, where $struct->{ids}
 
 Title   : next_read
 
-Function: Create a amplicon or shotgun read  for the current library.
+Function: Create an amplicon or shotgun read for the current library.
 
 Usage   : my $read  = $factory->next_read; # for single read
           my $mate1 = $factory->next_read; # for mate pairs
@@ -1246,7 +1246,7 @@ sub next_read {
         # Generate a new pair of reads
         ($read, my $read2) = $self->next_mate_pair( );
         # Save second read of the pair for later
-        $self->{next_mate} = $read2;        
+        $self->{next_mate} = $read2;
       } else {
         # Use saved read
         $read = $self->{next_mate};
@@ -2929,8 +2929,8 @@ sub database_create {
   #   * Amplicon PCR primers (optional): Should be provided in a FASTA file and
   #     use the IUPAC convention. If a primer sequence is given, any sequence
   #     that does not contain the primer (or its reverse complement for the
-  #     reverse primer) is skipped, while any sequence that match is trimmed so
-  #     that it is flush with the primer sequence.
+  #     reverse primer) is skipped, while any sequence that matches is trimmed
+  #     so that it is flush with the primer sequence
   #   * Abundance file (optional): To avoid registering sequences in the database
   #     unless they are needed
   #   * Delete chars (optional): Characters to delete form the sequences.
