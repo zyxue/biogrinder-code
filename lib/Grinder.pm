@@ -3023,9 +3023,10 @@ sub database_create {
       # Skip the sequence if it is too small
       next if $amp_seq->length < $min_len;
 
-      # Save amplicon sequence and identify them by their unique object reference
-      $seq_db{$amp_seq} = $amp_seq;
-      $seq_ids{$ref_seq_id}{$amp_seq} = undef;
+      # Save amplicon sequence and create a barcode that identifies it
+      my $amp_bc = create_amp_barcode($amp_seq, $ref_seq_id);
+      $seq_db{$amp_bc} = $amp_seq;
+      $seq_ids{$ref_seq_id}{$amp_bc} = undef;
 
     }
 
@@ -3057,6 +3058,24 @@ sub database_create {
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
   return $database;
+}
+
+
+sub create_amp_barcode {
+  # Create a barcode that is unique for each amplicon, store it and return it
+  my ($amp_sf, $ref_seq_id) = @_;
+  my $sep = '/';
+  my @elems = ($ref_seq_id, $amp_sf->start, $amp_sf->end, $amp_sf->strand || 1);
+  #### TODO: do a barcode for amplicons and another for full-length genomes?
+  my $barcode = join $sep, @elems;
+  $amp_sf->{_barcode} = $barcode;
+  return $barcode;
+}
+
+sub get_amp_barcode {
+  # Get the amplicon barcode
+  my ($amp_sf) = @_;
+  return $amp_sf->{_barcode};
 }
 
 
