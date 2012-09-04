@@ -2175,8 +2175,7 @@ sub is_valid {
 sub proba_create {
   my ($self, $c_struct, $size_dep, $copy_bias) = @_;
   # 1/ Calculate size-dependent, copy number-dependent probabilities
-  my $probas = $self->proba_bias_dependency($c_struct, $self->{database}->{db},
-    $size_dep, $copy_bias);
+  my $probas = $self->proba_bias_dependency($c_struct, $size_dep, $copy_bias);
 
   # 2/ Generate proba starting position
   my $positions = $self->proba_cumul($probas);
@@ -2187,7 +2186,7 @@ sub proba_create {
 sub proba_bias_dependency {
   # Affect probability of picking a species by considering genome length or gene
   # copy number bias
-  my ($self, $c_struct, $seq_db, $size_dep, $copy_bias) = @_;
+  my ($self, $c_struct, $size_dep, $copy_bias) = @_;
 
   # Calculate probability
   my $probas;
@@ -3023,9 +3022,11 @@ sub database_create {
       }
       # Skip the sequence if it is too small
       next if $amp_seq->length < $min_len;
+
       # Save amplicon sequence and identify them by their unique object reference
       $seq_db{$amp_seq} = $amp_seq;
       $seq_ids{$ref_seq_id}{$amp_seq} = undef;
+
     }
 
   }
@@ -3055,7 +3056,6 @@ sub database_create {
   }
 
   my $database = { 'db' => \%seq_db, 'ids' => \%seq_ids };
-
   return $database;
 }
 
@@ -3306,7 +3306,7 @@ sub new_subseq {
 sub gen_subseq_desc {
   my ($seq_feat) = @_;
 
-  # Chimera have several locations (a Bio::Location::Split object)
+  # Chimeras have several locations (a Bio::Location::Split object)
   my @locations;
   if (exists $seq_feat->{_chimera}) {
     @locations = $seq_feat->{_chimera}->sub_Location();
