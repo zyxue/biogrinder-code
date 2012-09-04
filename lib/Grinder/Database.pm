@@ -3,6 +3,7 @@ package Grinder::Database;
 use strict;
 use warnings;
 use Bio::DB::Fasta;
+use Bio::PrimarySeq;
 
 use base qw(Bio::Root::Root); # using throw() and _rearrange() methods
 
@@ -87,13 +88,13 @@ sub _init_db {
       # Remove specified characters
       $seq = $self->_remove_chars($seq, $delete_chars);
 
+      # Skip sequence if is not empty
+      next if not defined $seq;
+
       # Skip the sequence if it is too small
-
-      print "seq is ".$seq->length." bp long\n";
-
       next if $seq->length < $min_len;
 
-      # Keep this sequence
+      # Record this sequence
       push @seq_ids, $seq->id;
       $nof_seqs++;
    }
@@ -334,37 +335,29 @@ sub _set_database {
 #}
 
 
-
 sub _remove_chars {
    # Remove forbidden chars
    my ($self, $seq, $chars) = @_;
    if ( defined($chars) && not($chars eq '') ) {
 
-      ####
-      print "processing sequence ".$seq->id."\n";
-      print "start: ".$seq->length." bp -> ".$seq->seq."\n";
-      ####
-
       my $seq_string = $seq->seq;
-      $seq_string =~ s/[$chars]//gi;
+      my $count = ($seq_string =~ s/[$chars]//gi);
 
-      ####
-      print "middle: ".length($seq_string)." bp -> ".$seq_string."\n";
-      use Data::Dumper; print Dumper($seq_string);
-      ####
-
-      $seq->seq( $seq_string );
-
-      ####
-      print "end: ".$seq->length." bp -> ".$seq->seq."\n";
-      if (not ($seq->seq eq $seq_string)) {
-         die "Error: WTF\n";
+      if ( length $seq_string == 0 ) {
+         # All characters were removed
+         $seq = undef;
+      } else {
+         if ($count > 0) {
+            # Some characters were removed.
+            # Cannot modify a sequence from Bio::DB::Fasta. Create a new one if needed.
+            $seq = Bio::PrimarySeq->new(
+               -id  => $seq->id,
+               -seq => $seq_string,
+            );
+         }
       }
-      ####
 
    }
-
-
 
    return $seq;
 }
