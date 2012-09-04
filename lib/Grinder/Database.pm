@@ -68,7 +68,7 @@ sub _init_db {
    $self->_set_database($db);
 
    # List sequences that are ok to use
-   my @seq_ids;
+   my %seq_ids;
    my $nof_seqs;
    my %mol_types;
    
@@ -95,7 +95,7 @@ sub _init_db {
       next if $seq->length < $min_len;
 
       # Record this sequence
-      push @seq_ids, $seq->id;
+      $seq_ids{$seq->id} = undef;
       $nof_seqs++;
    }
 
@@ -111,7 +111,7 @@ sub _init_db {
    my $db_alphabet = $self->_set_alphabet( $self->_get_mol_type(\%mol_types) );
 
    # Record the sequence IDs
-   $self->_set_ids( \@seq_ids );
+   $self->_set_ids( \%seq_ids );
 
    return $db;
 }
@@ -199,7 +199,8 @@ sub _set_alphabet {
 
 sub get_ids {
    my ($self) = @_;
-   return $self->{'ids'};
+   my @ids = keys %{$self->{'ids'}};
+   return \@ids;
 }
 
 
@@ -278,6 +279,45 @@ sub _set_database {
 #   $self->{'stream'} = $val;
 #   return $self->get_stream;
 #}
+
+
+sub get_seq {
+   my ($self, $id) = @_;
+   # Get a sequence from the database. The query format is: id:start..end/strand
+   # Only the id is mandatory. Start and end default to the full-length sequence
+   # and strand defaults to 1.
+
+   # Extract id, start, stop, and strand
+   $id =~ s/\/(.+)$//i;
+   my $strand = $1 || 1;
+   ($id =~ s/:(\d+)..(\d+)$//i);
+   my ($start, $stop) = ($1, $2);
+
+   # Check that sequence is allowed
+   if (not exists $self->{'ids'}->{$id}) {
+      return undef;
+   }
+
+   # Invert start and stop for sequences on reverse strand
+   if ($start && $stop && ($strand < 0) ) {
+      ($start, $stop) = ($stop, $start);
+   }
+
+   #### if forbidden chars, start and stop provided, probably need to remove
+   #### forbidden chars first
+
+   # Get sequence from database
+   my $seq = Bio::PrimarySeq->new(
+      -id     => $id,
+      -seq    => $self->{'database'}->seq($id, $start, $stop),
+   );
+
+   if ( ((not $start) || (not $stop)) && ($strand < 0) ) {
+      $seq = $seq->revcom;
+   }
+
+   return $seq;
+}
 
 
 #sub next_seq {
@@ -504,5 +544,12 @@ sub _get_mol_type {
 
 ###  return $amplicon
 ###}
+
+
+####
+#sub DESTROY {
+# remove indexed files
+#}
+####
 
 1;
