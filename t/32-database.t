@@ -57,6 +57,33 @@ is $seq->id, 'seq5';
 is $seq->seq, 'attttttttt';
 
 
+# Test alphabet
+
+is $db->get_alphabet, 'dna';
+
+ok $db = Grinder::Database->new(
+   -fasta_file     => data('database_dna.fa'),
+);
+is $db->get_alphabet, 'dna';
+
+ok $db = Grinder::Database->new(
+   -fasta_file     => data('database_rna.fa'),
+);
+is $db->get_alphabet, 'rna';
+
+ok $db = Grinder::Database->new(
+   -fasta_file     => data('database_protein.fa'),
+   -unidirectional => 1,
+);
+is $db->get_alphabet, 'protein';
+
+ok $db = Grinder::Database->new(
+   -fasta_file     => data('database_mixed.fa'),
+   -unidirectional => 1,
+);
+is $db->get_alphabet, 'protein';
+
+
 #ok $db = Grinder::Database->new(
 #   -fasta_file   => data('shotgun_database.fa'),
 #   -unidirectional => -1,
@@ -66,9 +93,6 @@ is $seq->seq, 'attttttttt';
 
 #use Data::Dump qw(dump);
 #print Data::Dump::dump($db);
-
-
-### test alphabet like in t/25-molecule-type.t
 
 
 #$db = Grinder::Database->new(

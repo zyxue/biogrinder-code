@@ -30,7 +30,7 @@ sub new {
    # Read amplicon primers
    $self->_set_primers($primers) if defined $primers;
 
-   # Error if using amplicon on protein database
+   # Error if trying to reverse complement a protein database
    if ( ($self->get_alphabet eq 'protein') && ($self->get_unidirectional != 1) ) {
       $self->throw("Got <unidirectional> = $unidirectional but can only use ".
          "<unidirectional> = 1 with proteic reference sequences\n");
@@ -268,19 +268,6 @@ sub _set_database {
 }
 
 
-#sub get_stream {
-#   my ($self) = @_;
-#   return $self->{'stream'};
-#}
-
-
-#sub _set_stream {
-#   my ($self, $val) = @_;
-#   $self->{'stream'} = $val;
-#   return $self->get_stream;
-#}
-
-
 sub get_seq {
    my ($self, $id) = @_;
    # Get a sequence from the database. The query format is: id:start..end/strand
@@ -409,6 +396,7 @@ sub _get_mol_type {
   my ($self, $mol_types) = @_;
   my $max_count = 0;
   my $max_type  = '';
+
   while (my ($type, $count) = each %$mol_types) {
     if ($count > $max_count) {
       $max_count = $count;
@@ -429,7 +417,7 @@ sub _get_mol_type {
   if ( (not $max_type eq 'dna') &&
        (not $max_type eq 'rna') &&
        (not $max_type eq 'protein') ) {
-    $self->throw("Reference sequences are in an unknown alphabet '$max_type'.\n");
+    $self->throw("Reference sequences have an unknown alphabet '$max_type'.\n");
   }
   return $max_type;
 }

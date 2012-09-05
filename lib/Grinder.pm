@@ -3066,7 +3066,9 @@ sub create_amp_barcode {
   my ($amp_sf, $ref_seq_id) = @_;
   my $sep = '/';
   my @elems = ($ref_seq_id, $amp_sf->start, $amp_sf->end, $amp_sf->strand || 1);
-  #### TODO: do a barcode for amplicons and another for full-length genomes?
+
+  #### TODO: follow the spec: id:start..end/strand
+
   my $barcode = join $sep, @elems;
   $amp_sf->{_barcode} = $barcode;
   return $barcode;
