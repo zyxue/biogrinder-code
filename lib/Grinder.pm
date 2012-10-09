@@ -1099,7 +1099,6 @@ sub Grinder {
                                     -file   => ">$out_qual_file" );
     }
 
-
     # Library report
     my $diversity = $factory->{diversity}[$cur_lib-1];
     library_report( $cur_lib, $factory->{alphabet}, $factory->{forward_reverse},
@@ -1593,6 +1592,7 @@ sub community_structures {
     }
     # One or several communities with specified rank-abundances
     $c_structs = community_given_abundances($abundance_file, $seq_ids);
+
     # Calculate number of libraries
     my $got_indep = scalar @$c_structs;
     if ($nof_indep != 1) { # 1 is the default value
@@ -1661,7 +1661,7 @@ sub community_structures {
 
   # Convert sequence IDs to object IDs
   for my $c_struct (@$c_structs) {
-    my ($c_abs, $c_ids) = community_calculate_amplicon_abundance(
+    ($c_struct->{'abs'}, $c_struct->{'ids'}) = community_calculate_amplicon_abundance(
       $c_struct->{'abs'}, $c_struct->{'ids'}, $seq_ids );
   }
 
@@ -2004,22 +2004,15 @@ sub community_calculate_amplicon_abundance {
   # of the species, sorted by decreasing abundance.
 
   # Give amplicons from the same species the same sampling probability
-  my $sum = 0;
   for (my $i  = 0; $i < scalar @$r_spp_ids; $i++) {
     my $species_ab    = $$r_spp_abs[$i];
     my $species_id    = $$r_spp_ids[$i];
     my @amplicon_ids  = keys %{$seq_ids->{$species_id}};
     my $nof_amplicons = scalar @amplicon_ids;
-    my @amplicon_abs  = ($species_ab) x $nof_amplicons;
+    my @amplicon_abs  = ($species_ab / $nof_amplicons) x $nof_amplicons;
     splice @$r_spp_abs, $i, 1, @amplicon_abs;
     splice @$r_spp_ids, $i, 1, @amplicon_ids;
-    $sum += $species_ab * $nof_amplicons;
     $i += $nof_amplicons - 1;
-  }
-
-  # Normalize the relative abundance
-  if ($sum != 1) {
-    $r_spp_abs = normalize($r_spp_abs, $sum);
   }
 
   return $r_spp_abs, $r_spp_ids;
@@ -2176,7 +2169,6 @@ sub proba_create {
   my ($self, $c_struct, $size_dep, $copy_bias) = @_;
   # 1/ Calculate size-dependent, copy number-dependent probabilities
   my $probas = $self->proba_bias_dependency($c_struct, $size_dep, $copy_bias);
-
   # 2/ Generate proba starting position
   my $positions = $self->proba_cumul($probas);
   return $positions;

@@ -1,6 +1,8 @@
 Revision history for Grinder
 
 0.x.x
+        Fixed bug when making amplicon reads using specified relative abundances
+          based on genomes with multiple amplicons (reported by Bertrand Bonnaud).
         Usage message improvements (reported by Xiao Yang).
 
 0.4.7   27-May-2012
