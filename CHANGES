@@ -4,6 +4,7 @@ Revision history for Grinder
         Fixed bug when making amplicon reads using specified relative abundances
           based on genomes with multiple amplicons (reported by Bertrand Bonnaud).
         Usage message improvements (reported by Xiao Yang).
+        Delegated some operations to dedicated modules.
 
 0.4.7   27-May-2012
         Requiring Math::Random::MT version 1.14 should fix issues that Windows
