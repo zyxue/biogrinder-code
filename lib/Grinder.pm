@@ -1139,7 +1139,7 @@ sub diversity_report {
 sub write_community_structure {
   my ($self, $c_struct, $filename) = @_;
   open(OUT, ">$filename") || die("Error: Could not write in file $filename: $!\n");
-  print OUT "# rank\tseqID\trel. abundance\n";
+  print OUT "# rank\tseq_id\trel_abund_perc\n";
   my $diversity = scalar @{$c_struct->{ids}};
   my %species_abs;
   for my $rank ( 1 .. $diversity ) {
@@ -1152,6 +1152,7 @@ sub write_community_structure {
   for my $species_id ( sort { $species_abs{$b} <=> $species_abs{$a} } keys %species_abs ) {
     $rank++;
     my $species_ab = $species_abs{$species_id};
+    $species_ab *= 100; # in percentage
     print OUT "$rank\t$species_id\t$species_ab\n";
   }
   close OUT;

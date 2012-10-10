@@ -1,5 +1,10 @@
 Revision history for Grinder
 
+0.x.x
+        The relative abundances reported by Grinder in the rank file are now
+          expressed as percentage instead of fractional for consistency.
+
+
 0.4.8   10-Oct-2012
         Fixed bug when making amplicon reads using specified relative abundances
           based on genomes with multiple amplicons (reported by Bertrand Bonnaud).
