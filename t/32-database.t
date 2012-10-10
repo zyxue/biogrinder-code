@@ -84,25 +84,21 @@ ok $db = Grinder::Database->new(
 is $db->get_alphabet, 'protein';
 
 
-#ok $db = Grinder::Database->new(
-#   -fasta_file   => data('shotgun_database.fa'),
-#   -unidirectional => -1,
-#);
-#is $db->get_unidirectional, -1;
+####ok $db = Grinder::Database->new(
+####   -fasta_file   => data('shotgun_database.fa'),
+####   -unidirectional => -1,
+####);
+####is $db->get_unidirectional, -1;
 
 
-#use Data::Dump qw(dump);
-#print Data::Dump::dump($db);
-
-
-#$db = Grinder::Database->new(
-#   -fasta_file              => data('shotgun_database.fa'),
-#   -unidirectional          => 
-#   -forward_reverse_primers =>
-#   -abundance_file          =>
-#   -delete_chars            =>
-#   -min_len                 => 1;
-#);
+####$db = Grinder::Database->new(
+####   -fasta_file              => data('shotgun_database.fa'),
+####   -unidirectional          => 
+####   -forward_reverse_primers =>
+####   -abundance_file          =>
+####   -delete_chars            =>
+####   -min_len                 => 1;
+####);
 
 
 # next seq for shotgun
