@@ -338,19 +338,8 @@ sub fit_linear {
    my $ratio_hi = $shape1_hi / $shape2_lo;
    my $ratio_lo = $shape2_hi / $shape1_lo;
 
-   ####
    # Calculate the slope
    my $slope = 2 / ($max - $min);
-   ####
-
-   ####
-   #print "xmin = $min, xmax = $max\n";
-   #print "$shape1_lo < shape1 < $shape1_hi\n";
-   #print "$shape2_lo < shape2 < $shape2_hi\n";
-   #print "$ratio_lo < ratio < $ratio_hi\n";
-   #print "slope = $slope\n";
-   #print "p-value = $chisqpvalue  ->  $chisqtest\n";
-   ####
 
    return $min, $max, $ratio_lo, $ratio_hi, $slope, $chisqpvalue, $chisqtest;
 }

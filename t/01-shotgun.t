@@ -25,16 +25,7 @@ ok $factory = Grinder->new(
    -reference_file => data('shotgun_database_extended.fa'),
    -read_dist      => 48                                  ,
    -total_reads    => 100                                 ,
-
-####
-   -random_seed => 911951880,
-####
-
 ), 'Long arguments';
-
-####
-print "SEED: ".$factory->get_random_seed()."\n";
-####
 
 ok $factory->next_lib;
 
