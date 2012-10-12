@@ -51,6 +51,8 @@ sub ok_mate {
       $letters = 't';
    } elsif ( $source eq 'seq5' ) {
       $letters = 'atg';
+   } elsif ( $source eq 'seq7' ) {
+      $letters = 'a';
    }
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
@@ -58,6 +60,10 @@ sub ok_mate {
    like $read->seq, qr/[$letters]+/;
    my $id = round($nof_reads/2).'/'.($nof_reads%2?1:2);
    is $read->id, $id;
-   is $read->length, 48;
+   if ($source eq 'seq7') {
+      is $read->length, 1;
+   } else {
+      is $read->length, 48;
+   }
 }
 

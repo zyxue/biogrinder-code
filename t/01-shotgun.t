@@ -25,7 +25,16 @@ ok $factory = Grinder->new(
    -reference_file => data('shotgun_database_extended.fa'),
    -read_dist      => 48                                  ,
    -total_reads    => 100                                 ,
+
+####
+   -random_seed => 911951880,
+####
+
 ), 'Long arguments';
+
+####
+print "SEED: ".$factory->get_random_seed()."\n";
+####
 
 ok $factory->next_lib;
 
@@ -61,12 +70,18 @@ sub ok_read {
       $letters = 't';
    } elsif ( $source eq 'seq5' ) {
       $letters = 'atg';
+   } elsif ( $source eq 'seq7' ) {
+      $letters = 'a';
    }
    if ( $req_strand == -1 ) { # Take the reverse complement
       $letters = Bio::PrimarySeq->new( -seq => $letters )->revcom->seq;
    };
    like $read->seq, qr/[$letters]+/;
    is $read->id, $nof_reads;
-   is $read->length, 48;
+   if ($source eq 'seq7') {
+      is $read->length, 1;
+   } else {
+      is $read->length, 48;
+   }
 }
 
