@@ -8,10 +8,11 @@ use Grinder;
 
 
 
-my ($factory, $read, $nof_reads, $delta);
+my ($factory, $read, $nof_reads);
 my %chim_sizes;
 my %refs;
 my %expected;
+my $delta = 0.2;
 
 
 # Bimeras
@@ -118,9 +119,9 @@ while ( $read = $factory->next_read ) {
      $refs{$ref}++;
    }
 }
-between_ok( $chim_sizes{2}, 333.3 * 0.9, 333.3 * 1.1 );
-between_ok( $chim_sizes{3}, 333.3 * 0.9, 333.3 * 1.1 );
-between_ok( $chim_sizes{4}, 333.3 * 0.9, 333.3 * 1.1 );
+between_ok( $chim_sizes{2}, 333.3 * (1-$delta), 333.3 * (1+$delta) );
+between_ok( $chim_sizes{3}, 333.3 * (1-$delta), 333.3 * (1+$delta) );
+between_ok( $chim_sizes{4}, 333.3 * (1-$delta), 333.3 * (1+$delta) );
 ok exists $refs{'seq1'};
 ok exists $refs{'seq2'};
 ok exists $refs{'seq3'};
@@ -153,7 +154,6 @@ while ( $read = $factory->next_read ) {
               'seq2' => 6000 * 6/18,
               'seq3' => 6000 * 8/18, );
 
-$delta = 0.2;
 between_ok $refs{'seq1'}, $expected{'seq1'}*(1-$delta), $expected{'seq1'}*(1+$delta);
 between_ok $refs{'seq2'}, $expected{'seq2'}*(1-$delta), $expected{'seq2'}*(1+$delta);
 between_ok $refs{'seq3'}, $expected{'seq3'}*(1-$delta), $expected{'seq3'}*(1+$delta);
