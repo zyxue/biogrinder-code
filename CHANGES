@@ -1,6 +1,7 @@
 Revision history for Grinder
 
 0.x.x
+        Mate orientation documented for IonTorrent (reported by Mike Imelfort)
         The relative abundances reported by Grinder in the rank file are now
           expressed as percentage instead of fractional for consistency.
 

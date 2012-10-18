@@ -505,9 +505,9 @@ insert_dist.default
 When generating paired-end or mate-pair reads (see <insert_dist>), specify the
 orientation of the reads (F: forward, R: reverse):
 
-   FR:  ---> <---  e.g. Sanger, Illumina paired-end
+   FR:  ---> <---  e.g. Sanger, Illumina paired-end, IonTorrent mate-pair
    FF:  ---> --->  e.g. 454
-   RF:  <--- --->  e.g. Illumina mate-pairs
+   RF:  <--- --->  e.g. Illumina mate-pair
    RR:  <--- <---
 
 Default: mate_orientation.default
