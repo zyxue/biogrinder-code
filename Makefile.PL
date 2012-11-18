@@ -16,7 +16,7 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More';
-requires        'Bio::Root::Version'         => '1.6.901';
+requires        'Bio::Root::Version'         => '1.006902'; # 1.6.902
 requires        'Bio::DB::Fasta'             =>  0;
 requires        'Bio::Location::Split'       =>  0;
 requires        'Bio::PrimarySeq'            =>  0;
