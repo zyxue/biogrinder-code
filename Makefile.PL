@@ -16,6 +16,7 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More';
+requires        'version'                    => '0.77';
 requires        'Getopt::Euclid'             => '0.3.4';
 requires        'Math::Random::MT'           => '1.16';
 requires        'Bio::SeqIO'                 =>  0;
