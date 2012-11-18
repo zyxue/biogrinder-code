@@ -159,7 +159,7 @@ You need to install these dependencies first:
 
 =item *
 
-Perl
+Perl (>= 5.6)
 
 L<http://www.perl.com/download.csp>
 
@@ -179,10 +179,9 @@ for you:
 
 =item *
 
-Bio::SeqIO, Bio::Root::Root, Bio::Seq::SimulatedRead
+Bioperl modules (>=1.6.901).
 
-Part of the Bioperl package. Bio::Seq::SimulatedReads has not been released
-yet and is therefore included here.
+Note that some unreleased Bioperl modules have been included in Grinder.
 
 =item *
 
@@ -190,7 +189,19 @@ Getopt::Euclid (>= 0.3.4)
 
 =item *
 
+List::Util
+
+First released with Perl v5.7.3
+
+=item *
+
 Math::Random::MT (>= 1.13)
+
+=item *
+
+version (>= 0.77)
+
+First released with Perl v5.9.0
 
 =back
 

@@ -16,18 +16,23 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More';
-requires        'version'                    => '0.77';
-requires        'Getopt::Euclid'             => '0.3.4';
-requires        'Math::Random::MT'           => '1.16';
+requires        'Bio::Root::Version'         => '1.6.901';
+requires        'Bio::DB::Fasta'             =>  0;
+requires        'Bio::Location::Split'       =>  0;
+requires        'Bio::PrimarySeq'            =>  0;
+requires        'Bio::Root::Root'            =>  0;
 requires        'Bio::SeqIO'                 =>  0;
-#requires       'Bio::Root::Root'            =>  0;
 # Modules required, but packaged with Grinder since they are too recent to have had a release yet
+#requires       'Bio::SeqFeature::SubSeq'    =>  0;
 #requires       'Bio::Seq::SimulatedRead'    =>  0;
 #requires       'Bio::Tools::AmpliconSearch' =>  0;
-#requires       'Bio::SeqFeature::SubSeq'    =>  0;
+requires        'Getopt::Euclid'             => '0.3.4';
+requires        'List::Util'                 =>  0;     # first released with Perl v5.7.3
+requires        'Math::Random::MT'           => '1.16';
+requires        'version'                    => '0.77'; # first released with Perl v5.9.0
 
 
-# Dependencies for authors
+# Dependencies for authors only
 
 author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
