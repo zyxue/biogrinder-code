@@ -1,9 +1,11 @@
 Revision history for Grinder
 
 0.x.x
+        Speedup by using improved version of Bioperl modules
         Mate orientation documented for IonTorrent (reported by Mike Imelfort)
         The relative abundances reported by Grinder in the rank file are now
           expressed as percentage instead of fractional for consistency.
+        Updated dependencies
 
 
 0.4.8   10-Oct-2012

@@ -241,8 +241,8 @@ methods. Internal methods are usually preceded with a _
 package Bio::DB::IndexedBase;
 
 BEGIN {
-    @AnyDBM_File::ISA = qw(DB_File GDBM_File NDBM_File SDBM_File)
-if(!$INC{'AnyDBM_File.pm'});
+    @AnyDBM_File::ISA = qw(DB_File GDBM_File NDBM_File SDBM_File) 
+        if(!$INC{'AnyDBM_File.pm'});
 }
 
 use strict;
@@ -267,8 +267,6 @@ use constant PROTEIN   => 3;
 use constant DIE_ON_MISSMATCHED_LINES => 1;
 # you can avoid dying if you want but you may get incorrect results
 
-my ($caller, @fileno2path, %filepath2no);
-
 
 =head2 new
 
@@ -281,21 +279,13 @@ my ($caller, @fileno2path, %filepath2no);
 
  Option        Description                                         Default
  -----------   -----------                                         -------
-
  -glob         Glob expression to search for files in directories  *
-
  -makeid       A code subroutine for transforming IDs              None
-
  -maxopen      Maximum size of filehandle cache                    32
-
  -debug        Turn on status messages                             0
-
  -reindex      Force the index to be rebuilt                       0
-
  -dbmargs      Additional arguments to pass to the DBM routine     None
-
  -index_name   Name of the file that will hold the indices
-
  -clean        Remove the index file when finished                 0
 
 The -dbmargs option can be used to control the format of the index. For example,
@@ -306,8 +296,9 @@ you open the index!
 The -makeid option gives you a chance to modify sequence IDs during indexing.
 For example, you may wish to extract a portion of the gi|gb|abc|xyz nonsense
 that GenBank Fasta files use. The original header line can be recovered later.
-The option value should be a code reference that takes a scalar argument and
-returns a scalar result, like this:
+The option value for -makeid should be a code reference that takes a scalar
+argument (the full header line) and returns a scalar or an array of scalars (the
+ID or IDs you want to assign). For example:
 
   $db = Bio::DB::IndexedBase->new('file.fa', -makeid => \&extract_gi);
 
@@ -323,6 +314,11 @@ include the "E<gt>", the ID and the description:
 
  >gi|352962132|ref|NG_030353.1| Homo sapiens sal-like 3 (Drosophila) (SALL3)
 
+In the database, this sequence can now be retrieved by its GI instead of its
+complete ID:
+
+ my $seq = $db->get_Seq_by_id(352962132);
+
 The -makeid option is ignored after the index is constructed.
 
 =cut
@@ -331,7 +327,7 @@ sub new {
     my ($class, $path, %opts) = @_;
 
     my $self = bless {
-        debug       => $opts{-debug},
+        debug       => $opts{-debug}   || 0,
         makeid      => $opts{-makeid},
         glob        => $opts{-glob}    || eval '$'.$class.'::file_glob' || '*',
         maxopen     => $opts{-maxopen} || 32,
@@ -346,6 +342,8 @@ sub new {
         index_name  => $opts{-index_name},
         obj_class   => eval '$'.$class.'::obj_class',
         offset_meth => \&{$class.'::_calculate_offsets'},
+        fileno2path => [],
+        filepath2no => {},
     }, $class;
 
     my ($offsets, $dirname);
@@ -556,8 +554,8 @@ sub path {
 =cut
 
 sub get_PrimarySeq_stream {
-  my $self = shift;
-  return Bio::DB::Indexed::Stream->new($self);
+    my $self = shift;
+    return Bio::DB::Indexed::Stream->new($self);
 }
 
 
@@ -573,10 +571,10 @@ sub get_PrimarySeq_stream {
 =cut
 
 sub get_Seq_by_id {
-  my ($self, $id) = @_;
-  $self->throw('Need to provide a sequence ID') if not defined $id;
-  return if not exists $self->{offsets}{$id};
-  return $self->{obj_class}->new($self, $id);
+    my ($self, $id) = @_;
+    $self->throw('Need to provide a sequence ID') if not defined $id;
+    return if not exists $self->{offsets}{$id};
+    return $self->{obj_class}->new($self, $id);
 }
 
 *get_Seq_by_version = *get_Seq_by_primary_id = *get_Seq_by_acc = \&get_Seq_by_id;
@@ -595,8 +593,8 @@ sub get_Seq_by_id {
 =cut
 
 sub _calculate_offsets {
-   my $self = shift;
-   $self->throw_not_implemented();
+    my $self = shift;
+    $self->throw_not_implemented();
 }
 
 
@@ -949,26 +947,27 @@ sub alphabet {
 =cut
 
 sub file {
-  my ($self, $id) = @_;
-  $self->throw('Need to provide a sequence ID') if not defined $id;
-  my $offset = $self->{offsets}{$id} or return;
-  return $self->_fileno2path((&{$self->{unpackmeth}}($offset))[6]);
+    my ($self, $id) = @_;
+    $self->throw('Need to provide a sequence ID') if not defined $id;
+    my $offset = $self->{offsets}{$id} or return;
+    return $self->_fileno2path((&{$self->{unpackmeth}}($offset))[6]);
 }
 
 
 sub _fileno2path {
     my ($self, $fileno) = @_;
-    return $fileno2path[$fileno];
+    return $self->{fileno2path}->[$fileno];
 }
 
 
 sub _path2fileno {
     my ($self, $path) = @_;
-    if ( not exists $filepath2no{$path} ) {
-        my $fileno = ($filepath2no{$path} = 0+ $self->{fileno}++);
-        $fileno2path[$fileno] = $path;
+    if ( not exists $self->{filepath2no}->{$path} ) {
+        my $fileno = ($self->{filepath2no}->{$path} = 0+ $self->{fileno}++);
+        $self->{fileno2path}->[$fileno] = $path; # Save path
     }
-    return $filepath2no{$path};
+    return $self->{filepath2no}->{$path};
+
 }
 
 
