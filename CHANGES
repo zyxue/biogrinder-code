@@ -1,6 +1,6 @@
 Revision history for Grinder
 
-0.x.x
+0.4.9   20-Nov-2012
         Significant speedup by using improved version of Bioperl modules
           (reported by Ben Woodcroft).
         Fixed bug in RF and FR -oriented mates produced from the reverse-
