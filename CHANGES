@@ -1,13 +1,16 @@
 Revision history for Grinder
 
 0.x.x
-        Speedup by using improved version of Bioperl modules
-        Mate orientation documented for IonTorrent (reported by Mike Imelfort)
+        Significant speedup by using improved version of Bioperl modules
+          (reported by Ben Woodcroft).
+        Fixed bug in RF and FR -oriented mates produced from the reverse-
+          complement of the reference sequence (reported by Mike Imelfort).
+        Mate orientation documented for IonTorrent (reported by Mike Imelfort).
         The relative abundances reported by Grinder in the rank file are now
           expressed as percentage instead of fractional for consistency.
-        Updated dependencies to satisfy older Perl (reported by Stephen Turner)
-        Build the documentation on author-side, not user side, using
-          Module::Install::PodFromEuclid because all dependencies have to be met.
+        Updated dependencies to satisfy older Perl (reported by Stephen Turner).
+        Build the documentation on author-side, not user side (reported by
+          Stephen Turner).
 
 0.4.8   10-Oct-2012
         Fixed bug when making amplicon reads using specified relative abundances

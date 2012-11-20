@@ -1458,7 +1458,7 @@ sub initialize {
   if ( ($self->{alphabet} eq 'protein')     &&
        ($self->{mate_length} != 0)          &&
        (not $self->{mate_orientation} eq 'FF') ) {
-    die "Error: Cannot use <mate_orientation> = FF with proteic reference sequences\n";
+    die "Error: Can only use <mate_orientation> FF with proteic reference sequences\n";
   }
 
   # Genome relative abundance in the different independent libraries to create
@@ -2122,28 +2122,31 @@ sub next_mate_pair {
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
-    # First mate read
-    my $read_length = rand_seq_length($self->{read_length}, $self->{read_model},
-      $self->{read_delta});
-    my $seq_start   = $mate_start;
-    my $seq_end     = $mate_start + $read_length - 1;
-    my $mate_orientation = $orientation * $mate_1_orientation;
+    # Determine mate-pair position
+    my $read_length = rand_seq_length($self->{read_length}, $self->{read_model}, $self->{read_delta});
+    my $seq_1_start = $mate_start;
+    my $seq_1_end   = $mate_start + $read_length - 1;
+    $read_length    = rand_seq_length($self->{read_length}, $self->{read_model}, $self->{read_delta});
+    my $seq_2_start = $mate_end - $read_length + 1;
+    my $seq_2_end   = $mate_end;
+    if ($orientation == -1) {
+       $mate_1_orientation = $orientation * $mate_1_orientation;
+       $mate_2_orientation = $orientation * $mate_2_orientation;
+       ($seq_1_start, $seq_2_start) = ($seq_2_start, $seq_1_start);
+       ($seq_1_end  , $seq_2_end  ) = ($seq_2_end  , $seq_1_end  );
+    }
+    # Generate first mate read
     $shotgun_seq_1  = new_subseq($pair_num, $genome, $self->{unidirectional},
-      $mate_orientation, $seq_start, $seq_end, $mid, '1', $lib_num, $self->{desc_track},
+      $mate_1_orientation, $seq_1_start, $seq_1_end, $mid, '1', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
     if ($self->{exclude_chars} && not is_valid($shotgun_seq_1, $self->{exclude_chars})) {
       next;
     }
-    # Second mate read
-    $read_length   = rand_seq_length($self->{read_length}, $self->{read_model},
-      $self->{read_delta});
-    $seq_start     = $mate_end - $read_length + 1;
-    $seq_end       = $mate_end;
-    $mate_orientation = $orientation * $mate_2_orientation;
+    # Generate second mate read
     $shotgun_seq_2 = new_subseq($pair_num, $genome, $self->{unidirectional},
-      $mate_orientation, $seq_start, $seq_end, $mid, '2', $lib_num, $self->{desc_track},
+      $mate_2_orientation, $seq_2_start, $seq_2_end, $mid, '2', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_2 = $self->rand_seq_errors($shotgun_seq_2)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
@@ -3279,6 +3282,7 @@ sub new_subseq {
   # we can trace back where it came from
   my ($fragnum, $seq_feat, $unidirectional, $orientation, $start, $end, $mid,
     $mate_number, $lib_number, $tracking, $qual_levels) = @_;
+
   # If the length is too short for this read, no choice but to decrease it.
   $start = 1 if $start < 1;
   $end   = $seq_feat->length if $end > $seq_feat->length;
@@ -3316,7 +3320,7 @@ sub new_subseq {
     $newseq->desc($desc);
   }
 
-  # Database sequences were already reverse complemented if reverse sequencing
+  # Database sequences were already reverse-complemented if reverse sequencing
   # was requested
   if ($unidirectional == -1) {
     $orientation *= -1;
