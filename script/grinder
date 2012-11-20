@@ -22,7 +22,6 @@ use warnings;
 use FindBin qw($Bin);
 use lib "$Bin";
 use Grinder;
-use version;
 Grinder::Grinder(@ARGV);
 exit;
 

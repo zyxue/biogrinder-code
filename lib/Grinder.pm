@@ -17,7 +17,6 @@ use Bio::Tools::AmpliconSearch;
 use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
-
 use version; our $VERSION = version->declare('0.4.8');
 
 
