@@ -24,8 +24,7 @@ ok $factory = Grinder->new(
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
    # insert size includes mate1 + spacer + mate2
-   my $insert_length = abs($mate2->end - $mate1->start + 1);
-   push @ilengths, $insert_length;
+   push @ilengths, insert_length($mate1, $mate2);
 };
 
 ($min, $max, $mean, $stddev) = stats(\@ilengths);
@@ -48,8 +47,7 @@ ok $factory = Grinder->new(
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
    # insert size includes mate1 + spacer + mate2
-   my $insert_length = abs($mate2->end - $mate1->start + 1);
-   push @ilengths, $insert_length;
+   push @ilengths, insert_length($mate1, $mate2);
 };
 
 ($min, $max, $mean, $stddev) = stats(\@ilengths);
@@ -82,8 +80,7 @@ ok $factory = Grinder->new(
 while ( $mate1 = $factory->next_read ) {
    $mate2 = $factory->next_read;
    # insert size includes mate1 + spacer + mate2
-   my $insert_length = abs($mate2->end - $mate1->start + 1);
-   push @ilengths, $insert_length;
+   push @ilengths, insert_length($mate1, $mate2);
 };
 
 ($min, $max, $mean, $stddev) = stats(\@ilengths);
@@ -102,4 +99,14 @@ SKIP: {
 @ilengths = ();
 
 done_testing();
+
+
+sub insert_length {
+   my ($mate1, $mate2) = @_;
+   if ($mate1->end > $mate2->end) {
+      ($mate1, $mate2) = ($mate2, $mate1);
+   }
+   my $length = $mate2->end - $mate1->start + 1;
+   return $length;
+}
 

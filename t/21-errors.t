@@ -183,7 +183,7 @@ $prof = hist(\@epositions, 1, 100);
 ($min, $max, $mean, $stddev) = stats($prof);
 between_ok( $$prof[0] ,    1,   27 ); # exp. number of errors at 1st  is 10 (1%)
 between_ok( $$prof[49],    7,   67 ); # exp. number of errors at 50th is 37.4 (3.74%)
-between_ok( $$prof[-1],  418,  480 ); # exp. number of errors at last is 449 (44.9%)
+between_ok( $$prof[-1],  410,  488 ); # exp. number of errors at last is 449 (44.9%)
 between_ok( $mean     ,   97,  103 ); # exp. mean number of errors is 100 (10.02%)
 
 SKIP: {
