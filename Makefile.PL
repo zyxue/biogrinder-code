@@ -15,7 +15,7 @@ resources
 
 # Dependencies for everyone
 
-build_requires  'Test::More';
+build_requires  'Test::More'                 =>  0; # first released with Perl v5.6.2
 requires        'Bio::Root::Version'         => '1.006902'; # 1.6.902
 requires        'Bio::DB::Fasta'             =>  0;
 requires        'Bio::Location::Split'       =>  0;
@@ -37,6 +37,7 @@ requires        'version'                    => '0.77'; # first released with Pe
 author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
+author_requires 'Module::Install::PodFromEuclid';
 author_requires 'Module::Install::ReadmeFromPod' => 0.14;
 author_requires 'Module::Install::AutoManifest';
 author_requires 'Statistics::R'  => '0.21';
@@ -87,17 +88,15 @@ auto_doc();
 
 sub auto_doc {
    print "*** Building doc...\n";
-   # Generate script/grinder.pod
-   my @args = ($^X, '-Ilib', 'script/grinder', '--podfile');
-   system(@args) == 0 or die "System call to '@args' failed:\n$?\n";
+   pod_from 'script/grinder';
    my $grinder = 'script/grinder.pod';
    my $script1 = 'utils/average_genome_size';
    my $script2 = 'utils/change_paired_read_orientation';
+   my $clean   = 1;
    my $man_dir = 'man';
    if (not -d $man_dir) {
       mkdir $man_dir or die "Could not write folder $man_dir:\n$!\n";
    }
-   my $clean   = 1;
    readme_from $grinder, $clean, 'txt', 'README';
    readme_from $grinder, $clean, 'htm', 'README.htm';
    readme_from $grinder, $clean, 'man', "$man_dir/grinder.1";
