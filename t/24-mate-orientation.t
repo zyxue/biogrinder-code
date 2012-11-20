@@ -10,6 +10,9 @@ use Grinder;
 
 my ($factory, $read, $nof_reads);
 
+
+# FR-oriented mates
+
 ok $factory = Grinder->new(
    -reference_file   => data('oriented_database.fa'),
    -total_reads      => 100                         ,
@@ -19,19 +22,39 @@ ok $factory = Grinder->new(
    -mate_orientation => 'FR'                        ,
 ), 'FR-oriented mates';
 
-ok $factory->next_lib;
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   if ( is_first_mate($nof_reads) ) {
+      ok_mate_1_F($read);
+   } else {
+      ok_mate_2_R($read);
+   }
+};
+is $nof_reads, 100;
+
+ok $factory = Grinder->new(
+   -reference_file   => data('oriented_database.fa'),
+   -total_reads      => 100                         ,
+   -read_dist        => 80                          ,
+   -insert_dist      => 240                         ,
+   -unidirectional   => -1                          ,
+   -mate_orientation => 'FR'                        ,
+);
 
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
    if ($nof_reads % 2 == 1) {
-      ok_mate_1_F($read);
+      ok_mate_2_R($read);
    } else {
-      ok_mate_2_R($read)
+      ok_mate_1_F($read);
    }
 };
 is $nof_reads, 100;
 
+
+# FF-oriented mates
 
 ok $factory = Grinder->new(
    -reference_file   => data('oriented_database.fa'),
@@ -42,19 +65,39 @@ ok $factory = Grinder->new(
    -mate_orientation => 'FF'                        ,
 ), 'FF-oriented mates';
 
-ok $factory->next_lib;
-
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
-   if ($nof_reads % 2 == 1) {
+   if ( is_first_mate($nof_reads) ) {
       ok_mate_1_F($read);
    } else {
-      ok_mate_2_F($read)
+      ok_mate_2_F($read);
    }
 };
 is $nof_reads, 100;
 
+ok $factory = Grinder->new(
+   -reference_file   => data('oriented_database.fa'),
+   -total_reads      => 100                         ,
+   -read_dist        => 80                          ,
+   -insert_dist      => 240                         ,
+   -unidirectional   => -1                          ,
+   -mate_orientation => 'FF'                        ,
+);
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   if ( is_first_mate($nof_reads) ) {
+      ok_mate_2_R($read);
+   } else {
+      ok_mate_1_R($read);
+   }
+};
+is $nof_reads, 100;
+
+
+# RF-oriented mates
 
 ok $factory = Grinder->new(
    -reference_file   => data('oriented_database.fa'),
@@ -65,19 +108,39 @@ ok $factory = Grinder->new(
    -mate_orientation => 'RF'                        ,
 ), 'RF-oriented mates';
 
-ok $factory->next_lib;
-
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
-   if ($nof_reads % 2 == 1) {
+   if ( is_first_mate($nof_reads) ) {
       ok_mate_1_R($read);
    } else {
-      ok_mate_2_F($read)
+      ok_mate_2_F($read);
    }
 };
 is $nof_reads, 100;
 
+ok $factory = Grinder->new(
+   -reference_file   => data('oriented_database.fa'),
+   -total_reads      => 100                         ,
+   -read_dist        => 80                          ,
+   -insert_dist      => 240                         ,
+   -unidirectional   => -1                          ,
+   -mate_orientation => 'RF'                        ,
+);
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   if ( is_first_mate($nof_reads) ) {
+      ok_mate_2_F($read);
+   } else {
+      ok_mate_1_R($read)
+   }
+};
+is $nof_reads, 100;
+
+
+# RR-oriented mates
 
 ok $factory = Grinder->new(
    -reference_file   => data('oriented_database.fa'),
@@ -88,18 +151,37 @@ ok $factory = Grinder->new(
    -mate_orientation => 'RR'                        ,
 ), 'RR-oriented mates';
 
-ok $factory->next_lib;
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+   if ( is_first_mate($nof_reads) ) {
+      ok_mate_1_R($read);
+   } else {
+      ok_mate_2_R($read);
+   }
+};
+is $nof_reads, 100;
+
+ok $factory = Grinder->new(
+   -reference_file   => data('oriented_database.fa'),
+   -total_reads      => 100                         ,
+   -read_dist        => 80                          ,
+   -insert_dist      => 240                         ,
+   -unidirectional   => -1                          ,
+   -mate_orientation => 'RR'                        ,
+);
 
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
    $nof_reads++;
-   if ($nof_reads % 2 == 1) {
-      ok_mate_1_R($read);
+   if ( is_first_mate($nof_reads) ) {
+      ok_mate_2_F($read);
    } else {
-      ok_mate_2_R($read)
+      ok_mate_1_F($read);
    }
 };
 is $nof_reads, 100;
+
 
 done_testing();
 
@@ -164,3 +246,11 @@ sub ok_mate {
    is $read->length, 48;
 }
 
+
+sub is_first_mate {
+   # Given the number of a read, is this one the first mate in a pair?
+   # This assume that your count is 1-based and that first and second mate
+   # alternate, starting with a first mate.
+   my ($read_num) = @_;
+   return ($read_num % 2) ? 1 : 0;
+}
