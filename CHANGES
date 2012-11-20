@@ -5,8 +5,7 @@ Revision history for Grinder
         Mate orientation documented for IonTorrent (reported by Mike Imelfort)
         The relative abundances reported by Grinder in the rank file are now
           expressed as percentage instead of fractional for consistency.
-        Updated dependencies
-
+        Updated dependencies to satisfy older Perl (reported by Stephen Turner)
 
 0.4.8   10-Oct-2012
         Fixed bug when making amplicon reads using specified relative abundances
