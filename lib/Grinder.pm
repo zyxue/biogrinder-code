@@ -542,7 +542,7 @@ Default: 'exclude_chars.default'
 =item -dc <delete_chars> | -delete_chars <delete_chars>
 
 Remove the specified characters from the reference sequences (case-insensitive),
-e.g. '-.*' to renove gaps (- or .) or terminator (*). Removing these characters
+e.g. '-~*' to remove gaps (- or ~) or terminator (*). Removing these characters
 is done once, when reading the reference sequences, prior to taking reads. Hence
 it is more efficient than <exclude_chars>. Default: delete_chars.default
 
@@ -1441,6 +1441,11 @@ sub initialize {
         "Try increasing the mate insert length or decreasing the read length\n");
     }
   }
+
+  # Pre-compile regular expression to check if reads are valid
+  if ( (defined $self->{exclude_chars}) && (not $self->{exclude_chars} eq '') ) {
+    $self->{exclude_re} = qr/[${\$self->{exclude_chars}}]/i; # Match any of the chars
+  }
   
   # Read MIDs
   $self->{multiplex_ids} = $self->read_multiplex_id_file($self->{multiplex_ids}, 
@@ -2078,7 +2083,7 @@ sub next_single_read {
     $shotgun_seq = $self->rand_seq_errors($shotgun_seq)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
   } while (
-    $self->{exclude_chars} && not is_valid($shotgun_seq, $self->{exclude_chars})
+    $self->{exclude_re} && not $self->is_valid($shotgun_seq)
   );
   return $shotgun_seq;
 }
@@ -2145,7 +2150,7 @@ sub next_mate_pair {
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
-    if ($self->{exclude_chars} && not is_valid($shotgun_seq_1, $self->{exclude_chars})) {
+    if ($self->{exclude_re} && not $self->is_valid($shotgun_seq_1)) {
       next;
     }
     # Generate second mate read
@@ -2154,7 +2159,7 @@ sub next_mate_pair {
       $self->{qual_levels});
     $shotgun_seq_2 = $self->rand_seq_errors($shotgun_seq_2)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
-    if ($self->{exclude_chars} && not is_valid($shotgun_seq_2, $self->{exclude_chars})) {
+    if ($self->{exclude_re} && not $self->is_valid($shotgun_seq_2)) {
       next;
     }
     # Both shotgun reads were valid
@@ -2169,16 +2174,10 @@ sub is_valid {
   # of the specified forbidden characters), 0 otherwise. Specify the forbidden
   # characters as a single string, e.g. 'N-' to prevent any reads to have 'N' or
   # '-'. The search is case-insensitive.
-  my ($seq, $fchars) = @_;
-  if ( (not defined $fchars) || ($fchars eq '') ) {
-    # no forbidden chars
-    return 1;
-  }
-  if ((not defined $seq) || ($seq->seq eq '') || ($seq->seq =~ /[$fchars]/gi)) {
-    # invalid sequence
+  my ($self, $seq) = @_;
+  if ($seq->seq =~ $self->{exclude_re}) {
     return 0;
   }
-  # sequence passed all checks
   return 1;
 }
 
