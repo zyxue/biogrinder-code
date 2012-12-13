@@ -529,8 +529,10 @@ Default: mate_orientation.default
 
 =item -ec <exclude_chars> | -exclude_chars <exclude_chars>
 
-Do not create reads containing any of the specified characters (case 
-insensitive), e.g. 'N-' to prevent reads with gaps (-) or ambiguities (N). 
+Do not create reads containing any of the specified characters (case insensitive).
+For example, use 'NX' to prevent reads with ambiguities (N or X). Grinder will
+error if it fails to find a suitable read (or pair of reads) after 10 attempts.
+Consider using <delete_chars>, which may be more appropriate for your case.
 Default: 'exclude_chars.default'
 
 =for Euclid:
@@ -540,7 +542,9 @@ Default: 'exclude_chars.default'
 =item -dc <delete_chars> | -delete_chars <delete_chars>
 
 Remove the specified characters from the reference sequences (case-insensitive),
-e.g. 'N-' to renove gaps (-) and ambiguities (N). Default: delete_chars.default
+e.g. '-.*' to renove gaps (- or .) or terminator (*). Removing these characters
+is done once, when reading the reference sequences, prior to taking reads. Hence
+it is more efficient than <exclude_chars>. Default: delete_chars.default
 
 =for Euclid:
    delete_chars.type: string
@@ -2097,7 +2101,7 @@ sub next_mate_pair {
   # Choose a random genome
   my $genome = $self->rand_seq($self->{positions}, $oids);
 
-  my $nof_tries      = 0;
+  my $nof_tries = 0;
   my ($shotgun_seq_1, $shotgun_seq_2);
   while (1) {
     # Error if we have exceeded the maximum number of attempts
@@ -2136,7 +2140,7 @@ sub next_mate_pair {
        ($seq_1_end  , $seq_2_end  ) = ($seq_2_end  , $seq_1_end  );
     }
     # Generate first mate read
-    $shotgun_seq_1  = new_subseq($pair_num, $genome, $self->{unidirectional},
+    $shotgun_seq_1 = new_subseq($pair_num, $genome, $self->{unidirectional},
       $mate_1_orientation, $seq_1_start, $seq_1_end, $mid, '1', $lib_num, $self->{desc_track},
       $self->{qual_levels});
     $shotgun_seq_1 = $self->rand_seq_errors($shotgun_seq_1)
