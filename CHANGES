@@ -1,5 +1,10 @@
 Revision history for Grinder
 
+0.5.0   14-Jan-2013
+        Removed the =encoding statement which was breaking Pod::PlainText
+           (reported by Lauren Bragg)
+        Precompile <exclude_chars> regular expression
+
 0.4.9   20-Nov-2012
         Significant speedup by using improved version of Bioperl modules
           (reported by Ben Woodcroft).
