@@ -22,8 +22,6 @@ use version; our $VERSION = version->declare('0.4.9');
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
 
-=encoding utf8
-
 =head1 NAME
 
 Grinder - A versatile omics shotgun and amplicon sequencing read simulator
