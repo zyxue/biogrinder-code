@@ -756,11 +756,11 @@ are included in the length specified with the -read_dist option.
 
 =item -di <diversity>... | -diversity <diversity>...
 
-This option specifies alpha diversity, specifically the richness, i.e. reference
-sequences are taken randomly and included in the each library to reach the
-requested richness. Use 0 for the maximum richness possible (based on the number
-of reference sequences available). Provide one value to make all libraries have
-the same diversity, or one richness value per library otherwise. Default: diversity.default
+This option specifies alpha diversity, specifically the richness, i.e. number of
+reference sequences to take randomly and include in each library. Use 0 for the
+maximum richness possible (based on the number of reference sequences available).
+Provide one value to make all libraries have the same diversity, or one richness
+value per library otherwise. Default: diversity.default
 
 =for Euclid:
    diversity.type: 0+integer
