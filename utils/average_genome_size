@@ -141,7 +141,7 @@ sub read_rel_ab {
       # Data to keep
       my $rank = $1;
       my $id = $2;
-      my $ab = $3;
+      my $ab = $3/100; # between 0 and 1
       $rel_ab{$id} = $ab;
     } else {
       # Unknown format to ignore
