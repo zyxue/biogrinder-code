@@ -571,8 +571,8 @@ and 1392R primers that target the V6 to V9 region of the 16S rRNA gene.
 Instead of producing reads bidirectionally, from the reference strand and its
 reverse complement, proceed unidirectionally, from one strand only (forward or
 reverse). Values: 0 (off, i.e. bidirectional), 1 (forward), -1 (reverse). Use
-<unidirectional> = 1 for strand-specific transcriptomic or proteomic datasets.
-Default: unidirectional.default
+<unidirectional> = 1 for amplicon and strand-specific transcriptomic or
+proteomic datasets. Default: unidirectional.default
 
 =for Euclid:
    unidirectional.type: integer, unidirectional >= -1 && unidirectional <= 1
@@ -748,8 +748,10 @@ different MID tags with <multiplex_mids>. Default: num_libraries.default
 =item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
 
 Specify an optional FASTA file that contains multiplex sequence identifiers
-(a.k.a MIDs or barcodes) to add to the sequences (one sequence per library). The MIDs
-are included in the length specified with the -read_dist option.
+(a.k.a MIDs or barcodes) to add to the sequences (one sequence per library). The
+MIDs are included in the length specified with the -read_dist option and can be
+altered by sequencing errors. See the MIDesigner or BarCrawl programs to
+generate MID sequences.
 
 =for Euclid:
    multiplex_ids.type: readable
