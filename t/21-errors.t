@@ -97,7 +97,7 @@ while ( $read = $factory->next_read ) {
 between_ok( $nof_substs / $nof_indels, 0.92, 1.08 ); # should be 1
 
 
-# Uniform distribution
+# Uniform distribution (frequent errors)
 
 ok $factory = Grinder->new(
    -reference_file => data('single_seq_database.fa'),
@@ -106,7 +106,7 @@ ok $factory = Grinder->new(
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
    -mutation_dist  => ('uniform', 10)               ,
-), 'Uniform';
+), 'Uniform (frequent errors)';
 
 while ( $read = $factory->next_read ) {
    my @positions = error_positions($read);
@@ -119,6 +119,37 @@ between_ok( $$prof[0] , 70, 130 ); # exp. number of errors at 1st  pos is 100 (1
 between_ok( $$prof[24], 70, 130 ); # exp. number of errors at 25th pos is 100 (10%)
 between_ok( $$prof[-1], 70, 130 ); # exp. number of errors at last pos is 100 (10%)
 between_ok( $mean     , 97, 103 ); # exp. mean number is 100 (10%)
+
+SKIP: {
+   skip rfit_msg() if not can_rfit();
+   test_uniform_dist(\@epositions, 1, 50);
+}
+
+@epositions = ();
+
+
+# Uniform distribution (rare errors)
+
+ok $factory = Grinder->new(
+   -reference_file => data('single_seq_database.fa'),
+   -unidirectional => 1                             ,
+   -read_dist      => 50                            ,
+   -total_reads    => 10000                         ,
+   -mutation_ratio => (50, 50)                      ,
+   -mutation_dist  => ('uniform', 0.1)             ,
+), 'Uniform (rare errors)';
+
+while ( $read = $factory->next_read ) {
+   my @positions = error_positions($read);
+   push @epositions, @positions if scalar @positions > 0;
+}
+
+$prof = hist(\@epositions, 1, 50);
+($min, $max, $mean, $stddev) = stats($prof);
+between_ok( $$prof[0] ,  7,  13 ); # exp. number of errors at 1st  pos is 100 (10%)
+between_ok( $$prof[24],  7,  13 ); # exp. number of errors at 25th pos is 100 (10%)
+between_ok( $$prof[-1],  7,  13 ); # exp. number of errors at last pos is 100 (10%)
+between_ok( $mean     ,  9,  11 ); # exp. mean number is 100 (10%)
 
 SKIP: {
    skip rfit_msg() if not can_rfit();

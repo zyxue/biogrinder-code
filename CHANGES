@@ -1,5 +1,7 @@
 Revision history for Grinder
 
+        
+        Fixed bug preventing the insertion of sequencing errors at very low frequency
         Updated average_genome_size script to use percentage in Grinder rank file instead of fractional numbers
 
 

@@ -2754,18 +2754,19 @@ sub rand_point_errors {
 
     $self->{mutation_cdf}->{$seq_len} = $self->proba_cumul($mut_pdf);
     $self->{mutation_avg}->{$seq_len} = $mut_freq;
-
   }
 
   my $mut_cdf = $self->{mutation_cdf}->{$seq_len};
   my $mut_avg = $self->{mutation_avg}->{$seq_len};
 
-
   # Number of mutations to make in this sequence is assumed to follow a Normal
   # distribution N( mutation_freq, 0.3 * mutation_freq )
   my $read_mutation_freq = $mut_avg + 0.3 * $mut_avg * randn();
-  my $nof_mutations = int( $seq_len*$read_mutation_freq/100 + 0.5 );
- 
+  my $nof_mutations = $seq_len * $read_mutation_freq / 100;
+  my $int_part = int $nof_mutations;
+  my $dec_part = rand(1) < ($nof_mutations - $int_part);
+  $nof_mutations = $int_part + $dec_part;
+
   # Exit without doing anything if there are no mutations to do
   return $error_specs if $nof_mutations == 0;
 
