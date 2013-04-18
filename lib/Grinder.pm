@@ -1644,7 +1644,8 @@ sub community_structures {
           push @$diversities, $diversity;
         }
       } else {
-        die "Error: The number of diversities provided does not match the requested number of libraries.\n";
+        die "Error: The number of richness values provided (".(scalar @$diversities).
+           ") did not match the requested number of libraries ($nof_indep).\n";
       }
     }
     $self->{num_libraries} = $nof_indep;
