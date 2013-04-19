@@ -140,7 +140,7 @@ Available from L<http://dx.doi.org/10.1093/nar/gks251>.
 
 =head1 VERSION
 
-0.5.0
+0.5.1
 
 =head1 AUTHOR
 
