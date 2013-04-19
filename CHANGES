@@ -1,7 +1,7 @@
 Revision history for Grinder
         
 0.5.1   19-Apr-2013
-        Fixed bug preventing the insertion of very low frequency sequencing errors
+        Fixed bug preventing the insertion of very low frequency sequencing errors (bug #5)
         Updated average_genome_size script to use percentage in Grinder rank file instead of fractional numbers
 
 0.5.0   14-Jan-2013
