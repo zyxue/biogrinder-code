@@ -2044,7 +2044,7 @@ sub next_single_read {
   # Generate a single shotgun or amplicon read
   my ($self) = @_;
   my $oids           = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
-  my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1];
+  my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1] || '';
   my $lib_num        = $self->{num_libraries} > 1 ? $self->{cur_lib} : undef;
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
 
@@ -2071,15 +2071,19 @@ sub next_single_read {
     # Choose a read size according to the specified distribution
     my $length = rand_seq_length($self->{read_length}, $self->{read_model},
       $self->{read_delta});
+
     # Shorten read length if too long
-    $length = $genome->length if $length > $genome->length;
+    $length = $genome->length if $length - length($mid) > $genome->length;
+
     # Read position on genome or amplicon
     my ($start, $end) = rand_seq_pos($genome, $length, $self->{forward_reverse},
       $mid);
+
     # New sequence object
     $shotgun_seq = new_subseq($self->{cur_read}, $genome, $self->{unidirectional},
       $orientation, $start, $end, $mid, undef, $lib_num, $self->{desc_track},
       $self->{qual_levels});
+
     # Simulate sequence aberrations and sequencing error if needed
     $shotgun_seq = $self->rand_seq_errors($shotgun_seq)
       if ($self->{homopolymer_dist} || $self->{mutation_para1});
@@ -2094,7 +2098,7 @@ sub next_mate_pair {
   # Generate a shotgun mate pair
   my ($self) = @_;
   my $oids           = $self->{c_structs}->[$self->{cur_lib}-1]->{ids};
-  my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1];
+  my $mid            = $self->{multiplex_ids}->[$self->{cur_lib}-1] || '';
   my $lib_num        = $self->{num_libraries} > 1 ? $self->{cur_lib} : undef;
   my $pair_num       = int( $self->{cur_read} / 2 + 0.5 );
   my $max_nof_tries  = $self->{forward_reverse} ? 1 : 10;
@@ -2128,7 +2132,7 @@ sub next_mate_pair {
     my $mate_length = rand_seq_length($self->{mate_length}, $self->{mate_model},
       $self->{mate_delta});
     # Shorten mate length if too long
-    $mate_length = $genome->length if $mate_length > $genome->length;
+    $mate_length = $genome->length if $mate_length - length($mid) > $genome->length;
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
@@ -2855,12 +2859,7 @@ sub rand_seq_pos {
   # are the first two bases of the sequence
   my ($seq_obj, $read_length, $amplicon, $mid) = @_;
   # Read length includes the MID
-  my $length;
-  if (defined $mid) {
-    $length = $read_length - length($mid);
-  } else {
-    $length = $read_length;
-  }
+  my $length = $read_length - length($mid);
   # Pick starting position
   my $start;
   if (defined $amplicon) {

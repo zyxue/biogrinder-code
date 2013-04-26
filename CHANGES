@@ -1,8 +1,14 @@
 Revision history for Grinder
         
+x.x.x   xx-xxx-xxxx
+        Fixed bug causing reads too short when using MIDs and asking for a read
+           length close to that of their reference (bug#6, reported by Ali May).
+
 0.5.1   19-Apr-2013
-        Fixed bug preventing the insertion of very low frequency sequencing errors (bug #5)
-        Updated average_genome_size script to use percentage in Grinder rank file instead of fractional numbers
+        Fixed bug preventing the insertion of very low frequency sequencing
+           errors (bug #5).
+        Updated average_genome_size script to use percentage in Grinder rank
+           file instead of fractional numbers.
 
 0.5.0   14-Jan-2013
         Removed the =encoding statement which was breaking Pod::PlainText

@@ -58,14 +58,14 @@ ok $factory = Grinder->new(
    -reference_file  => data('single_amplicon_database.fa'),
    -multiplex_ids   => data('mids.fa')                    ,
    -num_libraries   => 1                                  ,
-   -read_dist       => 80                                 ,
+   -read_dist       => 70                                 ,
    -total_reads     => 10                                 ,
    -forward_reverse => data('forward_reverse_primers.fa') ,
    -unidirectional  => 1                                  ,
 ), 'Single MID - amplicon';
 
 while ( $read = $factory->next_read ) {
-   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGC';
+   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGC';
 };
 
 
@@ -76,7 +76,7 @@ ok $factory = Grinder->new(
    -multiplex_ids   => data('mids.fa')                    ,
    -num_libraries   => 2                                  ,
    -shared_perc     => 100                                ,
-   -read_dist       => 84                                 ,
+   -read_dist       => 74                                 ,
    -total_reads     => 10                                 ,
    -forward_reverse => data('forward_reverse_primers.fa') ,
    -unidirectional  => 1                                  ,
@@ -84,7 +84,7 @@ ok $factory = Grinder->new(
 
 while ( $read = $factory->next_read ) {
    like $read->id, qr/^1_/;
-   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT';
+   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT';
 };
 
 
