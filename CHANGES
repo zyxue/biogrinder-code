@@ -1,6 +1,6 @@
 Revision history for Grinder
         
-x.x.x   xx-xxx-xxxx
+0.5.2   26-Apr-2013
         Fixed bug causing reads too short when using MIDs and asking for a read
            length close to that of their reference (bug#6, reported by Ali May).
 
