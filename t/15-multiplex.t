@@ -11,15 +11,15 @@ use Grinder;
 my ($factory, $nof_reads, $read);
 
 
-# Prepend a single multiplex identifier (MID): ACGT
+# Prepend a single multiplex identifier (MID), ACGT, to shotgun reads
 
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
    -multiplex_ids  => data('mids.fa')            ,
-   -num_libraries  => 2                          ,
+   -num_libraries  => 1                          ,
    -read_dist      => 52                         ,
    -total_reads    => 9                          ,
-), 'Single MID';
+), 'Single MID - shotgun';
 
 while ( $read = $factory->next_read ) {
    is $read->length, 52;
@@ -27,7 +27,7 @@ while ( $read = $factory->next_read ) {
 };
 
 
-# Prepend two multiplex identifier: ACGT and AAAATTTT
+# Prepend two multiplex identifiers, ACGT and AAAATTTT, to shotgun reads
 
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
@@ -35,7 +35,7 @@ ok $factory = Grinder->new(
    -num_libraries  => 2                          ,
    -read_dist      => 52                         ,
    -total_reads    => 10                         ,
-), 'Two MIDs';
+), 'Two MIDs - shotgun';
 
 while ( $read = $factory->next_read ) {
    is $read->length, 52;
@@ -50,5 +50,42 @@ while ( $read = $factory->next_read ) {
    is $read->length, 52;
    is substr($read->seq, 0, 8), 'AAAATTTT';
 };
+
+
+# Prepend a single multiplex identifier to amplicon reads
+
+ok $factory = Grinder->new(
+   -reference_file  => data('single_amplicon_database.fa'),
+   -multiplex_ids   => data('mids.fa')                    ,
+   -num_libraries   => 1                                  ,
+   -read_dist       => 80                                 ,
+   -total_reads     => 10                                 ,
+   -forward_reverse => data('forward_reverse_primers.fa') ,
+   -unidirectional  => 1                                  ,
+), 'Single MID - amplicon';
+
+while ( $read = $factory->next_read ) {
+   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGC';
+};
+
+
+# Prepend two multiplex identifiers to amplicon reads
+
+ok $factory = Grinder->new(
+   -reference_file  => data('single_amplicon_database.fa'),
+   -multiplex_ids   => data('mids.fa')                    ,
+   -num_libraries   => 2                                  ,
+   -shared_perc     => 100                                ,
+   -read_dist       => 84                                 ,
+   -total_reads     => 10                                 ,
+   -forward_reverse => data('forward_reverse_primers.fa') ,
+   -unidirectional  => 1                                  ,
+), 'Two MIDs - amplicon';
+
+while ( $read = $factory->next_read ) {
+   like $read->id, qr/^1_/;
+   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT';
+};
+
 
 done_testing();
