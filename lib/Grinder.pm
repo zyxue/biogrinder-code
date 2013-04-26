@@ -1,4 +1,4 @@
-# This file is part of the Grinder package, copyright 2009-2012
+# This file is part of the Grinder package, copyright 2009-2013
 # Florent Angly <florent.angly@gmail.com>, under the GPLv3 license
 
 package Grinder;
@@ -1016,7 +1016,7 @@ Returns : seed number
 
 =head1 COPYRIGHT
 
-Copyright 2009-2012 Florent ANGLY <florent.angly@gmail.com>
+Copyright 2009-2013 Florent ANGLY <florent.angly@gmail.com>
 
 Grinder is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License (GPL) as published by
