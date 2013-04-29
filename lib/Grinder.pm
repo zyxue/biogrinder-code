@@ -788,7 +788,7 @@ shuffle) the rank-abundance of. Default: permuted_perc.default %
 =for Euclid:
    permuted_perc.type: number, permuted_perc >= 0 && permuted_perc <= 100
    permuted_perc.type.error: <permuted_perc> must be a number between 0 and 100 (not permuted_perc)
-   permuted_perc.default: 0
+   permuted_perc.default: 100
 
 =back
 
@@ -1607,7 +1607,7 @@ sub community_structures {
     if ( (scalar @$diversities > 1) || $$diversities[0] ) {
       warn "Warning: Diversity cannot be specified when an abundance file is specified. Ignoring it...\n";
     }
-    if ( $perc_shared || $perc_permuted ) {
+    if ( ($perc_shared > 0) || ($perc_permuted < 100) ) {
       warn "Warning: Percent shared and percent permuted cannot be specified when an abundance file is specified. Ignoring them...\n";
     }
     # One or several communities with specified rank-abundances
