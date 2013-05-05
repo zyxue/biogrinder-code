@@ -16,13 +16,13 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More'                 =>  0; # first released with Perl v5.6.2
-requires        'Bio::Root::Version'         => '1.006902'; # 1.6.902
+requires        'Bio::Root::Version'         => '1.006901'; # Bioperl
 requires        'Bio::DB::Fasta'             =>  0;
 requires        'Bio::Location::Split'       =>  0;
 requires        'Bio::PrimarySeq'            =>  0;
 requires        'Bio::Root::Root'            =>  0;
 requires        'Bio::SeqIO'                 =>  0;
-# Modules required, but packaged with Grinder since they are too recent to have had a release yet
+# Bioperl modules required, but packaged with Grinder since they are too recent to have had a release yet
 #requires       'Bio::SeqFeature::SubSeq'    =>  0;
 #requires       'Bio::Seq::SimulatedRead'    =>  0;
 #requires       'Bio::Tools::AmpliconSearch' =>  0;
@@ -38,9 +38,9 @@ author_requires 'Module::Install';
 author_requires 'Module::Install::AuthorRequires';
 author_requires 'Module::Install::AutoLicense';
 author_requires 'Module::Install::PodFromEuclid';
-author_requires 'Module::Install::ReadmeFromPod' => 0.14;
+author_requires 'Module::Install::ReadmeFromPod' => '0.14';
 author_requires 'Module::Install::AutoManifest';
-author_requires 'Statistics::R'  => '0.21';
+author_requires 'Statistics::R'                  => '0.21';
 
 
 # Bundle dependencies
