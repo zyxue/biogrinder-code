@@ -69,6 +69,23 @@ while ( $read = $factory->next_read ) {
 };
 
 
+# Request too long of a read
+
+ok $factory = Grinder->new(
+   -reference_file  => data('single_amplicon_database.fa'),
+   -multiplex_ids   => data('mids.fa')                    ,
+   -num_libraries   => 1                                  ,
+   -read_dist       => 80                                 ,
+   -total_reads     => 10                                 ,
+   -forward_reverse => data('forward_reverse_primers.fa') ,
+   -unidirectional  => 1                                  ,
+), 'Single MID - amplicon too long';
+
+while ( $read = $factory->next_read ) {
+   is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT';
+};
+
+
 # Prepend two multiplex identifiers to amplicon reads
 
 ok $factory = Grinder->new(

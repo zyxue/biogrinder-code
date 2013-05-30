@@ -2062,6 +2062,7 @@ sub next_single_read {
       $message .= ".\n";
       die $message;
     }
+
     # Chimerize the template sequence if needed
     $genome = $self->rand_seq_chimera($genome, $self->{chimera_perc},
       $self->{positions}, $oids) if $self->{chimera_perc};
@@ -2073,7 +2074,10 @@ sub next_single_read {
       $self->{read_delta});
 
     # Shorten read length if too long
-    $length = $genome->length if $length - length($mid) > $genome->length;
+    my $max_length = $genome->length + length($mid);
+    if ( $length > $max_length) {
+      $length = $max_length;
+    }
 
     # Read position on genome or amplicon
     my ($start, $end) = rand_seq_pos($genome, $length, $self->{forward_reverse},
@@ -2132,7 +2136,10 @@ sub next_mate_pair {
     my $mate_length = rand_seq_length($self->{mate_length}, $self->{mate_model},
       $self->{mate_delta});
     # Shorten mate length if too long
-    $mate_length = $genome->length if $mate_length - length($mid) > $genome->length;
+    my $max_length = $genome->length + length($mid);
+    if ( $mate_length > $max_length) {
+      $mate_length = $max_length;
+    }
     # Mate position on genome or amplicon
     my ($mate_start, $mate_end) = rand_seq_pos($genome, $mate_length,
       $self->{forward_reverse}, $mid);
