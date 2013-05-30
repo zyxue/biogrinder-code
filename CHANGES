@@ -1,12 +1,14 @@
 Revision history for Grinder
 
-x.x.x   
+0.5.3   30-May-2013
+        Completed fix for bug #6, multiplexed read close to length of reference
+           (reported by Ali May).
         When generating multiple libraries, default is now to use 100% permuted
            to have dissimilar communities (consistent with 0% shared as default).
 
 0.5.2   26-Apr-2013
         Fixed bug causing reads too short when using MIDs and asking for a read
-           length close to that of their reference (bug#6, reported by Ali May).
+           length close to that of their reference (bug #6, reported by Ali May).
 
 0.5.1   19-Apr-2013
         Fixed bug preventing the insertion of very low frequency sequencing
