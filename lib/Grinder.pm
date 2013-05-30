@@ -748,10 +748,10 @@ different MID tags with <multiplex_mids>. Default: num_libraries.default
 =item -mi <multiplex_ids> | -multiplex_ids <multiplex_ids>
 
 Specify an optional FASTA file that contains multiplex sequence identifiers
-(a.k.a MIDs or barcodes) to add to the sequences (one sequence per library). The
-MIDs are included in the length specified with the -read_dist option and can be
-altered by sequencing errors. See the MIDesigner or BarCrawl programs to
-generate MID sequences.
+(a.k.a MIDs or barcodes) to add to the sequences (one sequence per library, in
+the order given). The MIDs are included in the length specified with the
+-read_dist option and can be altered by sequencing errors. See the MIDesigner or
+BarCrawl programs to generate MID sequences.
 
 =for Euclid:
    multiplex_ids.type: readable
