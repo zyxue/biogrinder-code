@@ -23,6 +23,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                   ,
    -abundance_model => ('uniform', 0)                      ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Uniform community structure';
 
 while ( $read = $factory->next_read ) {
@@ -46,6 +47,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                   ,
    -abundance_model => ('linear', 0)                       ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Linear community structure';
 
 while ( $read = $factory->next_read ) {
@@ -69,6 +71,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                   ,
    -abundance_model => ('powerlaw', 0.5)                   ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Power law community structure';
 
 while ( $read = $factory->next_read ) {
@@ -92,6 +95,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                   ,
    -abundance_model => ('logarithmic', 0.5)                ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Logarithmic community structure';
 
 while ( $read = $factory->next_read ) {
@@ -115,6 +119,7 @@ ok $factory = Grinder->new(
    -length_bias     => 0                                   ,
    -abundance_model => ('exponential', 0.5)                ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Exponential community structure';
 
 $struct = $factory->next_lib;
@@ -141,6 +146,7 @@ ok $factory = Grinder->new(
    -shared_perc     => 100                                 ,
    -abundance_model => ('exponential')                     ,
    -total_reads     => 1000                                ,
+   -random_seed     => 1234567890                          ,
 ), 'Communities with random structure parameter value';
 
 $struct = $factory->next_lib;
