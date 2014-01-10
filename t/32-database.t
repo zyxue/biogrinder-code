@@ -18,6 +18,7 @@ isa_ok $db, 'Grinder::Database';
 is $db->get_minimum_length, 1;
 is $db->get_delete_chars, '';
 is_deeply [sort @{$db->get_ids}], ['seq1', 'seq2', 'seq3', 'seq4', 'seq5'];
+$db->get_database->DESTROY;
 
 
 ok $db = Grinder::Database->new(
@@ -25,7 +26,8 @@ ok $db = Grinder::Database->new(
    -minimum_length => 200,
 );
 is $db->get_minimum_length, 200;
-is_deeply $db->get_ids, ['seq1', 'seq2'];
+is_deeply [sort @{$db->get_ids}], ['seq1', 'seq2'];
+$db->get_database->DESTROY;
 
 
 ok $db = Grinder::Database->new(
@@ -60,28 +62,33 @@ is $seq->seq, 'attttttttt';
 # Test alphabet
 
 is $db->get_alphabet, 'dna';
+$db->get_database->DESTROY;
 
 ok $db = Grinder::Database->new(
    -fasta_file     => data('database_dna.fa'),
 );
 is $db->get_alphabet, 'dna';
+$db->get_database->DESTROY;
 
 ok $db = Grinder::Database->new(
    -fasta_file     => data('database_rna.fa'),
 );
 is $db->get_alphabet, 'rna';
+$db->get_database->DESTROY;
 
 ok $db = Grinder::Database->new(
    -fasta_file     => data('database_protein.fa'),
    -unidirectional => 1,
 );
 is $db->get_alphabet, 'protein';
+$db->get_database->DESTROY;
 
 ok $db = Grinder::Database->new(
    -fasta_file     => data('database_mixed.fa'),
    -unidirectional => 1,
 );
 is $db->get_alphabet, 'protein';
+$db->get_database->DESTROY;
 
 
 ####ok $db = Grinder::Database->new(
