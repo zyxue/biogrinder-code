@@ -2492,19 +2492,19 @@ sub rand_kmer_from_collection {
 
 
 sub rand_seq_with_kmer {
-   # Pick a random sequence ID that contains the given kmer. An optional sequence
-   # ID to exclude can be provided.
-   my ($self, $kmer, $excl) = @_;
-   my $source;
-   my ($sources, $freqs) = $self->{chimera_kmer_col}->sources($kmer, $excl, 1);
+  # Pick a random sequence ID that contains the given kmer. An optional sequence
+  # ID to exclude can be provided.
+  my ($self, $kmer, $excl) = @_;
+  my $source;
+  my ($sources, $freqs) = $self->{chimera_kmer_col}->sources($kmer, $excl, 1);
 
-   my $num_sources = scalar @$sources;
-   if ($num_sources > 0) {
-     my $cdf = $self->proba_cumul($freqs);
-     $source = $$sources[rand_weighted($cdf)];
-   }
+  my $num_sources = scalar @$sources;
+  if ($num_sources > 0) {
+    my $cdf = $self->proba_cumul($freqs);
+    $source = $$sources[rand_weighted($cdf)];
+  }
 
-   return $source;
+  return $source;
 }
 
 
