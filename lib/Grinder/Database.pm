@@ -64,7 +64,7 @@ sub _init_db {
    }
 
    # Index input file
-   my $db = Bio::DB::Fasta->new($fasta_file, -reindex => 1);
+   my $db = Bio::DB::Fasta->new($fasta_file, -reindex => 1, -clean => 1);
    $self->_set_database($db);
 
    # List sequences that are ok to use

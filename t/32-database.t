@@ -92,7 +92,7 @@ $db->get_database->DESTROY;
 
 
 ####ok $db = Grinder::Database->new(
-####   -fasta_file   => data('shotgun_database.fa'),
+####   -fasta_file     => data('shotgun_database.fa'),
 ####   -unidirectional => -1,
 ####);
 ####is $db->get_unidirectional, -1;
@@ -104,7 +104,7 @@ $db->get_database->DESTROY;
 ####   -forward_reverse_primers =>
 ####   -abundance_file          =>
 ####   -delete_chars            =>
-####   -min_len                 => 1;
+####   -min_len                 => 1
 ####);
 
 
