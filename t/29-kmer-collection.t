@@ -69,7 +69,7 @@ ok $col = Grinder::KmerCollection->new( -k => 8, -seqs => [$seq1, $seq2] );
 
 # Count of all kmers
 ($kmers, $counts) = $col->counts();
-$kmers  = [sort @$kmers];
+$kmers  = [sort {$a cmp $b} @$kmers];
 $counts = [sort {$a <=> $b} @$counts];
 is_deeply $kmers , [
           'AAAAAAAA',
@@ -140,7 +140,7 @@ is_deeply $counts, [
 
 # Frequency of kmers from position >= 40
 ($kmers, $freqs) = $col->counts(undef, 40, 1); 
-$kmers = [sort @$kmers];
+$kmers = [sort {$a cmp $b} @$kmers];
 $freqs = [sort {$a <=> $b} @$freqs];
 is_deeply $kmers , [
           'AAAAAAAA',
@@ -190,7 +190,7 @@ is_deeply $kmers, [ 'AAAAAAAA' ];
 is_deeply $freqs, [ 1 ];
 
 ($kmers, $freqs) = $col->counts('seq4', 40, 1); 
-$kmers = [sort @$kmers];
+$kmers = [sort {$a cmp $b} @$kmers];
 $freqs = [sort {$a <=> $b} @$freqs];
 is_deeply $kmers , [
           'AACCCCCC',
@@ -255,12 +255,13 @@ ok not exists $by_kmer->{'seq4'}->{'CCCCGGGG'};
 ok not exists $by_kmer->{'seq4'}->{'ACCCCCCC'};
 
 ($sources, $counts) = $col->sources('AAAAAAAA');
-is_deeply $sources, ['seq4', 'seq1'];
-is_deeply $counts , [    1 ,    73 ];
+my %values = ('seq1' => 73,
+              'seq4' => 1);
+is $values{$sources->[0]}, $counts->[0];
+is $values{$sources->[1]}, $counts->[1];
 
 ($sources, $counts) = $col->sources('AAAAAAAA', 'seq1');
-is_deeply $sources, ['seq4'];
-is_deeply $counts , [    1 ];
+is $values{$sources->[0]}, $counts->[0];
 
 ($sources, $counts) = $col->sources('ZZZZZZZZ');
 is_deeply $sources, [];
@@ -308,12 +309,13 @@ ok exists $by_kmer->{'abc'}->{'AAAAAAAA'};
 ok exists $by_kmer->{'123'}->{'AAAAAAAA'};
 
 ($sources, $counts) = $col->sources('AAAAAAAA');
-is_deeply $sources, ['123', 'abc'];
-is_deeply $counts , [    1 ,    73 ];
+%values = ('123' => 1,
+           'abc' => 73);
+is $values{$sources->[0]}, $counts->[0];
+is $values{$sources->[1]}, $counts->[1];
 
 ($sources, $counts) = $col->sources('AAAAAAAA', 'abc');
-is_deeply $sources, ['123'];
-is_deeply $counts , [    1 ];
+is $values{$sources->[0]}, $counts->[0];
 
 
 # Using weights
@@ -326,8 +328,10 @@ $weights = { 'seq1' => 10, 'seq4' => 0.1 };
 ok $col->weights($weights);
 
 ($sources, $counts) = $col->sources('AAAAAAAA');
-is_deeply $sources, ['seq4', 'seq1'];
-is_deeply $counts , [  0.1 ,   730 ];
+%values = ('seq1' => 730,
+           'seq4' => 0.1);
+is $values{$sources->[0]}, $counts->[0];
+is $values{$sources->[1]}, $counts->[1];
 
 ($kmers, $counts) = $col->counts();
 is_deeply $kmers , ['AAAAAAAA'];
