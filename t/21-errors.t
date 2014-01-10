@@ -106,6 +106,7 @@ ok $factory = Grinder->new(
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
    -mutation_dist  => ('uniform', 10)               ,
+   -random_seed    => 1233567880                    ,
 ), 'Uniform (frequent errors)';
 
 while ( $read = $factory->next_read ) {
@@ -136,7 +137,8 @@ ok $factory = Grinder->new(
    -read_dist      => 50                            ,
    -total_reads    => 10000                         ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => ('uniform', 0.1)             ,
+   -mutation_dist  => ('uniform', 0.1)              ,
+   -random_seed    => 1233567880                    ,
 ), 'Uniform (rare errors)';
 
 while ( $read = $factory->next_read ) {
@@ -146,10 +148,10 @@ while ( $read = $factory->next_read ) {
 
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
-between_ok( $$prof[0] ,  7,  13 ); # exp. number of errors at 1st  pos is 100 (10%)
-between_ok( $$prof[24],  7,  13 ); # exp. number of errors at 25th pos is 100 (10%)
-between_ok( $$prof[-1],  7,  13 ); # exp. number of errors at last pos is 100 (10%)
-between_ok( $mean     ,  9,  11 ); # exp. mean number is 100 (10%)
+between_ok( $$prof[0] ,  4,  16 ); # exp. number of errors at 1st  pos is 100 (10%)
+between_ok( $$prof[24],  4,  16 ); # exp. number of errors at 25th pos is 100 (10%)
+between_ok( $$prof[-1],  4,  16 ); # exp. number of errors at last pos is 100 (10%)
+between_ok( $mean     ,  8,  12 ); # exp. mean number is 100 (10%)
 
 SKIP: {
    skip rfit_msg() if not can_rfit();
@@ -168,6 +170,7 @@ ok $factory = Grinder->new(
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
    -mutation_dist  => ('linear', 5, 15)             ,
+   -random_seed    => 1233567880                    ,
 ), 'Linear';
 
 while ( $read = $factory->next_read ) {
@@ -178,18 +181,18 @@ while ( $read = $factory->next_read ) {
 $prof = hist(\@epositions, 1, 50);
 ($min, $max, $mean, $stddev) = stats($prof);
 between_ok( $$prof[0] ,  30,   70 ); # exp. number of errors at 1st  pos is 50 (5%)
-between_ok( $$prof[24],  70,  130 ); # exp. number of errors at 25th pos is 100 (10%)
-between_ok( $$prof[-1], 120,  180 ); # exp. number of errors at last pos is 150 (15%)
+between_ok( $$prof[24],  65,  135 ); # exp. number of errors at 25th pos is 100 (10%)
+between_ok( $$prof[-1], 115,  185 ); # exp. number of errors at last pos is 150 (15%)
 between_ok( $mean     ,  97,  103 ); # exp. mean number of errors is 100
 
-SKIP: {
-   skip rfit_msg() if not can_rfit();
+#SKIP: {
+   #skip rfit_msg() if not can_rfit();
    #### TODO
    #TODO: {
    #   $TODO = "Need to implement a linear density distribution in R";
    #   test_linear_dist(\@epositions, 1, 50, 0.0000000001);
    #}
-}
+#}
 
 @epositions = ();
 
@@ -203,6 +206,7 @@ ok $factory = Grinder->new(
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
    -mutation_dist  => ('poly4', 1, 4.4e-7)          ,
+   -random_seed    => 1233567880                    ,
 ), 'Polynomial';
 
 while ( $read = $factory->next_read ) {
@@ -214,17 +218,17 @@ $prof = hist(\@epositions, 1, 100);
 ($min, $max, $mean, $stddev) = stats($prof);
 between_ok( $$prof[0] ,    1,   27 ); # exp. number of errors at 1st  is 10 (1%)
 between_ok( $$prof[49],    7,   67 ); # exp. number of errors at 50th is 37.4 (3.74%)
-between_ok( $$prof[-1],  410,  488 ); # exp. number of errors at last is 449 (44.9%)
+between_ok( $$prof[-1],  405,  492 ); # exp. number of errors at last is 449 (44.9%)
 between_ok( $mean     ,   97,  103 ); # exp. mean number of errors is 100 (10.02%)
 
-SKIP: {
-   skip rfit_msg() if not can_rfit();
+#SKIP: {
+   #skip rfit_msg() if not can_rfit();
    #### TODO
    #TODO: {
    #   $TODO = "Need to implement a polynomial distribution in R";
    #   test_polynomial_dist(\@epositions, 1, 50, 0.0000000001);
    #}
-}
+#}
 
 @epositions = ();
 
