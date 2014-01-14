@@ -176,13 +176,11 @@ for you:
 
 =item *
 
-Bioperl modules (>=1.6.901).
-
-Note that some unreleased Bioperl modules have been included in Grinder.
+Bioperl modules (>=1.6.923)
 
 =item *
 
-Getopt::Euclid (>= 0.3.4)
+Getopt::Euclid (>= 0.4.4)
 
 =item *
 
@@ -192,7 +190,7 @@ First released with Perl v5.7.3
 
 =item *
 
-Math::Random::MT (>= 1.13)
+Math::Random::MT (>= 1.16)
 
 =item *
 
