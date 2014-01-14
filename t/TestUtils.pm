@@ -207,8 +207,7 @@ sub can_rfit {
       };
       if ($@) {
          $can_rfit = 0;
-         my $msg = "Skip: ".rfit_msg()."\n";
-         warn $msg;
+         warn "Skip: ".rfit_msg()."\n";
       } else {
          $can_rfit = 1;
       }
