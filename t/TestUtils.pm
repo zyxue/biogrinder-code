@@ -207,9 +207,7 @@ sub can_rfit {
       };
       if ($@) {
          $can_rfit = 0;
-         my $msg = "Note: The Statistics::R module for Perl, R (R-Project) ".
-            "or the fitdistrplus module for R could not be found on this system.".
-            " Some tests will be skipped...\n";
+         my $msg = "Skip: ".rfit_msg()."\n";
          warn $msg;
       } else {
          $can_rfit = 1;
@@ -220,7 +218,7 @@ sub can_rfit {
 
 
 sub rfit_msg {
-   return "fitdistrplus not available...";
+   return "Statistics::R, R or fitdistrplus not found";
 }
 
 
