@@ -198,6 +198,7 @@ sub _set_alphabet {
 
 
 sub get_ids {
+   # Retrieve IDs from database, in no particular order
    my ($self) = @_;
    my @ids = keys %{$self->{'ids'}};
    return \@ids;

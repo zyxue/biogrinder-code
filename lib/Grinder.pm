@@ -1297,15 +1297,15 @@ sub argparse {
       "internal problem\n";
   }
   # Get parsed arguments from %ARGV and put them in $self
-  for my $arg (keys %ARGV) {
+  while (my ($arg, $val) = each %ARGV) {
     # Skip short argument names (they are also represented with long names)
     next if length($arg) <= 2;
     # Process long argument names. Copy their value into $self
-    my $ref = ref($ARGV{$arg});
+    my $ref = ref($val);
     if (not $ref) {
-      $self->{$arg} = $ARGV{$arg};
+      $self->{$arg} = $val;
     } elsif ($ref eq 'ARRAY') {
-      @{$self->{$arg}} = @{$ARGV{$arg}};
+      @{$self->{$arg}} = @{$val};
     } else {
       die "Error: unsupported operation on argument '$arg' which is a reference".
          "of type $ref\n";
@@ -1561,6 +1561,7 @@ sub initialize_alphabet {
   }
   my $num_chars = scalar keys %alphabet_hash;
   $self->{alphabet_hash} = \%alphabet_hash;
+  $self->{alphabet_arr}  = [sort keys %alphabet_hash];
   # CDF for this alphabet
   $self->{alphabet_complete_cdf} = $self->proba_cumul([(1/$num_chars) x $num_chars]);
   $self->{alphabet_truncated_cdf} = $self->proba_cumul([(1/($num_chars-1)) x ($num_chars-1)]);
@@ -1655,6 +1656,7 @@ sub community_structures {
 
     # Shuffle the abundance-ranks of the most abundant genomes
     ($c_ids, $perc_permuted) = community_permuted($c_ids, $perc_permuted);
+
     # Update values in $self object
     $self->{overall_diversity} = $overall_diversity;
     $self->{diversity} = $diversities;
@@ -1703,7 +1705,6 @@ sub community_calculate_diversities {
       my $ab = $$c_struct{abs}[$i];
       next if not $ab;
       $richness++;
-      
       if (defined $all_ids{$id}) {
         $all_ids{$id}++;
       } else {
@@ -1714,11 +1715,12 @@ sub community_calculate_diversities {
   }
   $overall_diversity = scalar keys %all_ids;
 
-
   # Calculate percent shared
   my $nof_non_shared = 0;
-  for my $id (keys %all_ids) {
-    $nof_non_shared++ if $all_ids{$id} < $nof_libs;
+  while (my ($id, $nof_samples) = each %all_ids) {
+    if ($nof_samples < $nof_libs) {
+      $nof_non_shared++;
+    }
   }
   $perc_shared = ($overall_diversity - $nof_non_shared) * 100 / $overall_diversity;
 
@@ -1904,7 +1906,7 @@ sub community_shared {
   }
 
   # Add shared sequences
-  my @ids = keys %$seq_ids;
+  my @ids = sort keys %$seq_ids;
   my @shared_ids;
   for (0 .. $nof_shared - 1) {
     # Pick a random sequence
@@ -2023,7 +2025,7 @@ sub community_calculate_amplicon_abundance {
   # of the species, sorted by decreasing abundance.
 
   # Give amplicons from the same species the same sampling probability
-  for (my $i  = 0; $i < scalar @$r_spp_ids; $i++) {
+  for (my $i = 0; $i < scalar @$r_spp_ids; $i++) {
     my $species_ab    = $$r_spp_abs[$i];
     my $species_id    = $$r_spp_ids[$i];
     my @amplicon_ids  = keys %{$seq_ids->{$species_id}};
@@ -2819,13 +2821,13 @@ sub rand_res {
   my @res;
   if (not defined $not_nuc) {
     # Use complete alphabet
-    @res = keys %{$self->{alphabet_hash}};
+    @res = @{$self->{alphabet_arr}};
     $cdf = $self->{alphabet_complete_cdf};
   } else {
     # Remove non-desired residue from alphabet
     my %res = %{$self->{alphabet_hash}};
     delete $res{uc($not_nuc)};
-    @res = keys %res;
+    @res = sort keys %res;
     $cdf = $self->{alphabet_truncated_cdf};
   }
   my $res = $res[rand_weighted($cdf)];
@@ -3168,7 +3170,7 @@ sub database_get_children_seq {
   # ID of the reference sequence
   my ($self, $refseqid)  = @_;
   my @children;
-  for my $child_oid ( keys %{$self->{database}->{ids}->{$refseqid}} ) {
+  while ( my ($child_oid, undef) = each %{$self->{database}->{ids}->{$refseqid}} ) {
     push @children, $self->database_get_seq($child_oid);
   }
   return \@children;
