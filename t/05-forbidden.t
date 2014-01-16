@@ -28,7 +28,7 @@ ok $factory = Grinder->new(
    -reference_file => data('dirty_database.fa'),
    -exclude_chars  => 'n-'                     , # case independent
    -read_dist      => 30                       ,
-   -random_seed    => 1233567890               ,
+   -random_seed    => 1233756782               ,
    -total_reads    => 10                       ,
 ), 'Exclude chars';
 
