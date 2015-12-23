@@ -200,6 +200,55 @@ First released with Perl v5.9.0
 
 =back
 
+=head2 Extra dependencies for Grinder development only
+
+
+Perl modules:
+
+=over
+
+=item *
+
+Module::Install
+
+=item *
+
+Module::Install::AuthorRequires
+
+=item *
+
+Module::Install::AutoLicense
+
+=item *
+
+Module::Install::PodFromEuclid
+
+=item *
+
+Module::Install::ReadmeFromPod (>= 0.14)
+
+=item *
+
+Module::Install::AutoManifest
+
+=item *
+
+Statistics::R (>= 0.32)
+
+=back
+
+The R interpreter (L<http://www.r-project.org>) and the following R library:
+
+=over
+
+=item *
+
+fitdistrplus
+
+=back
+
+When running R, install the library with this command: install.packages("fitdistrplus")
+
 =head2 Procedure
 
 To install Grinder globally on your system, run the following commands in a
@@ -228,6 +277,8 @@ will be installed in your home directory.
 
 Then, install Grinder by following the instructions detailed in the "Procedure"
 section.
+
+
 
 =head1 RUNNING GRINDER
 

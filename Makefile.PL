@@ -40,6 +40,7 @@ author_requires 'Module::Install::PodFromEuclid';
 author_requires 'Module::Install::ReadmeFromPod' => '0.14';
 author_requires 'Module::Install::AutoManifest';
 author_requires 'Statistics::R'                  => '0.32';
+# Also install R and the fitdistrplus R library
 
 
 # Bundle dependencies
