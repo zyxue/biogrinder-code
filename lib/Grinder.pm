@@ -953,13 +953,15 @@ in FASTQ format.
 
 =head1 API EXAMPLES
 
-The Grinder API allows to conveniently use Grinder within Perl scripts. Here is
-a synopsis:
+The Grinder API allows to conveniently use Grinder within Perl scripts. The same
+options as the CLI apply, but when passing multiple values to an options, you
+will need to pass them as an array (not a scalar or arrayref). Here is a example:
 
   use Grinder;
 
-  # Set up a new factory (see the OPTIONS section for a complete list of parameters)
-  my $factory = Grinder->new( -reference_file => 'genomes.fna' );
+  # Set up a new factory
+  my $factory = Grinder->new( -reference_file => 'genomes.fna',
+                              -read_dist      => (100, 'uniform', 10) );
 
   # Process all shotgun libraries requested
   while ( my $struct = $factory->next_lib ) {
@@ -1398,7 +1400,6 @@ sub process_profile_file {
 
 sub initialize {
   my ($self) = @_;
-  # Returns:
 
   # Parameter processing: read length distribution
   if ( (not ref $self->{read_dist}) or (ref $self->{read_dist} eq 'SCALAR') ){
