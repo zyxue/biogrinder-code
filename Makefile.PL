@@ -57,7 +57,7 @@ auto_install;
 
 # Extra scripts to install
 
-install_script 'script/grinder';
+install_script 'bin/grinder';
 install_script 'utils/average_genome_size';
 install_script 'utils/change_paired_read_orientation';
 
@@ -88,8 +88,8 @@ auto_doc();
 
 sub auto_doc {
    print "*** Building doc...\n";
-   pod_from 'script/grinder';
-   my $grinder = 'script/grinder.pod';
+   pod_from 'bin/grinder';
+   my $grinder = 'bin/grinder.pod';
    my $script1 = 'utils/average_genome_size';
    my $script2 = 'utils/change_paired_read_orientation';
    my $clean   = 1;
