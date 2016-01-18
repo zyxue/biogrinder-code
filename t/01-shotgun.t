@@ -19,7 +19,7 @@ ok $factory = Grinder->new(
 
 ok $factory->next_read;
 
-# Long argument
+# Total reads (long argument)
 
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database_extended.fa'),
@@ -35,6 +35,24 @@ while ( $read = $factory->next_read ) {
    ok_read($read, undef, $nof_reads);
 };
 is $nof_reads, 100;
+
+
+# Coverage fold
+
+ok $factory = Grinder->new(
+   -reference_file => data('shotgun_database_extended.fa'),
+   -read_dist      => 48                                  ,
+   -coverage_fold  => 6.04                                ,
+), 'Coverage fold';
+
+ok $factory->next_lib;
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+};
+is $nof_reads, 111;
+
 
 done_testing();
 

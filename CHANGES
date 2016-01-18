@@ -1,5 +1,8 @@
 Revision history for Grinder
 
+x.x.x   xx-xxx-xxxx
+        Fix for the last mate pair sometimes missing its second read (bug #13)
+
 0.5.3   30-May-2013
         Completed fix for bug #6, multiplexed read close to length of reference
            (reported by Ali May).

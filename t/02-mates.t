@@ -12,7 +12,7 @@ my ($factory, $read, $nof_reads);
 
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database_extended.fa'),
-   -total_reads    => 100                                 ,
+   -total_reads    => 101                                 ,
    -read_dist      => 48                                  ,
    -insert_dist    => 250                                 ,
 ), 'Mate pairs';
@@ -24,7 +24,27 @@ while ( $read = $factory->next_read ) {
    $nof_reads++;
    ok_mate($read, undef, $nof_reads);
 };
-is $nof_reads, 100;
+is $nof_reads, 102;
+
+
+
+# Coverage fold
+
+ok $factory = Grinder->new(
+   -reference_file => data('shotgun_database_extended.fa'),
+   -read_dist      => 48                                  ,
+   -coverage_fold  => 6.04                                ,
+   -insert_dist    => 250                                 ,
+), 'Coverage fold';
+
+ok $factory->next_lib;
+
+$nof_reads = 0;
+while ( $read = $factory->next_read ) {
+   $nof_reads++;
+};
+is $nof_reads, 112;
+
 
 done_testing();
 

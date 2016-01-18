@@ -3325,11 +3325,16 @@ sub lib_coverage {
       $nof_seqs = int($nof_seqs + 1); # ceiling
     }
   }
+  # Make sure the last mate pair is always complete
+  if ( $self->{mate_length} && ($nof_seqs % 2)) {
+    $nof_seqs++;
+    if (not $coverage) {
+       warn "Warning: Added a read to make the last mate pair complete.\n"
+    }
+  }
   $coverage = ($nof_seqs * $read_length) / $lib_length;
   # 3/ Sanity check
-
   # TODO: Warn only if diversity was explicitely specified on the command line
-
   if ( $nof_seqs < $diversity) {
     warn "Warning: The number of reads to produce is lower than the required ".
       "diversity. Increase the coverage or number of reads to achieve this ".
