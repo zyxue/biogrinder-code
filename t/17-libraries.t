@@ -17,7 +17,7 @@ ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
    -read_dist      => 48                         ,
    -num_libraries  => 4                          ,
-   -total_reads    => 99                         ,
+   -total_reads    => 100                        ,
 ), 'Multiple shotgun libraries';
 
 $nof_libs = 0;
@@ -28,7 +28,7 @@ while ( $lib = $factory->next_lib ) {
       $nof_reads++;
       ok_read($read, undef, $nof_reads, $nof_libs);
    };
-   is $nof_reads, 99;
+   is $nof_reads, 100;
 }
 is $nof_libs, 4;
 
@@ -37,7 +37,7 @@ is $nof_libs, 4;
 
 ok $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
-   -total_reads    => 99                         ,
+   -total_reads    => 100                        ,
    -read_dist      => 48                         ,
    -num_libraries  => 4                          ,
    -insert_dist    => 250                        ,
@@ -51,7 +51,7 @@ while ( $lib = $factory->next_lib ) {
       $nof_reads++;
       ok_mate($read, undef, $nof_reads, $nof_libs);
    };
-   is $nof_reads, 99;
+   is $nof_reads, 100;
 }
 is $nof_libs, 4;
 
