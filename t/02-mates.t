@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Warn;
 use t::TestUtils;
 use Grinder;
 
@@ -17,7 +18,14 @@ ok $factory = Grinder->new(
    -insert_dist    => 250                                 ,
 ), 'Mate pairs';
 
-ok $factory->next_lib;
+{
+  my @warnings;
+  local $SIG{__WARN__} = sub {
+     push @warnings, @_;
+  };
+  $factory->next_lib;
+  like $warnings[0], qr{.*added a read.*}i;
+}
 
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
