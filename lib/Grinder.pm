@@ -17,7 +17,7 @@ use Bio::Tools::AmpliconSearch;
 use Math::Random::MT qw(srand rand);
 use Getopt::Euclid qw(:minimal_keys :defer);
 
-use version; our $VERSION = version->declare('0.5.3');
+use version; our $VERSION = version->declare('0.5.4');
 
 
 #---------- GRINDER POD DOC ---------------------------------------------------#
@@ -33,7 +33,7 @@ libraries based on DNA, RNA or proteic reference sequences provided in a FASTA
 file.
 
 Grinder can produce genomic, metagenomic, transcriptomic, metatranscriptomic,
-proteomic, metaproteomic shotgun and amplicon datasets from current sequencing
+proteomic, metaproteomic shotgun and amplicon datasets from various sequencing
 technologies such as Sanger, 454, Illumina. These simulated datasets can be used
 to test the accuracy of bioinformatic tools under specific hypothesis, e.g. with
 or without sequencing errors, or with low or high community diversity. Grinder
@@ -140,7 +140,7 @@ Available from L<http://dx.doi.org/10.1093/nar/gks251>.
 
 =head1 VERSION
 
-0.5.3
+0.5.4
 
 =head1 AUTHOR
 

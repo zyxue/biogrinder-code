@@ -1,7 +1,10 @@
 Revision history for Grinder
 
-x.x.x   xx-xxx-xxxx
-        Fix for the last mate pair sometimes missing its second read (bug #13)
+0.5.4   18-Jan-2016
+        Fixed bug causing the last mate pair to sometimes miss its second read
+          (bug #13)
+        Improved Grinder's test suite, particularly with respect to Perl's hash
+          randomization (contributions from Francisco J. Ossandón)
 
 0.5.3   30-May-2013
         Completed fix for bug #6, multiplexed read close to length of reference
