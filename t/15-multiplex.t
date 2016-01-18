@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Warn;
 use t::TestUtils;
 use Grinder;
 
@@ -13,13 +14,14 @@ my ($factory, $nof_reads, $read);
 
 # Prepend a single multiplex identifier (MID), ACGT, to shotgun reads
 
-ok $factory = Grinder->new(
+warning_like { $factory = Grinder->new(
    -reference_file => data('shotgun_database.fa'),
    -multiplex_ids  => data('mids.fa')            ,
    -num_libraries  => 1                          ,
    -read_dist      => 52                         ,
    -total_reads    => 9                          ,
-), 'Single MID - shotgun';
+) } qr{.*Ignoring extraneous MIDs.*}i,
+'Single MID - shotgun';
 
 while ( $read = $factory->next_read ) {
    is $read->length, 52;
@@ -54,7 +56,7 @@ while ( $read = $factory->next_read ) {
 
 # Prepend a single multiplex identifier to amplicon reads
 
-ok $factory = Grinder->new(
+warning_like { $factory = Grinder->new(
    -reference_file  => data('single_amplicon_database.fa'),
    -multiplex_ids   => data('mids.fa')                    ,
    -num_libraries   => 1                                  ,
@@ -62,7 +64,7 @@ ok $factory = Grinder->new(
    -total_reads     => 10                                 ,
    -forward_reverse => data('forward_reverse_primers.fa') ,
    -unidirectional  => 1                                  ,
-), 'Single MID - amplicon';
+) } qr{.*Ignoring extraneous MIDs.*}i, 'Single MID - amplicon';
 
 while ( $read = $factory->next_read ) {
    is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGC';
@@ -71,7 +73,7 @@ while ( $read = $factory->next_read ) {
 
 # Request too long of a read
 
-ok $factory = Grinder->new(
+warning_like { $factory = Grinder->new(
    -reference_file  => data('single_amplicon_database.fa'),
    -multiplex_ids   => data('mids.fa')                    ,
    -num_libraries   => 1                                  ,
@@ -79,7 +81,7 @@ ok $factory = Grinder->new(
    -total_reads     => 10                                 ,
    -forward_reverse => data('forward_reverse_primers.fa') ,
    -unidirectional  => 1                                  ,
-), 'Single MID - amplicon too long';
+) } qr{.*Ignoring extraneous MIDs.*}i, 'Single MID - amplicon too long';
 
 while ( $read = $factory->next_read ) {
    is $read->seq, 'ACGTAAACTUAAAGGAATTGACGGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaGTACACACCGCCCGT';

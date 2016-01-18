@@ -16,6 +16,7 @@ resources
 # Dependencies for everyone
 
 build_requires  'Test::More'                 =>  0; # first released with Perl v5.6.2
+build_requires  'Test::Warn'                 =>  0;
 requires        'Bio::Root::Version'         => '1.006923'; # Bioperl v1.6.923
 requires        'Bio::DB::Fasta'             =>  0;
 requires        'Bio::Location::Split'       =>  0;

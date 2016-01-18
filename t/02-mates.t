@@ -17,15 +17,7 @@ ok $factory = Grinder->new(
    -read_dist      => 48                                  ,
    -insert_dist    => 250                                 ,
 ), 'Mate pairs';
-
-{
-  my @warnings;
-  local $SIG{__WARN__} = sub {
-     push @warnings, @_;
-  };
-  $factory->next_lib;
-  like $warnings[0], qr{.*added a read.*}i;
-}
+warning_like { $factory->next_lib } qr{.*added a read.*}i;
 
 $nof_reads = 0;
 while ( $read = $factory->next_read ) {
