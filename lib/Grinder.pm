@@ -2763,67 +2763,71 @@ sub rand_point_errors {
   # Do some random point sequencing errors on a sequence based on a model
   my ($self, $seq_str, $error_specs) = @_;
 
-  # Mutation cumulative density functions (cdf) for this sequence length
+  # Determine mutation CDF (cumulative density function) and average for this read
+  my $mut_cdf;
+  my $mut_avg;
   my $seq_len = length $seq_str;
   if ( not defined $self->{mutation_cdf}->{$seq_len} ) {
-    my $mut_pdf  = []; # probability density function
-    my $mut_freq =  0; # average
-    my $mut_sum  =  0;
 
-    if ($self->{mutation_model} eq 'uniform') {
+    my $type  = $self->{mutation_model};
+    my $para1 = $self->{mutation_para1};
+    my $para2 = $self->{mutation_para2};
+
+    my $mut_pdf = []; # PDF: probability density function
+    my $mut_sum =  0;
+
+    if ($type eq 'uniform') {
       # Uniform error model
       # para1 is the average mutation frequency
       my $proba = 1 / $seq_len;
-      $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
-      $mut_freq = $self->{mutation_para1};
       $mut_sum  = 1;
+      $mut_pdf  = [ map { $proba } (1 .. $seq_len) ];
+      $mut_avg  = $para1;
 
-    } elsif ($self->{mutation_model} eq 'linear') {
+    } elsif ($type eq 'linear') {
       # Linear error model
       # para 1 is the error rate at the 5' end of the read
-      # para 2 is the error rate at the 3' end
-      $mut_freq = abs( $self->{mutation_para2} + $self->{mutation_para1} ) / 2;
+      # para 2 is the error rate at the 3' end of the read
+      $mut_avg  = abs( $para2 + $para1 ) / 2;
       if ($seq_len == 1) {
-        $$mut_pdf[0] = $mut_freq;
-        $mut_sum = $mut_freq
+        $mut_sum     = $mut_avg;
+        $$mut_pdf[0] = $mut_avg ;
       } elsif ($seq_len > 1) {
-        my $slope = ($self->{mutation_para2} - $self->{mutation_para1}) / ($seq_len-1);
+        my $slope = ($para2 - $para1) / ($seq_len-1);
         for my $i (0 .. $seq_len-1) {
-          my $val = $self->{mutation_para1} + $i * $slope;
-          $mut_sum += $val;
-          $$mut_pdf[$i] = $val;
+          my $mut       = $para1 + $i * $slope;
+          $mut_sum     += $mut;
+          $$mut_pdf[$i] = $mut;
         }
       }
-      
-    } elsif ($self->{mutation_model} eq 'poly4') {
+
+    } elsif ($type eq 'poly4') {
       # Fourth degree polynomial error model: e = para1 + para2 * i**4
       for my $i (0 .. $seq_len-1) {
-        my $val = $self->{mutation_para1} + $self->{mutation_para2} * ($i+1)**4;
-        $mut_sum += $val;
-        $$mut_pdf[$i] = $val;
+        my $mut       = $para1 + $para2 * ($i+1)**4;
+        $mut_sum     += $mut;
+        $$mut_pdf[$i] = $mut;
       }
-      $mut_freq = $mut_sum / $seq_len;
+      $mut_avg = $mut_sum / $seq_len;
 
     } else {
-      die "Error: '".$self->{mutation_model}."' is not a supported error distribution\n";
+      die "Error: '$type' is not a valid error distribution\n";
     }
 
-    # Normalize to 1 if needed
-    if ($mut_sum != 1) {
-      $mut_pdf = normalize($mut_pdf, $mut_sum);
-    }
+    # Calculate CDF
+    $mut_pdf = normalize($mut_pdf, $mut_sum) if $mut_sum != 1; # normalize to 1
+    $mut_cdf = $self->proba_cumul($mut_pdf);
 
-    # TODO: Could have sanity checks so that mut_pdf should have no values < 0 or > 100
+    $self->{mutation_cdf}->{$seq_len} = $mut_cdf;
+    $self->{mutation_avg}->{$seq_len} = $mut_avg ;
+  } else {
 
-    $self->{mutation_cdf}->{$seq_len} = $self->proba_cumul($mut_pdf);
-    $self->{mutation_avg}->{$seq_len} = $mut_freq;
+    $mut_cdf = $self->{mutation_cdf}->{$seq_len};
+    $mut_avg = $self->{mutation_avg}->{$seq_len};
   }
 
-  my $mut_cdf = $self->{mutation_cdf}->{$seq_len};
-  my $mut_avg = $self->{mutation_avg}->{$seq_len};
-
-  # Number of mutations to make in this sequence is assumed to follow a Normal
-  # distribution N( mutation_freq, 0.3 * mutation_freq )
+  # Calculate the number of mutations to make in this sequence
+  # Assume a Normal distribution N( mutation_avg, 0.3 * mutation_avg )
   my $read_mutation_freq = $mut_avg + 0.3 * $mut_avg * randn();
   my $nof_mutations = $seq_len * $read_mutation_freq / 100;
   my $int_part = int $nof_mutations;
