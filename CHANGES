@@ -1,5 +1,12 @@
 Revision history for Grinder
 
+0.x.x   xx-xxx-xxxx
+        Incompatible change in Illumina error model: the values to provide to
+          the poly4 model are now the error rates at the 5' and 3' end of the
+          reads (not the polynomial's a and b parameter anymore). This is
+          consistent with the interface of the other models and works for
+          various read lengths.
+
 0.5.4   18-Jan-2016
         Fixed bug causing the last mate pair to sometimes miss its second read
           (bug #13)

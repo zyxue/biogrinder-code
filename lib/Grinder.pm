@@ -663,14 +663,16 @@ Aberrations and sequencing errors
 =item -md <mutation_dist>... | -mutation_dist <mutation_dist>...
 
 Introduce sequencing errors in the reads, under the form of mutations
-(substitutions, insertions and deletions) at positions that follow a specified
-distribution (with replacement): model (uniform, linear, poly4), model parameters.
-For example, for a uniform 0.1% error rate, use: uniform 0.1. To simulate Sanger
-errors, use a linear model where the errror rate is 1% at the 5' end of reads and
-2% at the 3' end: linear 1 2. To model Illumina errors using the 4th degree
-polynome 3e-3 + 3.3e-8 * i^4 (Korbel et al 2009), use: poly4 3e-3 3.3e-8.
-Use the <mutation_ratio> option to alter how many of these mutations are
-substitutions or indels. Default: mutation_dist.default
+(substitutions, insertions and deletions) at the positions given by the specified
+model (with replacement): type (uniform, linear, poly4), parameters.
+For example, for an assumed uniform 0.1% error rate, use: 'uniform 0.1'. To
+simulate Sanger errors, use a linear model where the error rate is 1% at the 5'
+end of reads and 2% at their 3' end: 'linear 1 2'. To model Illumina errors, you
+can specify a 4th degree polynomial (of the form a+b.x^4; Korbel et al 2009) and
+the percentage of errors at the 5' and 3' end of the reads, e.g. 'poly4 0.3 3.8'
+(Dohm et al 2008). Use the <mutation_ratio> option to alter how many of these
+mutations are substitutions or indels. For 454 errors, see the <homopolymer_dist>
+option. Default: mutation_dist.default
 
 =for Euclid:
    mutation_dist.type: string
@@ -1435,6 +1437,15 @@ sub initialize {
   $self->{mutation_para1} = $self->{mutation_dist}[1] || 0;
   $self->{mutation_para2} = $self->{mutation_dist}[2] || 0;
   delete $self->{mutation_dist};
+
+  # Deprecation warning
+  if ($self->{mutation_model} eq 'poly4') {
+    if ( ($self->{mutation_para1} < 0.01) or ($self->{mutation_para2} < 0.01) ) {
+      warn "Warning: Passing the parameters a and b to the poly4 error model is ".
+        "deprecated! The current implementation expects to be given the error ".
+        "rate at 5' and 3' end of the reads.\n";
+    }
+  }
 
   # Parameter processing: mutation ratio
   $self->{mutation_ratio}[0] = $self->{mutation_ratio}[0] || 0;
@@ -2786,8 +2797,7 @@ sub rand_point_errors {
 
     } elsif ($type eq 'linear') {
       # Linear error model
-      # para 1 is the error rate at the 5' end of the read
-      # para 2 is the error rate at the 3' end of the read
+      # para 1 & 2 the mutation rates at the 5' and 3' end of the reads, resp.
       $mut_avg  = abs( $para2 + $para1 ) / 2;
       if ($seq_len == 1) {
         $mut_sum     = $mut_avg;
@@ -2802,9 +2812,13 @@ sub rand_point_errors {
       }
 
     } elsif ($type eq 'poly4') {
-      # Fourth degree polynomial error model: e = para1 + para2 * i**4
+      # Fourth degree polynomial error model:
+      #     e = a + b.i^4      with i the position on read
+      # para 1 & 2 the mutation rates at the 5' and 3' end of the reads, resp.
+      my $b = ($self->{mutation_para2}-$self->{mutation_para1})/($seq_len**4-1);
+      my $a =  $self->{mutation_para1} - $b;
       for my $i (0 .. $seq_len-1) {
-        my $mut       = $para1 + $para2 * ($i+1)**4;
+        my $mut       = $a + $b * ($i+1)**4;
         $mut_sum     += $mut;
         $$mut_pdf[$i] = $mut;
       }

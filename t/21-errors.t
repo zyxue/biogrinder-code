@@ -205,7 +205,7 @@ ok $factory = Grinder->new(
    -read_dist      => 100                           ,
    -total_reads    => 1000                          ,
    -mutation_ratio => (50, 50)                      ,
-   -mutation_dist  => ('poly4', 1, 4.4e-7)          ,
+   -mutation_dist  => ('poly4', 1, 45)              ,
    -random_seed    => 1233567880                    ,
 ), 'Polynomial';
 
@@ -217,8 +217,8 @@ while ( $read = $factory->next_read ) {
 $prof = hist(\@epositions, 1, 100);
 ($min, $max, $mean, $stddev) = stats($prof);
 between_ok( $$prof[0] ,    1,   27 ); # exp. number of errors at 1st  is 10 (1%)
-between_ok( $$prof[49],    7,   67 ); # exp. number of errors at 50th is 37.4 (3.74%)
-between_ok( $$prof[-1],  405,  492 ); # exp. number of errors at last is 449 (44.9%)
+between_ok( $$prof[49],    7,   67 ); # exp. number of errors at 50th is 37.5 (3.75%)
+between_ok( $$prof[-1],  405,  495 ); # exp. number of errors at last is 450 (45.0%)
 between_ok( $mean     ,   97,  103 ); # exp. mean number of errors is 100 (10.02%)
 
 #SKIP: {
